@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KK_AccStateSync", "KK_AccStateSync\KK_AccStateSync.csproj", "{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Extension", "Extension\Extension.shproj", "{0646BE09-F599-4EDB-B115-DE4043C8D3BE}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Extension\Extension.projitems*{013e81e6-1b18-4cac-ae2f-b146a8d5c16b}*SharedItemsImports = 4
+		Extension\Extension.projitems*{0646be09-f599-4edb-b115-de4043c8d3be}*SharedItemsImports = 13
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C007C748-B0B7-49D5-BAAC-F719779992AC}
+	EndGlobalSection
+EndGlobal
