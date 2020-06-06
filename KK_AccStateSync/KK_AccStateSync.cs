@@ -82,9 +82,12 @@ namespace AccStateSync
 
 			StudioAPI.StudioLoadedChanged += (sender, e) => RegisterStudioControls();
 			GameAPI.StartH += (sender, e) => { InsideHScene = true; UpdateHUI(); };
-			GameAPI.EndH += (sender, e) => { InsideHScene = false; };
+			GameAPI.EndH += (sender, e) => { InsideHScene = false; HSprites.Clear(); };
 
 			HarmonyWrapper.PatchAll(typeof(Hooks));
+
+			if (UnityEngine.Application.dataPath.EndsWith("KoikatuVR_Data"))
+				HarmonyWrapper.PatchAll(typeof(HooksVR));
 
 			foreach (var key in System.Enum.GetValues(typeof(ChaAccessoryDefine.AccessoryParentKey)))
 				AccParentNames[key.ToString()] = ChaAccessoryDefine.dictAccessoryParent[(int) key];
