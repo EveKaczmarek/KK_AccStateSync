@@ -10,12 +10,8 @@ namespace AccStateSync
 	{
 		public static bool InsideHScene = false;
 
-		private const string objPathSingle = "Canvas/SubMenu/DressCategory/Accessory/AccessoryGroup/AccessoryAllCategory";
-		private const string objPathDouble1st = "Canvas/SubMenu/SecondDressCategory/First/Group/Accessory/AccessoryGroup/AccessoryAllCategory";
-		private const string objPathDouble2nd = "Canvas/SubMenu/SecondDressCategory/Second/Group/Accessory/AccessoryGroup/AccessoryAllCategory";
-		private const string objPathHorigin = "Canvas/SubMenu/DressCategory/Accessory/AccessoryGroup/AccessoryCategory/1";
-
 		internal static List<ChaControl> HSceneHeroine;
+		internal static List<HSprite> HSprites = new List<HSprite>();
 
 		internal static void UpdateHUI()
 		{
@@ -25,14 +21,17 @@ namespace AccStateSync
 			ContainerOffsetMinY = -144;
 			MenuitemHeightOffsetY = -24;
 
-			if (HSceneHeroine.Count() == 2)
+			foreach(HSprite sprite in HSprites)
 			{
-				ClearFreeHbutton(GameObject.Find(objPathDouble1st));
-				ClearFreeHbutton(GameObject.Find(objPathDouble2nd));
+				if (HSceneHeroine.Count() == 2)
+				{
+					ClearFreeHbutton(sprite.lstMultipleFemaleDressButton[0].accessoryAll.gameObject);
+					ClearFreeHbutton(sprite.lstMultipleFemaleDressButton[1].accessoryAll.gameObject);
+				}
+				else
+					ClearFreeHbutton(sprite.categoryAccessoryAll.gameObject);
 			}
-			else
-				ClearFreeHbutton(GameObject.Find(objPathSingle));
-
+			
 			int i = 0, Heroine = 0;
 			foreach (ChaControl chaCtrl in HSceneHeroine)
 			{
@@ -59,36 +58,39 @@ namespace AccStateSync
 
 		internal static void CreateFreeHbutton(ChaControl chaCtrl, int Heroine, string group, int i)
 		{
-			GameObject parent;
-			if (HSceneHeroine.Count() == 2)
-				parent = (Heroine == 0) ? GameObject.Find(objPathDouble1st) : GameObject.Find(objPathDouble2nd);
-			else
-				parent = GameObject.Find(objPathSingle);
-
-			Transform origin = GameObject.Find(objPathHorigin).transform;
-			Transform copy = Object.Instantiate(origin.transform, parent.transform, false);
-			copy.GetComponentInChildren<TextMeshProUGUI>().text = (AccParentNames.ContainsKey(group)) ? AccParentNames[group] : group;
-
-			RectTransform copyRt = copy.GetComponent<RectTransform>();
-			copyRt.offsetMin = new Vector2(0, ContainerOffsetMinY + (MenuitemHeightOffsetY * (i + 1))); // -168
-			copyRt.offsetMax = new Vector2(112, ContainerOffsetMinY + (MenuitemHeightOffsetY * i)); // -144
-			copyRt.transform.name = $"btnASS_{Heroine}_{group}";
-
-			Button button = copy.GetComponentInChildren<Button>();
-			button.onClick.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.Off);
-			button.onClick.RemoveAllListeners();
-			button.onClick = new Button.ButtonClickedEvent();
-			button.image.raycastTarget = true;
-
-			button.onClick.AddListener(() =>
+			foreach (HSprite sprite in HSprites)
 			{
-				AccStateSyncController pluginCtrl = GetController(chaCtrl);
-				bool show = !pluginCtrl.VirtualGroupStates[group];
-				pluginCtrl.ToggleByVirtualGroup(group, show);
-				Illusion.Game.Utils.Sound.Play(Illusion.Game.SystemSE.sel);
-			});
+				Transform parent;
+				if (HSceneHeroine.Count() == 2)
+					parent = (Heroine == 0) ? sprite.lstMultipleFemaleDressButton[0].accessoryAll.transform : sprite.lstMultipleFemaleDressButton[1].accessoryAll.transform;
+				else
+					parent = sprite.categoryAccessoryAll.transform;
 
-			copy.gameObject.SetActive(true);
+				Transform origin = sprite.categoryAccessory.lstButton[0].transform;
+				Transform copy = Object.Instantiate(origin.transform, parent, false);
+				copy.GetComponentInChildren<TextMeshProUGUI>().text = (AccParentNames.ContainsKey(group)) ? AccParentNames[group] : group;
+
+				RectTransform copyRt = copy.GetComponent<RectTransform>();
+				copyRt.offsetMin = new Vector2(0, ContainerOffsetMinY + (MenuitemHeightOffsetY * (i + 1))); // -168
+				copyRt.offsetMax = new Vector2(112, ContainerOffsetMinY + (MenuitemHeightOffsetY * i)); // -144
+				copyRt.transform.name = $"btnASS_{Heroine}_{group}";
+
+				Button button = copy.GetComponentInChildren<Button>();
+				button.onClick.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.Off);
+				button.onClick.RemoveAllListeners();
+				button.onClick = new Button.ButtonClickedEvent();
+				button.image.raycastTarget = true;
+
+				button.onClick.AddListener(() =>
+				{
+					AccStateSyncController pluginCtrl = GetController(chaCtrl);
+					bool show = !pluginCtrl.VirtualGroupStates[group];
+					pluginCtrl.ToggleByVirtualGroup(group, show);
+					Illusion.Game.Utils.Sound.Play(Illusion.Game.SystemSE.sel);
+				});
+
+				copy.gameObject.SetActive(true);
+			}
 		}
 	}
 }

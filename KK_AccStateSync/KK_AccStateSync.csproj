@@ -89,6 +89,7 @@
     <Compile Include="ConfigurationManagerAttributes.cs" />
     <Compile Include="DisplayObjectInfo.cs" />
     <Compile Include="KK_AccStateSyncConstants.cs" />
+    <Compile Include="KK_AccStateSyncHooksVR.cs" />
     <Compile Include="KK_AccStateSyncHooks.cs" />
     <Compile Include="KK_AccStateSync.cs" />
     <Compile Include="KK_AccStateSyncController.cs" />

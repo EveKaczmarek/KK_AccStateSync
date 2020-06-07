@@ -35,6 +35,7 @@ namespace AccStateSync
 			internal static void HSceneProcStartPostfix(List<ChaControl> ___lstFemale, HSprite ___sprite)
 			{
 				HSceneHeroine = ___lstFemale;
+				HSprites.Add(___sprite);
 			}
 
 			[HarmonyPriority(Priority.Last)]
