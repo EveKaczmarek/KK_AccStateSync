@@ -135,9 +135,7 @@ namespace AccStateSync
 
 				if ((MakerAPI.InsideMaker) && (!CharaMakerPreview.Value))
 				{
-#if DEBUG
-					Logger.LogInfo($"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}] Disabled by config");
-#endif
+					Logger.Log(DebugLogLevel, $"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}] Disabled by config");
 					return;
 				}
 				if (!TriggerEnabled)

@@ -35,9 +35,6 @@ namespace AccStateSync
 
 		public static List<ChaFileAccessory.PartsInfo> GetAccessoriesInfos(ChaControl chaCtrl)
 		{
-#if DEBUG
-//			Logger.LogWarning("[GetAccessoriesInfos] I have been summoned");
-#endif
 			List<ChaFileAccessory.PartsInfo> PartsInfo = new List<ChaFileAccessory.PartsInfo>() {};
 			PartsInfo.AddRange( chaCtrl.nowCoordinate.accessory.parts.ToList<ChaFileAccessory.PartsInfo>() );
 			PartsInfo.AddRange(GetMoreAccessoriesInfos(chaCtrl, chaCtrl.fileStatus.coordinateType));
@@ -46,9 +43,6 @@ namespace AccStateSync
 
 		public static Dictionary<ChaFileDefine.CoordinateType, List<ChaFileAccessory.PartsInfo>> GetRawAccessoriesInfos(ChaControl chaCtrl)
 		{
-#if DEBUG
-//			Logger.LogWarning("[GetRawAccessoriesInfos] I have been summoned");
-#endif
 			Dictionary<ChaFile, object> _accessoriesByChar = MoreAccObj.GetField("_accessoriesByChar").ToDictionary<ChaFile, object>();
 			_accessoriesByChar.TryGetValue(chaCtrl.chaFile, out object charAdditionalData);
 			Dictionary<ChaFileDefine.CoordinateType, List<ChaFileAccessory.PartsInfo>> rawAccInfos = charAdditionalData.GetField("rawAccessoriesInfos").ToDictionary<ChaFileDefine.CoordinateType, List<ChaFileAccessory.PartsInfo>>();
@@ -58,9 +52,6 @@ namespace AccStateSync
 
 		public static List<ChaFileAccessory.PartsInfo> GetCoordinatePartsInfo(ChaControl chaCtrl, int CoordinateIndex)
 		{
-#if DEBUG
-//			Logger.LogWarning("[GetCoordinatePartsInfo] I have been summoned");
-#endif
 			List<ChaFileAccessory.PartsInfo> PartsInfo = new List<ChaFileAccessory.PartsInfo>() {};
 			PartsInfo.AddRange(chaCtrl.chaFile.coordinate[CoordinateIndex].accessory.parts.ToList<ChaFileAccessory.PartsInfo>());
 			PartsInfo.AddRange(GetMoreAccessoriesInfos(chaCtrl, CoordinateIndex));
@@ -69,9 +60,6 @@ namespace AccStateSync
 
 		public static List<ChaFileAccessory.PartsInfo> GetMoreAccessoriesInfos(ChaControl chaCtrl, int CoordinateIndex)
 		{
-#if DEBUG
-//			Logger.LogWarning("[GetMoreAccessoriesInfos] I have been summoned");
-#endif
 			Dictionary<ChaFile, object> _accessoriesByChar = MoreAccObj.GetField("_accessoriesByChar").ToDictionary<ChaFile, object>();
 			_accessoriesByChar.TryGetValue(chaCtrl.chaFile, out object charAdditionalData);
 			charAdditionalData.GetField("rawAccessoriesInfos").ToDictionary<ChaFileDefine.CoordinateType, List<ChaFileAccessory.PartsInfo>>()

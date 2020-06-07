@@ -37,7 +37,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.Koikatu.Assembly-CSharp.2019.4.27\lib\net35\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\lib\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -85,9 +85,15 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+  <Choose>
+    <When Condition=" '$(Configuration)' == 'DEBUG' ">
+      <ItemGroup>
+        <Compile Include="DisplayObjectInfo.cs" />
+      </ItemGroup>
+    </When>
+  </Choose>
   <ItemGroup>
     <Compile Include="ConfigurationManagerAttributes.cs" />
-    <Compile Include="DisplayObjectInfo.cs" />
     <Compile Include="KK_AccStateSyncConstants.cs" />
     <Compile Include="KK_AccStateSyncHooksVR.cs" />
     <Compile Include="KK_AccStateSyncHooks.cs" />

@@ -8,6 +8,7 @@ using BepInEx.Harmony;
 using BepInEx.Logging;
 using KKAPI.Chara;
 using KKAPI.Maker;
+using KKAPI.Maker.UI;
 using KKAPI.Maker.UI.Sidebar;
 using KKAPI.Studio;
 using KKAPI.MainGame;
@@ -20,7 +21,7 @@ namespace AccStateSync
 	{
 		public const string Name = "KK_AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "0.0.0.9";
+		public const string Version = "0.0.0.10";
 
 		internal static new ManualLogSource Logger;
 #if DEBUG
@@ -30,11 +31,16 @@ namespace AccStateSync
 #endif
 		internal static UnityEngine.MonoBehaviour instance;
 
-		public static ConfigEntry<float> CoroutineSlotChangeDelay { get; set; }
-		public static ConfigEntry<float> CoroutineCounterMax { get; set; }
-		public static ConfigEntry<bool> CharaMakerPreview { get; set; }
-		public static ConfigEntry<bool> StudioUseMoreAccBtn { get; set; }
-		public static SidebarToggle CharaMakerPreviewSidebarToggle;
+		internal static ConfigEntry<float> CoroutineSlotChangeDelay { get; set; }
+		internal static ConfigEntry<float> CoroutineCounterMax { get; set; }
+		internal static ConfigEntry<bool> CharaMakerPreview { get; set; }
+		internal static ConfigEntry<bool> StudioUseMoreAccBtn { get; set; }
+
+		internal static SidebarToggle CharaMakerPreviewSidebarToggle;
+		internal static MakerLoadToggle LoadCharaExtdataToggle;
+		internal static bool LoadCharaExtdata => LoadCharaExtdataToggle == null || LoadCharaExtdataToggle.Value;
+		internal static MakerCoordinateLoadToggle LoadCoordinateExtdataToggle;
+		internal static bool LoadCoordinateExtdata => LoadCoordinateExtdataToggle == null || LoadCoordinateExtdataToggle.Value;
 
 		internal static int MenuitemHeightOffsetY = 0;
 		internal static int AnchorOffsetMinY = 0;
@@ -63,7 +69,7 @@ namespace AccStateSync
 				}
 			};
 
-//			MakerAPI.MakerBaseLoaded += MakerAPI_MakerBaseLoaded;
+			MakerAPI.MakerBaseLoaded += MakerAPI_MakerBaseLoaded;
 			MakerAPI.MakerFinishedLoading += (object sender, EventArgs e) => CreateMakerInterface();
 
 			AccessoriesApi.SelectedMakerAccSlotChanged += (object sender, AccessorySlotEventArgs eventArgs) => GetController(MakerAPI.GetCharacterControl()).AccSlotChangedHandler(eventArgs.SlotIndex);
@@ -89,8 +95,14 @@ namespace AccStateSync
 			if (UnityEngine.Application.dataPath.EndsWith("KoikatuVR_Data"))
 				HarmonyWrapper.PatchAll(typeof(HooksVR));
 
-			foreach (var key in System.Enum.GetValues(typeof(ChaAccessoryDefine.AccessoryParentKey)))
+			foreach (var key in Enum.GetValues(typeof(ChaAccessoryDefine.AccessoryParentKey)))
 				AccParentNames[key.ToString()] = ChaAccessoryDefine.dictAccessoryParent[(int) key];
+		}
+
+		internal static void MakerAPI_MakerBaseLoaded(object sender, RegisterCustomControlsEvent e)
+		{
+			LoadCharaExtdataToggle = e.AddLoadToggle(new MakerLoadToggle("AccStateSync"));
+			LoadCoordinateExtdataToggle = e.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("AccStateSync"));
 		}
 
 		internal static void RegisterStudioControls()

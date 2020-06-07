@@ -57,14 +57,7 @@ namespace AccStateSync
 				PluginData ExtendedData = GetCoordinateExtendedData(coordinate);
 				if (ExtendedData != null && ExtendedData.data.TryGetValue("OutfitTriggerInfo", out var loadedOutfitTriggerInfo) && loadedOutfitTriggerInfo != null)
 				{
-					bool LoadFlag = true;
-					if (MakerAPI.InsideMaker)
-					{
-						CoordinateLoadFlags LoadFlags = MakerAPI.GetCoordinateLoadFlags();
-						if ((!(bool)LoadFlags?.Accessories) && (LoadFlags != null))
-							LoadFlag = false;
-					}
-					if (LoadFlag)
+					if (!MakerAPI.InsideMaker || (MakerAPI.InsideMaker && LoadCoordinateExtdata))
 					{
 						CharaTriggerInfo[CurrentCoordinateIndex] = MessagePackSerializer.Deserialize<OutfitTriggerInfo>((byte[])loadedOutfitTriggerInfo);
 						Logger.Log(DebugLogLevel, $"[OnCoordinateBeingLoaded][{ChaControl.chaFile.parameter?.fullname}] CharaTriggerInfo[{CurrentCoordinateIndex}] loaded from extdata");
@@ -98,16 +91,11 @@ namespace AccStateSync
 				PluginData ExtendedData = GetExtendedData();
 				if (ExtendedData != null && ExtendedData.data.TryGetValue("CharaTriggerInfo", out var loadedCharaTriggerInfo) && loadedCharaTriggerInfo != null)
 				{
-					if (MakerAPI.InsideMaker)
+					if (!MakerAPI.InsideMaker || (MakerAPI.InsideMaker && LoadCharaExtdata))
 					{
-						CharacterLoadFlags LoadFlags = MakerAPI.GetCharacterLoadFlags();
-						if (((bool)LoadFlags?.Clothes) || (LoadFlags == null))
-							CharaTriggerInfo = MessagePackSerializer.Deserialize<List<OutfitTriggerInfo>>((byte[])loadedCharaTriggerInfo);
-					}
-					else
 						CharaTriggerInfo = MessagePackSerializer.Deserialize<List<OutfitTriggerInfo>>((byte[])loadedCharaTriggerInfo);
-
-					Logger.Log(DebugLogLevel, $"[OnReload][{ChaControl.chaFile.parameter?.fullname}] CharaTriggerInfo loaded from extdata");
+						Logger.Log(DebugLogLevel, $"[OnReload][{ChaControl.chaFile.parameter?.fullname}] CharaTriggerInfo loaded from extdata");
+					}
 				}
 				InitCurOutfitTriggerInfo();
 
