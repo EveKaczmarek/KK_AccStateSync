@@ -36,7 +36,7 @@ namespace AccStateSync
 			}
 
 			[HarmonyPostfix, HarmonyPatch(typeof(VRHScene), "OnDestroy")]
-			internal static void VRHSceneDestroyPostFix()
+			internal static void VRHSceneOnDestroyPostFix()
 			{
 				InsideHScene = false;
 				HSprites.Clear();

@@ -21,7 +21,11 @@ namespace AccStateSync
 			public bool TriggerEnabled = false;
 
 			public Dictionary<string, bool> VirtualGroupStates = new Dictionary<string, bool>();
-			public List<string> VirtualGroupNames = new List<string>();
+
+			public List<Dictionary<string, string>> CharaVirtualGroupNames = new List<Dictionary<string, string>>();
+			public Dictionary<string, string> CurOutfitVirtualGroupNames = new Dictionary<string, string>();
+
+			public List<string> GameObjectNames = new List<string>();
 
 			public float CoroutineCounter = 0;
 
@@ -47,13 +51,15 @@ namespace AccStateSync
 				SyncCharaTriggerInfo();
 				PluginData ExtendedData = new PluginData();
 				ExtendedData.data.Add("CharaTriggerInfo", MessagePackSerializer.Serialize(CharaTriggerInfo));
+				ExtendedData.data.Add("CharaVirtualGroupNames", MessagePackSerializer.Serialize(CharaVirtualGroupNames));
 				SetExtendedData(ExtendedData);
 			}
 
 			protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
 			{
 				Logger.Log(DebugLogLevel, $"[OnCoordinateBeingLoaded][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
-				CurOutfitTriggerInfo = null;
+				CharaTriggerInfo[CurrentCoordinateIndex] = new OutfitTriggerInfo(CurrentCoordinateIndex);
+				CharaVirtualGroupNames[CurrentCoordinateIndex] = new Dictionary<string, string>();
 				PluginData ExtendedData = GetCoordinateExtendedData(coordinate);
 				if (ExtendedData != null && ExtendedData.data.TryGetValue("OutfitTriggerInfo", out var loadedOutfitTriggerInfo) && loadedOutfitTriggerInfo != null)
 				{
@@ -61,11 +67,18 @@ namespace AccStateSync
 					{
 						CharaTriggerInfo[CurrentCoordinateIndex] = MessagePackSerializer.Deserialize<OutfitTriggerInfo>((byte[])loadedOutfitTriggerInfo);
 						Logger.Log(DebugLogLevel, $"[OnCoordinateBeingLoaded][{ChaControl.chaFile.parameter?.fullname}] CharaTriggerInfo[{CurrentCoordinateIndex}] loaded from extdata");
+
+						if (ExtendedData.data.TryGetValue("OutfitVirtualGroupNames", out var loadedOutfitVirtualGroupNames) && loadedOutfitVirtualGroupNames != null)
+						{
+							CharaVirtualGroupNames[CurrentCoordinateIndex] = MessagePackSerializer.Deserialize<Dictionary<string, string>>((byte[])loadedOutfitVirtualGroupNames);
+							Logger.Log(DebugLogLevel, $"[OnCoordinateBeingLoaded][{ChaControl.chaFile.parameter?.fullname}] CharaVirtualGroupNames[{CurrentCoordinateIndex}] loaded from extdata");
+						}
 					}
 
-					CurOutfitTriggerInfo = CharaTriggerInfo[CurrentCoordinateIndex];
 					Logger.Log(DebugLogLevel, $"[OnCoordinateBeingLoaded] CurOutfitTriggerInfo.Parts count: {CurOutfitTriggerInfo.Parts.Count()}");
 				}
+				CurOutfitTriggerInfo = CharaTriggerInfo[CurrentCoordinateIndex];
+				CurOutfitVirtualGroupNames = CharaVirtualGroupNames[CurrentCoordinateIndex];
 				InitCurOutfitTriggerInfo();
 
 				base.OnCoordinateBeingLoaded(coordinate);
@@ -74,11 +87,16 @@ namespace AccStateSync
 			protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
 			{
 				Logger.Log(DebugLogLevel, $"[OnCoordinateBeingSaved][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
+				PluginData ExtendedData = new PluginData();
+
 				CurOutfitTriggerInfo = CharaTriggerInfo.ElementAtOrDefault(CurrentCoordinateIndex);
 				Logger.Log(DebugLogLevel, $"[OnCoordinateBeingSaved] CurOutfitTriggerInfo.Parts count: {CurOutfitTriggerInfo.Parts.Count()}");
 				SyncOutfitTriggerInfo(CurrentCoordinateIndex);
-				PluginData ExtendedData = new PluginData();
 				ExtendedData.data.Add("OutfitTriggerInfo", MessagePackSerializer.Serialize(CurOutfitTriggerInfo));
+
+				CurOutfitVirtualGroupNames = CharaVirtualGroupNames.ElementAtOrDefault(CurrentCoordinateIndex);
+				ExtendedData.data.Add("OutfitVirtualGroupNames", MessagePackSerializer.Serialize(CurOutfitVirtualGroupNames));
+
 				SetCoordinateExtendedData(coordinate, ExtendedData);
 			}
 
@@ -87,6 +105,7 @@ namespace AccStateSync
 				Logger.Log(DebugLogLevel, "[OnReload] Fired!!");
 				TriggerEnabled = false;
 				ResetCharaTriggerInfo();
+				ResetCharaVirtualGroupNames();
 
 				PluginData ExtendedData = GetExtendedData();
 				if (ExtendedData != null && ExtendedData.data.TryGetValue("CharaTriggerInfo", out var loadedCharaTriggerInfo) && loadedCharaTriggerInfo != null)
@@ -95,6 +114,12 @@ namespace AccStateSync
 					{
 						CharaTriggerInfo = MessagePackSerializer.Deserialize<List<OutfitTriggerInfo>>((byte[])loadedCharaTriggerInfo);
 						Logger.Log(DebugLogLevel, $"[OnReload][{ChaControl.chaFile.parameter?.fullname}] CharaTriggerInfo loaded from extdata");
+
+						if (ExtendedData.data.TryGetValue("CharaVirtualGroupNames", out var loadedCharaVirtualGroupNames) && loadedCharaVirtualGroupNames != null)
+						{
+							CharaVirtualGroupNames = MessagePackSerializer.Deserialize<List<Dictionary<string, string>>>((byte[])loadedCharaVirtualGroupNames);
+							Logger.Log(DebugLogLevel, $"[OnReload][{ChaControl.chaFile.parameter?.fullname}] CharaVirtualGroupNames loaded from extdata");
+						}
 					}
 				}
 				InitCurOutfitTriggerInfo();
@@ -126,9 +151,11 @@ namespace AccStateSync
 
 				TriggerEnabled = true;
 				VirtualGroupStates.Clear();
-//				CurSlotTriggerInfo = new AccTriggerInfo(0);
 
 				FillVirtualGroupStates();
+
+				CurOutfitVirtualGroupNames = CharaVirtualGroupNames?.ElementAtOrDefault(CurrentCoordinateIndex);
+				FillVirtualGroupNames();
 
 				if (MakerAPI.InsideMaker)
 				{

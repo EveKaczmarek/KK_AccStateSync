@@ -54,6 +54,9 @@ namespace AccStateSync
 					}
 				}
 
+				List<string> extra = CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
+				CreateMakerDropdownItems(extra);
+
 				int ddASSListVal = CurSlotTriggerInfo.Kind < 10 ? ddASSListVals.IndexOf(CurSlotTriggerInfo.Kind) : CurSlotTriggerInfo.Kind;
 				GameObject.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().value = ddASSListVal;
 				GameObject.Find("tglASS0").GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[0];
@@ -67,9 +70,9 @@ namespace AccStateSync
 				GameObject.Find("tglASS2").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][2] ? 1f : 0.2f;
 				GameObject.Find("tglASS3").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][3] ? 1f : 0.2f;
 
-				foreach (string group in VirtualGroupNames)
+				foreach (string group in GameObjectNames)
 					Object.Destroy(GameObject.Find(group));
-				VirtualGroupNames.Clear();
+				GameObjectNames.Clear();
 
 				FillVirtualGroupStates();
 
@@ -146,6 +149,48 @@ namespace AccStateSync
 				OutfitTriggerInfo Todo = CharaTriggerInfo.ElementAtOrDefault(CoordinateIndex);
 				CopySlotTriggerInfo(Todo.Parts[SourceSlotIndex], Todo.Parts[DestinationSlotIndex]);
 				Todo.Parts[DestinationSlotIndex].Slot = DestinationSlotIndex;
+			}
+
+			internal void RenameGroup(string group, string label)
+			{
+				if (!CurOutfitVirtualGroupNames.ContainsKey(group))
+				{
+					Logger.LogMessage($"Invalid group {group}");
+					return;
+				}
+				CurOutfitVirtualGroupNames[group] = label;
+				Logger.LogMessage($"[{group}] renamed into {label}");
+			}
+
+			internal void RenameGroup(int kind, string label)
+			{
+				if (kind <= 9)
+				{
+					Logger.LogMessage($"Invalid kind {kind}");
+					return;
+				}
+				string group = $"custom_{kind - 9}";
+				CurOutfitVirtualGroupNames[group] = label;
+				Logger.LogMessage($"[{group}] renamed into {label}");
+			}
+
+			internal void PushGroup()
+			{
+				int n = CurOutfitVirtualGroupNames.Count() + 1;
+				CurOutfitVirtualGroupNames[$"custom_{n}"] = $"Custom {n}";
+				Logger.LogMessage($"[custom_{n}] added");
+			}
+
+			internal void PopGroup()
+			{
+				int n = CurOutfitVirtualGroupNames.Count();
+				if (n <= DefaultCustomGroupCount)
+				{
+					Logger.LogMessage($"Cannot go below {DefaultCustomGroupCount} custom group");
+					return;
+				}
+				CurOutfitVirtualGroupNames.Remove($"custom_{n}");
+				Logger.LogMessage($"[custom_{n}] removed");
 			}
 		}
 	}

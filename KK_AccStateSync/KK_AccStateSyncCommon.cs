@@ -18,6 +18,13 @@ namespace AccStateSync
 					CharaTriggerInfo.Add(new OutfitTriggerInfo(i));
 			}
 
+			internal void ResetCharaVirtualGroupNames()
+			{
+				CharaVirtualGroupNames = new List<Dictionary<string, string>>();
+				for (int i = 0; i < 7; i++)
+					CharaVirtualGroupNames.Add(new Dictionary<string, string>());
+			}
+
 			internal void CopySlotTriggerInfo(AccTriggerInfo CopySource, AccTriggerInfo CopyDestination)
 			{
 				CopyDestination.Slot = CopySource.Slot;
@@ -92,20 +99,29 @@ namespace AccStateSync
 			internal void FillVirtualGroupStates()
 			{
 				Dictionary<string, bool> tmpVGS = new Dictionary<string, bool>();
-				foreach (AccTriggerInfo Part in CurOutfitTriggerInfo.Parts)
+				List<string> Groups = CurOutfitTriggerInfo.Parts.Where(x => x.Kind >= 9).OrderBy(x => x.Kind).OrderBy(x => x.Group).GroupBy(x => x.Group).Select(x => x.First().Group).ToList();
+				foreach (string Group in Groups)
 				{
-					if (Part.Kind >= 9)
-					{
-						if (!Part.Group.IsNullOrEmpty())
-						{
-							if (VirtualGroupStates.ContainsKey(Part.Group))
-								tmpVGS[Part.Group] = VirtualGroupStates[Part.Group];
-							else
-								tmpVGS[Part.Group] = true;
-						}
-					}
+					if (VirtualGroupStates.ContainsKey(Group))
+						tmpVGS[Group] = VirtualGroupStates[Group];
+					else
+						tmpVGS[Group] = true;
 				}
 				VirtualGroupStates = tmpVGS.ToDictionary(entry => entry.Key, entry => entry.Value);
+			}
+
+			internal void FillVirtualGroupNames()
+			{
+				int max = CurOutfitTriggerInfo.Parts.Max(x => x.Kind);
+				max = max > (9 + DefaultCustomGroupCount) ? (max - 9) : DefaultCustomGroupCount;
+				int i = CurOutfitVirtualGroupNames.Count();
+				if (i < max)
+				{
+					Logger.Log(DebugLogLevel, $"[FillVirtualGroupNames][{ChaControl.chaFile.parameter?.fullname}] Filled with {max - i} entries");
+
+					for (; i < max; i++)
+						CurOutfitVirtualGroupNames[$"custom_{i + 1}"] = $"Custom {i + 1}";
+				}
 			}
 
 			internal void ToggleByClothesState(ChaControl chaCtrl, int kind, int state)

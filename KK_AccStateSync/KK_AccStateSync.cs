@@ -11,7 +11,6 @@ using KKAPI.Maker;
 using KKAPI.Maker.UI;
 using KKAPI.Maker.UI.Sidebar;
 using KKAPI.Studio;
-using KKAPI.MainGame;
 
 namespace AccStateSync
 {
@@ -21,7 +20,7 @@ namespace AccStateSync
 	{
 		public const string Name = "KK_AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "0.0.0.10";
+		public const string Version = "0.0.0.12";
 
 		internal static new ManualLogSource Logger;
 #if DEBUG
@@ -46,7 +45,7 @@ namespace AccStateSync
 		internal static int AnchorOffsetMinY = 0;
 		internal static int ContainerOffsetMinY = 0;
 
-		internal static int CustomGroupCount = 5;
+		internal static int DefaultCustomGroupCount = 5;
 
 		internal void Start()
 		{
@@ -87,10 +86,11 @@ namespace AccStateSync
 			};
 
 			StudioAPI.StudioLoadedChanged += (sender, e) => RegisterStudioControls();
-			GameAPI.StartH += (sender, e) => { InsideHScene = true; UpdateHUI(); };
-			GameAPI.EndH += (sender, e) => { InsideHScene = false; HSprites.Clear(); };
 
 			HarmonyWrapper.PatchAll(typeof(Hooks));
+
+			if (UnityEngine.Application.dataPath.EndsWith("Koikatu_Data"))
+				HarmonyWrapper.PatchAll(typeof(HooksHScene));
 
 			if (UnityEngine.Application.dataPath.EndsWith("KoikatuVR_Data"))
 				HarmonyWrapper.PatchAll(typeof(HooksVR));

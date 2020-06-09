@@ -113,12 +113,13 @@ namespace AccStateSync
 			Transform copy = GameObject.Find("ddASSList").transform;
 			copy.gameObject.SetActive(false);
 			TMP_Dropdown dropdown = copy.GetComponentInChildren<TMP_Dropdown>();
+			dropdown.GetComponent<Image>().raycastTarget = true;
+
 			dropdown.onValueChanged.RemoveAllListeners();
 			dropdown.ClearOptions();
-			dropdown.GetComponent<Image>().raycastTarget = true;
 			dropdown.options.AddRange(ddASSListLabels.Select(x => new TMP_Dropdown.OptionData(x)));
 			dropdown.options.AddRange(labels.Select(x => new TMP_Dropdown.OptionData(x)));
-			dropdown.value = 0;
+			dropdown.value = -1;
 			dropdown.onValueChanged.AddListener( _ =>
 			{
 				ChaControl chaCtrl = MakerAPI.GetCharacterControl();
@@ -154,7 +155,7 @@ namespace AccStateSync
 			copyRt.offsetMax = new Vector2(280, AnchorOffsetMinY + 40);
 
 			List<string> extra = new List<string>();
-			for (int i = 0; i < CustomGroupCount; i++)
+			for (int i = 0; i < DefaultCustomGroupCount; i++)
 				extra.Add($"Custom {(i + 1)}");
 			CreateMakerDropdownItems(extra);
 		}
@@ -200,7 +201,14 @@ namespace AccStateSync
 			Transform origin = GameObject.Find("tglSlot01/Slot01Top/tglNoShake").transform;
 			Transform copy = Object.Instantiate(origin, GameObject.Find("04_AccessoryTop/AcsMoveWindow01/grpParent").transform, false);
 
-			copy.GetComponentInChildren<TextMeshProUGUI>().text = (AccParentNames.ContainsKey(group)) ? AccParentNames[group] : group;
+			ChaControl chaCtrl = MakerAPI.GetCharacterControl();
+			AccStateSyncController pluginCtrl = GetController(chaCtrl);
+			string label = group;
+			if (AccParentNames.ContainsKey(group))
+				label = AccParentNames[group];
+			else if (pluginCtrl.CurOutfitVirtualGroupNames.ContainsKey(group))
+				label = pluginCtrl.CurOutfitVirtualGroupNames[group];
+			copy.GetComponentInChildren<TextMeshProUGUI>().text = label;
 
 			RectTransform copyRt = copy.GetComponent<RectTransform>();
 			copyRt.offsetMin = new Vector2(0, AnchorOffsetMinY);
@@ -212,9 +220,7 @@ namespace AccStateSync
 			toggle.image.raycastTarget = true;
 			toggle.graphic.raycastTarget = true;
 
-			ChaControl chaCtrl = MakerAPI.GetCharacterControl();
-			AccStateSyncController pluginCtrl = GetController(chaCtrl);
-			pluginCtrl.VirtualGroupNames.Add("tglASS_" + group);
+			pluginCtrl.GameObjectNames.Add("tglASS_" + group);
 			toggle.isOn = pluginCtrl.VirtualGroupStates[group];
 
 			toggle.onValueChanged.AddListener( _ =>

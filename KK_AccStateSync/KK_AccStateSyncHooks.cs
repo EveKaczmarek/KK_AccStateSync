@@ -18,6 +18,21 @@ namespace AccStateSync
 				}
 			}
 
+			[HarmonyPriority(Priority.Last)]
+			[HarmonyPostfix, HarmonyPatch(typeof(ChaControl), "SetAccessoryStateCategory")]
+			internal static void SetAccessoryStateCategoryPostfix(ChaControl __instance, int cateNo, bool show)
+			{
+				AccStateSyncController controller = GetController(__instance);
+				if (controller != null)
+				{
+					if (controller.CoroutineCounter <= CoroutineCounterMax.Value)
+						controller.CoroutineCounter++;
+				}
+			}
+		}
+
+		internal class HooksHScene
+		{
 			[HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), "SetClothStateStartMotion")]
 			internal static void SetClothStateStartMotionPostfix(HSceneProc __instance)
 			{
@@ -38,16 +53,18 @@ namespace AccStateSync
 				HSprites.Add(___sprite);
 			}
 
-			[HarmonyPriority(Priority.Last)]
-			[HarmonyPostfix, HarmonyPatch(typeof(ChaControl), "SetAccessoryStateCategory")]
-			internal static void SetAccessoryStateCategoryPostfix(ChaControl __instance, int cateNo, bool show)
+			[HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), "MapSameObjectDisable")]
+			internal static void HSceneProcMapSameObjectDisablePostFix()
 			{
-				AccStateSyncController controller = GetController(__instance);
-				if (controller != null)
-				{
-					if (controller.CoroutineCounter <= CoroutineCounterMax.Value)
-						controller.CoroutineCounter ++;
-				}
+				InsideHScene = true;
+				UpdateHUI();
+			}
+
+			[HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), "OnDestroy")]
+			internal static void HSceneProcOnDestroyPostFix()
+			{
+				InsideHScene = false;
+				HSprites.Clear();
 			}
 		}
 	}

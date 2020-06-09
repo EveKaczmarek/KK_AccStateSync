@@ -55,7 +55,11 @@ namespace AccStateSync
 			Dictionary<string, bool> VirtualGroupStates = controller.VirtualGroupStates;
 			foreach (KeyValuePair<string, bool> group in VirtualGroupStates)
 			{
-				string label = (AccParentNames.ContainsKey(group.Key)) ? AccParentNames[group.Key] : group.Key;
+				string label = group.Key;
+				if (AccParentNames.ContainsKey(group.Key))
+					label = AccParentNames[group.Key];
+				else if (controller.CurOutfitVirtualGroupNames.ContainsKey(group.Key))
+					label = controller.CurOutfitVirtualGroupNames[group.Key];
 				CreateStudioUIText(group.Key, i, label);
 				CreateStudioUIToggle(group.Key, i, group.Value);
 				i++;

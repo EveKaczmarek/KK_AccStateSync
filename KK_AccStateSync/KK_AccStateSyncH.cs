@@ -31,7 +31,7 @@ namespace AccStateSync
 				else
 					ClearFreeHbutton(sprite.categoryAccessoryAll.gameObject);
 			}
-			
+
 			int i = 0, Heroine = 0;
 			foreach (ChaControl chaCtrl in HSceneHeroine)
 			{
@@ -68,7 +68,14 @@ namespace AccStateSync
 
 				Transform origin = sprite.categoryAccessory.lstButton[0].transform;
 				Transform copy = Object.Instantiate(origin.transform, parent, false);
-				copy.GetComponentInChildren<TextMeshProUGUI>().text = (AccParentNames.ContainsKey(group)) ? AccParentNames[group] : group;
+
+				AccStateSyncController pluginCtrl = GetController(chaCtrl);
+				string label = group;
+				if (AccParentNames.ContainsKey(group))
+					label = AccParentNames[group];
+				else if (pluginCtrl.CurOutfitVirtualGroupNames.ContainsKey(group))
+					label = pluginCtrl.CurOutfitVirtualGroupNames[group];
+				copy.GetComponentInChildren<TextMeshProUGUI>().text = label;
 
 				RectTransform copyRt = copy.GetComponent<RectTransform>();
 				copyRt.offsetMin = new Vector2(0, ContainerOffsetMinY + (MenuitemHeightOffsetY * (i + 1))); // -168
@@ -83,7 +90,6 @@ namespace AccStateSync
 
 				button.onClick.AddListener(() =>
 				{
-					AccStateSyncController pluginCtrl = GetController(chaCtrl);
 					bool show = !pluginCtrl.VirtualGroupStates[group];
 					pluginCtrl.ToggleByVirtualGroup(group, show);
 					Illusion.Game.Utils.Sound.Play(Illusion.Game.SystemSE.sel);
