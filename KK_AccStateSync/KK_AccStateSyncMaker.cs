@@ -54,17 +54,19 @@ namespace AccStateSync
 					}
 				}
 
-				List<string> extra = CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
-				CreateMakerDropdownItems(extra);
+				int ddASSListVal = CurSlotTriggerInfo.Kind <= 9 ? ddASSListVals.IndexOf(CurSlotTriggerInfo.Kind) : CurSlotTriggerInfo.Kind;
 
-				int ddASSListVal = CurSlotTriggerInfo.Kind < 10 ? ddASSListVals.IndexOf(CurSlotTriggerInfo.Kind) : CurSlotTriggerInfo.Kind;
-				GameObject.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().value = ddASSListVal;
+				List<string> extra = CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
+				CreateMakerDropdownItems(extra, ddASSListVal);
+
+//				GameObject.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().value = ddASSListVal;
+				GameObject.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().RefreshShownValue();
 				GameObject.Find("tglASS0").GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[0];
 				GameObject.Find("tglASS1").GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[1];
 				GameObject.Find("tglASS2").GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[2];
 				GameObject.Find("tglASS3").GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[3];
 
-				int refIndex = ddASSListVal < 10 ? ddASSListVal : 9;
+				int refIndex = ddASSListVal <= 9 ? ddASSListVal : 9;
 				GameObject.Find("tglASS0").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][0] ? 1f : 0.2f;
 				GameObject.Find("tglASS1").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][1] ? 1f : 0.2f;
 				GameObject.Find("tglASS2").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][2] ? 1f : 0.2f;
@@ -120,13 +122,31 @@ namespace AccStateSync
 			{
 				if (!MakerAPI.InsideAndLoaded) return;
 
-				Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}][Soruce: {CopySource}][Destination: {CopyDestination}][CopiedSlotIndexes: {string.Join(",", CopiedSlotIndexes.Select(i => i.ToString()).ToArray())}]");
+				Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}][Soruce: {CopySource}][Destination: {CopyDestination}][CopiedSlotIndexes: {string.Join(",", CopiedSlotIndexes.Select(Slot => Slot.ToString()).ToArray())}]");
 
 				CheckOutfitTriggerInfoCount(CopySource);
 				CheckOutfitTriggerInfoCount(CopyDestination);
 
+				int i = 9;
+				int j = CharaTriggerInfo[CopyDestination].Parts.Max(x => x.Kind);
 				foreach (int Slot in CopiedSlotIndexes)
+				{
 					CopySlotTriggerInfo(CharaTriggerInfo[CopySource].Parts[Slot], CharaTriggerInfo[CopyDestination].Parts[Slot]);
+					i = CharaTriggerInfo[CopySource].Parts[Slot].Kind > i ? CharaTriggerInfo[CopySource].Parts[Slot].Kind : i;
+				}
+				if (i > j)
+				{
+					for (int Kind = 10; Kind < (i + 1); Kind++)
+					{
+						string group = $"custom_{Kind - 9}";
+						if (!CharaVirtualGroupNames[CopyDestination].ContainsKey(group))
+						{
+							CharaVirtualGroupNames[CopyDestination][group] = $"Custom {Kind - 9}";
+							Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}][Group: {group}] created");
+						}
+					}
+				}
+				Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}] CharaVirtualGroupNames[{CopyDestination}].Count(): {CharaVirtualGroupNames[CopyDestination].Count()}");
 
 				if (CopyDestination == CurrentCoordinateIndex)
 					AccSlotChangedHandler(AccessoriesApi.SelectedMakerAccSlot, true);
@@ -160,6 +180,14 @@ namespace AccStateSync
 				}
 				CurOutfitVirtualGroupNames[group] = label;
 				Logger.LogMessage($"[{group}] renamed into {label}");
+
+				int kind = System.Int32.Parse(group.Replace("custom_", "")) + 9;
+				TMP_Dropdown dropdown = GameObject.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>();
+				dropdown.options[kind].text = label;
+				dropdown.RefreshShownValue();
+				GameObject toggle = GameObject.Find("tglASS_" + group);
+				if (toggle != null)
+					toggle.transform.GetComponentInChildren<TextMeshProUGUI>().text = label;
 			}
 
 			internal void RenameGroup(int kind, string label)
@@ -170,27 +198,32 @@ namespace AccStateSync
 					return;
 				}
 				string group = $"custom_{kind - 9}";
-				CurOutfitVirtualGroupNames[group] = label;
-				Logger.LogMessage($"[{group}] renamed into {label}");
+				RenameGroup(group, label);
 			}
 
 			internal void PushGroup()
 			{
 				int n = CurOutfitVirtualGroupNames.Count() + 1;
 				CurOutfitVirtualGroupNames[$"custom_{n}"] = $"Custom {n}";
-				Logger.LogMessage($"[custom_{n}] added");
+				Logger.LogMessage($"[custom_{n}][Custom {n}] added");
 			}
 
 			internal void PopGroup()
 			{
 				int n = CurOutfitVirtualGroupNames.Count();
+				string group = $"custom_{n}";
 				if (n <= DefaultCustomGroupCount)
 				{
 					Logger.LogMessage($"Cannot go below {DefaultCustomGroupCount} custom group");
 					return;
 				}
-				CurOutfitVirtualGroupNames.Remove($"custom_{n}");
-				Logger.LogMessage($"[custom_{n}] removed");
+				if (CurOutfitTriggerInfo.Parts.Where(x => x.Group == group).ToList().Count() > 0)
+				{
+					Logger.LogMessage($"Cannot remove [{group}][{CurOutfitVirtualGroupNames[group]}] because it's being assigned by slots");
+					return;
+				}
+				Logger.LogMessage($"[{group}][{CurOutfitVirtualGroupNames[group]}] removed");
+				CurOutfitVirtualGroupNames.Remove(group);
 			}
 		}
 	}

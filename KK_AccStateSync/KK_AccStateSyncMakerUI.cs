@@ -77,6 +77,7 @@ namespace AccStateSync
 				}
 
 				Logger.LogMessage($"SlotNo: {SlotNo + 1:00} updated");
+				pluginCtrl.AccSlotChangedHandler(AccessoriesApi.SelectedMakerAccSlot, true);
 			});
 			btnSave.gameObject.SetActive(true);
 		}
@@ -108,7 +109,8 @@ namespace AccStateSync
 			}
 		}
 
-		internal static void CreateMakerDropdownItems(List<string> labels)
+//		internal static void CreateMakerDropdownItems(List<string> labels) => CreateMakerDropdownItems(labels, GetController(MakerAPI.GetCharacterControl()).CurSlotTriggerInfo.Kind);
+		internal static void CreateMakerDropdownItems(List<string> labels, int i = -1)
 		{
 			Transform copy = GameObject.Find("ddASSList").transform;
 			copy.gameObject.SetActive(false);
@@ -119,24 +121,41 @@ namespace AccStateSync
 			dropdown.ClearOptions();
 			dropdown.options.AddRange(ddASSListLabels.Select(x => new TMP_Dropdown.OptionData(x)));
 			dropdown.options.AddRange(labels.Select(x => new TMP_Dropdown.OptionData(x)));
-			dropdown.value = -1;
+			dropdown.options.AddRange((new List<string>() {"+", "-"}).Select(x => new TMP_Dropdown.OptionData(x)));
+			dropdown.value = i;
 			dropdown.onValueChanged.AddListener( _ =>
 			{
 				ChaControl chaCtrl = MakerAPI.GetCharacterControl();
 				AccStateSyncController pluginCtrl = GetController(chaCtrl);
 				AccTriggerInfo Part = pluginCtrl.CurSlotTriggerInfo;
+				int j = dropdown.options.Count();
+				if (dropdown.value == (j - 2))
+				{
+					pluginCtrl.PushGroup();
+					List<string> extra = pluginCtrl.CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
+					CreateMakerDropdownItems(extra, Part.Kind);
+					return;
+				}
+				else if (dropdown.value == (j - 1))
+				{
+					pluginCtrl.PopGroup();
+					List<string> extra = pluginCtrl.CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
+					CreateMakerDropdownItems(extra, Part.Kind);
+					return;
+				}
+
 				if (Part == null)
 				{
 					Logger.LogError($"[ddASSList][{chaCtrl.chaFile.parameter?.fullname}] AccessoriesApi.SelectedMakerAccSlot {AccessoriesApi.SelectedMakerAccSlot} out of range!!");
 					return;
 				}
 
-				int refIndex = dropdown.value < 10 ? dropdown.value : 9;
+				int refIndex = dropdown.value <= 9 ? dropdown.value : 9;
 				GameObject.Find("tglASS0").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][0] ? 1f : 0.2f;
 				GameObject.Find("tglASS1").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][1] ? 1f : 0.2f;
 				GameObject.Find("tglASS2").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][2] ? 1f : 0.2f;
 				GameObject.Find("tglASS3").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][3] ? 1f : 0.2f;
-				Part.Kind = dropdown.value < 10 ? ddASSListVals[dropdown.value] : dropdown.value;
+				Part.Kind = dropdown.value <= 9 ? ddASSListVals[dropdown.value] : dropdown.value;
 
 				MakerSettingChangePreview(chaCtrl, Part);
 				Logger.Log(DebugLogLevel, $"[ddASSList][{chaCtrl.chaFile.parameter?.fullname}][Slot: {Part.Slot}][Kind: {Part.Kind}][State: {Part.State[0]}|{Part.State[1]}|{Part.State[2]}|{Part.State[3]}]");

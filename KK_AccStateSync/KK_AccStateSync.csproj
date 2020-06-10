@@ -101,8 +101,8 @@
     <Compile Include="KK_AccStateSyncController.cs" />
     <Compile Include="KK_AccStateSyncCommon.cs" />
     <Compile Include="KK_AccStateSyncMaker.cs" />
+    <Compile Include="KK_AccStateSyncMakerUI.cs" />
     <Compile Include="KK_AccStateSyncExtdata.cs" />
-    <Compile Include="KK_AccStateSyncInterface.cs" />
     <Compile Include="KK_AccStateSyncStudio.cs" />
     <Compile Include="KK_AccStateSyncH.cs" />
     <Compile Include="MoreAccessories_Support.cs" />

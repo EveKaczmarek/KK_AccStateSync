@@ -20,7 +20,7 @@ namespace AccStateSync
 	{
 		public const string Name = "KK_AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "0.0.0.12";
+		public const string Version = "0.0.0.13";
 
 		internal static new ManualLogSource Logger;
 #if DEBUG
@@ -45,7 +45,7 @@ namespace AccStateSync
 		internal static int AnchorOffsetMinY = 0;
 		internal static int ContainerOffsetMinY = 0;
 
-		internal static int DefaultCustomGroupCount = 5;
+		internal static int DefaultCustomGroupCount = 0;
 
 		internal void Start()
 		{
