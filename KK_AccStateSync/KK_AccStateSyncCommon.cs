@@ -99,7 +99,9 @@ namespace AccStateSync
 			internal void FillVirtualGroupStates()
 			{
 				Dictionary<string, bool> tmpVGS = new Dictionary<string, bool>();
-				List<string> Groups = CurOutfitTriggerInfo.Parts.Where(x => x.Kind >= 9).OrderBy(x => x.Kind).OrderBy(x => x.Group).GroupBy(x => x.Group).Select(x => x.First().Group).ToList();
+				List<string> Groups = new List<string>();
+				if (CurOutfitTriggerInfo.Parts.Count() > 0)
+					Groups = CurOutfitTriggerInfo.Parts.Where(x => x.Kind >= 9).OrderBy(x => x.Kind).OrderBy(x => x.Group).GroupBy(x => x.Group).Select(x => x.First().Group).ToList();
 				foreach (string Group in Groups)
 				{
 					if (VirtualGroupStates.ContainsKey(Group))
@@ -114,7 +116,7 @@ namespace AccStateSync
 			{
 				int max = CurOutfitTriggerInfo.Parts.Max(x => x.Kind);
 				max = max > (9 + DefaultCustomGroupCount) ? (max - 9) : DefaultCustomGroupCount;
-				int i = CurOutfitVirtualGroupNames.Count();
+				int i = (int) CurOutfitVirtualGroupNames?.Count();
 				if (i < max)
 				{
 					Logger.Log(DebugLogLevel, $"[FillVirtualGroupNames][{ChaControl.chaFile.parameter?.fullname}] Filled with {max - i} entries");

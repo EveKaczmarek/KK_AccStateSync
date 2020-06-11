@@ -11,24 +11,31 @@ namespace AccStateSync
 {
 	public partial class AccStateSync
 	{
+		public static Transform AcsMoveWindow;
+		public static RectTransform imgWindowBack;
+		public static Transform grpParent;
+		public static Transform tglParent;
+		public static Dictionary<string, GameObject> tglASSobj;
+		public static Dictionary<string, GameObject> tglASSgroup;
+
 		internal static void CreateMakerInterface()
 		{
-			GameObject accw = GameObject.Find("04_AccessoryTop/AcsMoveWindow01");
+			AcsMoveWindow = GameObject.Find("04_AccessoryTop/AcsMoveWindow01").transform;
+			imgWindowBack = AcsMoveWindow.Find("BasePanel/imgWindowBack").GetComponent<RectTransform>();
+			grpParent = AcsMoveWindow.Find("grpParent");
+			tglParent = GameObject.Find("tglSlot01/Slot01Top/tglNoShake").transform;
+			tglASSobj = new Dictionary<string, GameObject>();
+			tglASSgroup = new Dictionary<string, GameObject>();
 
-			RectTransform windRt = accw.transform.Find("BasePanel/imgWindowBack").GetComponent<RectTransform>();
-			ContainerOffsetMinY = (int) windRt.offsetMin.y - 90; // -90
-			windRt.offsetMin = new Vector2(0, ContainerOffsetMinY);
+			ContainerOffsetMinY = (int) imgWindowBack.offsetMin.y - 90; // -90
+			imgWindowBack.offsetMin = new Vector2(0, ContainerOffsetMinY);
 
-			Transform toggleParent = accw.transform.Find("grpParent");
-
-			Transform button = accw.transform.Find("button");
-			RectTransform buttonRt = button.GetComponent<RectTransform>();
-
-			AnchorOffsetMinY = (int) buttonRt.offsetMin.y;
+			AnchorOffsetMinY = (int) AcsMoveWindow.Find("button").GetComponent<RectTransform>().offsetMin.y;
+			MenuitemHeightOffsetY = 40;
 
 // sep
-			AnchorOffsetMinY += 40;
-			Transform sep = Object.Instantiate(accw.transform.Find("grpParent/imgSeparete"), toggleParent, false);
+			AnchorOffsetMinY += MenuitemHeightOffsetY;
+			Transform sep = Instantiate(grpParent.Find("imgSeparete"), grpParent, false);
 			RectTransform sepRt = sep.GetComponent<RectTransform>();
 			sepRt.offsetMin = new Vector2(0, AnchorOffsetMinY); // -408
 			sepRt.offsetMax = new Vector2(0, AnchorOffsetMinY + 4); // -404
@@ -36,19 +43,19 @@ namespace AccStateSync
 			sep.gameObject.SetActive(true);
 
 // state toggles
-			AnchorOffsetMinY -= 40;
+			AnchorOffsetMinY -= MenuitemHeightOffsetY;
 			for (int i = 0; i < 4; i++)
 				CreateMakerStateToggle(i);
 
 // dropdown
-			AnchorOffsetMinY -= 40;
+			AnchorOffsetMinY -= MenuitemHeightOffsetY;
 			CreateMakerDropdown();
 
 // save button
-			AnchorOffsetMinY -= 40;
-			Transform btnSave = Object.Instantiate(accw.transform.Find("grpParent/grpMove/X/btnReset"), toggleParent, true);
+			AnchorOffsetMinY -= MenuitemHeightOffsetY;
+			Transform btnSave = Instantiate(grpParent.Find("grpMove/X/btnReset"), grpParent, true);
 			btnSave.GetComponentInChildren<TextMeshProUGUI>().text = "Save";
-			RectTransform dropdownRt = GameObject.Find("ddASSList").GetComponent<RectTransform>();
+			RectTransform dropdownRt = grpParent.Find("ddASSList").GetComponent<RectTransform>();
 			RectTransform btnSaveRt = btnSave.GetComponent<RectTransform>();
 			btnSaveRt.offsetMin = new Vector2(btnSaveRt.offsetMin.x, dropdownRt.offsetMin.y + 412); // -76
 			btnSaveRt.offsetMax = new Vector2(btnSaveRt.offsetMax.x, dropdownRt.offsetMin.y + 412 - 380); // -456
@@ -109,10 +116,9 @@ namespace AccStateSync
 			}
 		}
 
-//		internal static void CreateMakerDropdownItems(List<string> labels) => CreateMakerDropdownItems(labels, GetController(MakerAPI.GetCharacterControl()).CurSlotTriggerInfo.Kind);
 		internal static void CreateMakerDropdownItems(List<string> labels, int i = -1)
 		{
-			Transform copy = GameObject.Find("ddASSList").transform;
+			Transform copy = grpParent.Find("ddASSList").transform;
 			copy.gameObject.SetActive(false);
 			TMP_Dropdown dropdown = copy.GetComponentInChildren<TMP_Dropdown>();
 			dropdown.GetComponent<Image>().raycastTarget = true;
@@ -151,10 +157,8 @@ namespace AccStateSync
 				}
 
 				int refIndex = dropdown.value <= 9 ? dropdown.value : 9;
-				GameObject.Find("tglASS0").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][0] ? 1f : 0.2f;
-				GameObject.Find("tglASS1").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][1] ? 1f : 0.2f;
-				GameObject.Find("tglASS2").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][2] ? 1f : 0.2f;
-				GameObject.Find("tglASS3").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][3] ? 1f : 0.2f;
+				for (int x = 0; x < 4; x++)
+					tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][x] ? 1f : 0.2f;
 				Part.Kind = dropdown.value <= 9 ? ddASSListVals[dropdown.value] : dropdown.value;
 
 				MakerSettingChangePreview(chaCtrl, Part);
@@ -166,12 +170,12 @@ namespace AccStateSync
 		internal static void CreateMakerDropdown()
 		{
 			Transform origin = GameObject.Find("06_SystemTop/tglConfig/ConfigTop/ddRamp").transform;
-			Transform copy = Object.Instantiate(origin, GameObject.Find("04_AccessoryTop/AcsMoveWindow01/grpParent").transform, false);
+			Transform copy = Instantiate(origin, grpParent, false);
 			copy.name = "ddASSList";
 			copy.GetComponentInChildren<TextMeshProUGUI>().text = " ";
 			RectTransform copyRt = copy.GetComponent<RectTransform>();
 			copyRt.offsetMin = new Vector2(0, AnchorOffsetMinY);
-			copyRt.offsetMax = new Vector2(280, AnchorOffsetMinY + 40);
+			copyRt.offsetMax = new Vector2(280, AnchorOffsetMinY + MenuitemHeightOffsetY);
 
 			List<string> extra = new List<string>();
 			for (int i = 0; i < DefaultCustomGroupCount; i++)
@@ -181,14 +185,16 @@ namespace AccStateSync
 
 		internal static void CreateMakerStateToggle(int i)
 		{
-			Transform origin = GameObject.Find("tglSlot01/Slot01Top/tglNoShake").transform;
-			Transform copy = Object.Instantiate(origin, GameObject.Find("04_AccessoryTop/AcsMoveWindow01/grpParent").transform, false);
-			copy.GetComponentInChildren<TextMeshProUGUI>().text = clothesStateText[i];
+			Transform copy = Instantiate(tglParent, grpParent, false);
+
+			ChaControl chaCtrl = MakerAPI.GetCharacterControl();
+			AccStateSyncController pluginCtrl = GetController(chaCtrl);
 
 			RectTransform copyRt = copy.GetComponent<RectTransform>();
 			copyRt.offsetMin = new Vector2(i * 100, AnchorOffsetMinY);
-			copyRt.offsetMax = new Vector2(i * 100, AnchorOffsetMinY + 40);
+			copyRt.offsetMax = new Vector2(i * 100, AnchorOffsetMinY + MenuitemHeightOffsetY);
 			copyRt.transform.name = "tglASS" + i;
+			copyRt.GetComponentInChildren<TextMeshProUGUI>().text = clothesStateText[i];
 
 			Toggle toggle = copy.GetComponentInChildren<Toggle>();
 			toggle.onValueChanged.RemoveAllListeners();
@@ -198,8 +204,6 @@ namespace AccStateSync
 
 			toggle.onValueChanged.AddListener( _ =>
 			{
-				ChaControl chaCtrl = MakerAPI.GetCharacterControl();
-				AccStateSyncController pluginCtrl = GetController(chaCtrl);
 				AccTriggerInfo Part = pluginCtrl.CurSlotTriggerInfo;
 				if (Part == null)
 				{
@@ -213,15 +217,21 @@ namespace AccStateSync
 			});
 
 			copy.gameObject.SetActive(true);
+			tglASSobj["tglASS" + i] = copy.gameObject;
 		}
 
 		internal static void CreateMakerVirtualGroupToggle(string group)
 		{
-			Transform origin = GameObject.Find("tglSlot01/Slot01Top/tglNoShake").transform;
-			Transform copy = Object.Instantiate(origin, GameObject.Find("04_AccessoryTop/AcsMoveWindow01/grpParent").transform, false);
+			Transform copy = Instantiate(tglParent, grpParent, false);
 
 			ChaControl chaCtrl = MakerAPI.GetCharacterControl();
 			AccStateSyncController pluginCtrl = GetController(chaCtrl);
+
+			RectTransform copyRt = copy.GetComponent<RectTransform>();
+			copyRt.offsetMin = new Vector2(0, AnchorOffsetMinY);
+			copyRt.offsetMax = new Vector2(0, AnchorOffsetMinY + MenuitemHeightOffsetY);
+			copyRt.transform.name = "tglASS_" + group;
+
 			string label = group;
 			if (AccParentNames.ContainsKey(group))
 				label = AccParentNames[group];
@@ -229,17 +239,10 @@ namespace AccStateSync
 				label = pluginCtrl.CurOutfitVirtualGroupNames[group];
 			copy.GetComponentInChildren<TextMeshProUGUI>().text = label;
 
-			RectTransform copyRt = copy.GetComponent<RectTransform>();
-			copyRt.offsetMin = new Vector2(0, AnchorOffsetMinY);
-			copyRt.offsetMax = new Vector2(0, AnchorOffsetMinY + 40);
-			copyRt.transform.name = "tglASS_" + group;
-
 			Toggle toggle = copy.GetComponentInChildren<Toggle>();
 			toggle.onValueChanged.RemoveAllListeners();
 			toggle.image.raycastTarget = true;
 			toggle.graphic.raycastTarget = true;
-
-			pluginCtrl.GameObjectNames.Add("tglASS_" + group);
 			toggle.isOn = pluginCtrl.VirtualGroupStates[group];
 
 			toggle.onValueChanged.AddListener( _ =>
@@ -249,7 +252,8 @@ namespace AccStateSync
 			});
 
 			copy.gameObject.SetActive(true);
-			AnchorOffsetMinY -= 40;
+			tglASSgroup["tglASS_" + group] = copy.gameObject;
+			AnchorOffsetMinY -= MenuitemHeightOffsetY;
 		}
 	}
 }

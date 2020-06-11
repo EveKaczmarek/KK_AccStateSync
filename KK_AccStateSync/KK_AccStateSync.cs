@@ -20,7 +20,7 @@ namespace AccStateSync
 	{
 		public const string Name = "KK_AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "0.0.0.13";
+		public const string Version = "0.0.0.15";
 
 		internal static new ManualLogSource Logger;
 #if DEBUG

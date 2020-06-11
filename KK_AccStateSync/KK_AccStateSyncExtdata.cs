@@ -17,7 +17,7 @@ namespace AccStateSync
 			[Key("Group")]
 			public string Group { get; set; } = "";
 			[Key("State")]
-			public List<bool> State { get; set; } = new List<bool>() {true, false, false, false};
+			public List<bool> State { get; set; } = new List<bool>() { true, false, false, false };
 
 			public AccTriggerInfo(int slot) { Slot = slot; }
 		}
@@ -29,9 +29,9 @@ namespace AccStateSync
 			[Key("Index")]
 			public int Index { get; set; }
 			[Key("Parts")]
-			public List<AccTriggerInfo> Parts { get; set; }
+			public List<AccTriggerInfo> Parts { get; set; } = new List<AccTriggerInfo>();
 
-			public OutfitTriggerInfo(int index) { Index = index; Parts = new List<AccTriggerInfo>(); }
+			public OutfitTriggerInfo(int index) { Index = index; }
 		}
 	}
 }

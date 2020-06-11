@@ -52,7 +52,7 @@ namespace AccStateSync
 			foreach (Transform child in parent.transform)
 			{
 				if (whitelist.IndexOf(child.name) == -1)
-					Object.Destroy(child.gameObject);
+					Destroy(child.gameObject);
 			}
 		}
 
@@ -67,7 +67,7 @@ namespace AccStateSync
 					parent = sprite.categoryAccessoryAll.transform;
 
 				Transform origin = sprite.categoryAccessory.lstButton[0].transform;
-				Transform copy = Object.Instantiate(origin.transform, parent, false);
+				Transform copy = Instantiate(origin.transform, parent, false);
 
 				AccStateSyncController pluginCtrl = GetController(chaCtrl);
 				string label = group;

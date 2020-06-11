@@ -54,39 +54,38 @@ namespace AccStateSync
 					}
 				}
 
-				int ddASSListVal = CurSlotTriggerInfo.Kind <= 9 ? ddASSListVals.IndexOf(CurSlotTriggerInfo.Kind) : CurSlotTriggerInfo.Kind;
+				foreach (KeyValuePair<string, GameObject> group in tglASSgroup)
+					Destroy(group.Value);
+				tglASSgroup.Clear();
 
-				List<string> extra = CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
+				AnchorOffsetMinY = (int) tglASSobj["tglASS0"].GetComponent<RectTransform>().offsetMin.y - 80;
+
+				int ddASSListVal = CurSlotTriggerInfo.Kind <= 9 ? ddASSListVals.IndexOf(CurSlotTriggerInfo.Kind) : CurSlotTriggerInfo.Kind;
+				int refIndex = ddASSListVal <= 9 ? ddASSListVal : 9;
+
+				List<string> extra = new List<string>();
+				if (CurOutfitVirtualGroupNames?.Count() > 0)
+					extra = CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
 				CreateMakerDropdownItems(extra, ddASSListVal);
 
-//				GameObject.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().value = ddASSListVal;
-				GameObject.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().RefreshShownValue();
-				GameObject.Find("tglASS0").GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[0];
-				GameObject.Find("tglASS1").GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[1];
-				GameObject.Find("tglASS2").GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[2];
-				GameObject.Find("tglASS3").GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[3];
+//				grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().value = ddASSListVal;
+				grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().RefreshShownValue();
 
-				int refIndex = ddASSListVal <= 9 ? ddASSListVal : 9;
-				GameObject.Find("tglASS0").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][0] ? 1f : 0.2f;
-				GameObject.Find("tglASS1").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][1] ? 1f : 0.2f;
-				GameObject.Find("tglASS2").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][2] ? 1f : 0.2f;
-				GameObject.Find("tglASS3").GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][3] ? 1f : 0.2f;
-
-				foreach (string group in GameObjectNames)
-					Object.Destroy(GameObject.Find(group));
-				GameObjectNames.Clear();
+				for (int x = 0; x < 4; x++)
+				{
+					tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[x];
+					tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][x] ? 1f : 0.2f;
+				}
 
 				FillVirtualGroupStates();
 
-				AnchorOffsetMinY = (int) GameObject.Find("tglASS0").GetComponent<RectTransform>().offsetMin.y - 80;
-
-				List<string> names = VirtualGroupStates.OrderBy(x => x.Key).Select(x => x.Key).ToList<string>();
+				List<string> names = new List<string>();
+				if (VirtualGroupStates.Count() > 0)
+					names = VirtualGroupStates.OrderBy(x => x.Key).Select(x => x.Key).ToList<string>();
 				foreach (string group in names)
 					CreateMakerVirtualGroupToggle(group);
 
-				GameObject accw = GameObject.Find("04_AccessoryTop/AcsMoveWindow01");
-				RectTransform windRt = accw.transform.Find("BasePanel/imgWindowBack").GetComponent<RectTransform>();
-				windRt.offsetMin = new Vector2(0, ContainerOffsetMinY - 40 * names.Count());
+				imgWindowBack.offsetMin = new Vector2(0, ContainerOffsetMinY - MenuitemHeightOffsetY * names.Count());
 
 				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}][Slot: {CurSlotTriggerInfo.Slot}][Kind: {CurSlotTriggerInfo.Kind}][State: {CurSlotTriggerInfo.State[0]}|{CurSlotTriggerInfo.State[1]}|{CurSlotTriggerInfo.State[2]}|{CurSlotTriggerInfo.State[3]}]");
 
@@ -182,12 +181,12 @@ namespace AccStateSync
 				Logger.LogMessage($"[{group}] renamed into {label}");
 
 				int kind = System.Int32.Parse(group.Replace("custom_", "")) + 9;
-				TMP_Dropdown dropdown = GameObject.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>();
+				TMP_Dropdown dropdown = grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>();
 				dropdown.options[kind].text = label;
 				dropdown.RefreshShownValue();
-				GameObject toggle = GameObject.Find("tglASS_" + group);
+				GameObject toggle = tglASSgroup["tglASS_" + group];
 				if (toggle != null)
-					toggle.transform.GetComponentInChildren<TextMeshProUGUI>().text = label;
+					toggle.GetComponentInChildren<TextMeshProUGUI>().text = label;
 			}
 
 			internal void RenameGroup(int kind, string label)

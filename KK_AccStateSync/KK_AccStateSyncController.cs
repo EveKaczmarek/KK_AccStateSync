@@ -25,8 +25,6 @@ namespace AccStateSync
 			public List<Dictionary<string, string>> CharaVirtualGroupNames = new List<Dictionary<string, string>>();
 			public Dictionary<string, string> CurOutfitVirtualGroupNames = new Dictionary<string, string>();
 
-			public List<string> GameObjectNames = new List<string>();
-
 			public float CoroutineCounter = 0;
 
 			public List<ChaFileAccessory.PartsInfo> CharaAccInfo => MoreAccessories_Support.GetAccessoriesInfos(ChaControl);

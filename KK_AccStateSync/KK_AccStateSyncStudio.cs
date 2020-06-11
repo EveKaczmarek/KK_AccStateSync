@@ -74,7 +74,7 @@ namespace AccStateSync
 			GameObject origin = GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/02_Kinematic/00_FK");
 			GameObject parent = GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State");
 
-			Transform copy = Object.Instantiate(origin.transform, parent.transform, true);
+			Transform copy = Instantiate(origin.transform, parent.transform, true);
 			RectTransform copyRt = copy.GetComponent<RectTransform>();
 			copyRt.transform.name = "AccStateSync";
 
