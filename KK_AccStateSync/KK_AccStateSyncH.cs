@@ -9,9 +9,8 @@ namespace AccStateSync
 	public partial class AccStateSync
 	{
 		public static bool InsideHScene = false;
-
-		internal static List<ChaControl> HSceneHeroine;
-		internal static List<HSprite> HSprites = new List<HSprite>();
+		public static List<ChaControl> HSceneHeroine;
+		public static List<HSprite> HSprites = new List<HSprite>();
 
 		internal static void UpdateHUI()
 		{

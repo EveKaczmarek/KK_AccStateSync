@@ -20,20 +20,17 @@ namespace AccStateSync
 	{
 		public const string Name = "KK_AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "0.0.0.15";
+		public const string Version = "1.0.0.0";
 
 		internal static new ManualLogSource Logger;
-#if DEBUG
-		internal const LogLevel DebugLogLevel = LogLevel.Info;
-#else
-		internal const LogLevel DebugLogLevel = LogLevel.Debug;
-#endif
+		internal static LogLevel DebugLogLevel = LogLevel.Debug;
 		internal static UnityEngine.MonoBehaviour instance;
 
 		internal static ConfigEntry<float> CoroutineSlotChangeDelay { get; set; }
 		internal static ConfigEntry<float> CoroutineCounterMax { get; set; }
 		internal static ConfigEntry<bool> CharaMakerPreview { get; set; }
 		internal static ConfigEntry<bool> StudioUseMoreAccBtn { get; set; }
+		internal static ConfigEntry<bool> LogLevelInfo { get; set; }
 
 		internal static SidebarToggle CharaMakerPreviewSidebarToggle;
 		internal static MakerLoadToggle LoadCharaExtdataToggle;
@@ -66,6 +63,11 @@ namespace AccStateSync
 					if (CharaMakerPreviewSidebarToggle.Value)
 						GetController(MakerAPI.GetCharacterControl()).SyncAllAccToggle();
 				}
+			};
+			LogLevelInfo = Config.Bind("Debug", "LogLevel Info", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { IsAdvanced = true, Order = 10 }));
+			LogLevelInfo.SettingChanged += (sender, args) =>
+			{
+				DebugLogLevel = LogLevelInfo.Value ? LogLevel.Info : LogLevel.Debug;
 			};
 
 			MakerAPI.MakerBaseLoaded += MakerAPI_MakerBaseLoaded;

@@ -80,7 +80,7 @@ namespace AccStateSync
 				FillVirtualGroupStates();
 
 				List<string> names = new List<string>();
-				if (VirtualGroupStates.Count() > 0)
+				if (VirtualGroupStates?.Count() > 0)
 					names = VirtualGroupStates.OrderBy(x => x.Key).Select(x => x.Key).ToList<string>();
 				foreach (string group in names)
 					CreateMakerVirtualGroupToggle(group);

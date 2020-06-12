@@ -162,6 +162,14 @@ namespace AccStateSync
 					return;
 				}
 
+				List<int> Kinds = CurOutfitTriggerInfo.Parts?.OrderBy(x => x.Kind).GroupBy(x => x.Kind).Select(x => x.First().Kind).ToList();
+				Logger.Log(DebugLogLevel, $"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}][Kinds: {string.Join(",", Kinds.Select(Kind => Kind.ToString()).ToArray())}]");
+				if ((Kinds.Count() <= 1) && (Kinds[0] == -1))
+				{
+					Logger.Log(DebugLogLevel, $"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}] No trigger");
+					return;
+				}
+
 				foreach (AccTriggerInfo Part in CurOutfitTriggerInfo.Parts)
 				{
 					if (MathfEx.RangeEqualOn(0, Part.Kind, 7))
