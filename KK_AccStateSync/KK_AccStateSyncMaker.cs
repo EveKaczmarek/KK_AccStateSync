@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -223,6 +223,29 @@ namespace AccStateSync
 				}
 				Logger.LogMessage($"[{group}][{CurOutfitVirtualGroupNames[group]}] removed");
 				CurOutfitVirtualGroupNames.Remove(group);
+			}
+
+			internal void ResetSlot(int SlotIndex)
+			{
+				if (!TriggerEnabled)
+				{
+					Logger.Log(DebugLogLevel, $"[ResetSlot][{ChaControl.chaFile.parameter?.fullname}] TriggerEnabled false");
+					return;
+				}
+
+				AccTriggerInfo Part = CharaTriggerInfo?.ElementAtOrDefault(CurrentCoordinateIndex)?.Parts?.ElementAtOrDefault(SlotIndex);
+				if (Part == null)
+				{
+					Logger.LogError($"[ResetSlot][{ChaControl.chaFile.parameter?.fullname}] Part info null");
+					return;
+				}
+
+				if (Part.Kind > -1)
+				{
+					CharaTriggerInfo[CurrentCoordinateIndex].Parts[SlotIndex] = new AccTriggerInfo(SlotIndex);
+					Logger.LogMessage($"AccTriggerInfo for Coordinate {CurrentCoordinateIndex} Slot {SlotIndex + 1:00} has been reset");
+					AccSlotChangedHandler(SlotIndex);
+				}
 			}
 		}
 	}

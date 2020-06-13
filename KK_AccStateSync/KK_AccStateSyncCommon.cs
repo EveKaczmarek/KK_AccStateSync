@@ -13,6 +13,7 @@ namespace AccStateSync
 		{
 			internal void ResetCharaTriggerInfo()
 			{
+				Logger.Log(DebugLogLevel, $"[ResetCharaTriggerInfo][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
 				CharaTriggerInfo = new List<OutfitTriggerInfo>();
 				for (int i = 0; i < 7; i++)
 					CharaTriggerInfo.Add(new OutfitTriggerInfo(i));
@@ -20,6 +21,7 @@ namespace AccStateSync
 
 			internal void ResetCharaVirtualGroupNames()
 			{
+				Logger.Log(DebugLogLevel, $"[ResetCharaVirtualGroupNames][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
 				CharaVirtualGroupNames = new List<Dictionary<string, string>>();
 				for (int i = 0; i < 7; i++)
 					CharaVirtualGroupNames.Add(new Dictionary<string, string>());
@@ -98,6 +100,7 @@ namespace AccStateSync
 
 			internal void FillVirtualGroupStates()
 			{
+				VirtualGroupStates.Clear();
 				Dictionary<string, bool> tmpVGS = new Dictionary<string, bool>();
 				List<string> Groups = new List<string>();
 				if (CurOutfitTriggerInfo.Parts.Count() > 0)
@@ -114,6 +117,16 @@ namespace AccStateSync
 
 			internal void FillVirtualGroupNames()
 			{
+				if (CharaVirtualGroupNames?.Count() == 0)
+					ResetCharaVirtualGroupNames();
+				CurOutfitVirtualGroupNames = CharaVirtualGroupNames?.ElementAtOrDefault(CurrentCoordinateIndex);
+				if (CurOutfitVirtualGroupNames == null)
+				{
+					Logger.Log(DebugLogLevel, $"[FillVirtualGroupNames][{ChaControl.chaFile.parameter?.fullname}] Init");
+					CharaVirtualGroupNames[CurrentCoordinateIndex] = new Dictionary<string, string>();
+					return;
+				}
+
 				int max = CurOutfitTriggerInfo.Parts.Max(x => x.Kind);
 				max = max > (9 + DefaultCustomGroupCount) ? (max - 9) : DefaultCustomGroupCount;
 				int i = (int) CurOutfitVirtualGroupNames?.Count();

@@ -20,10 +20,10 @@ namespace AccStateSync
 	{
 		public const string Name = "KK_AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "1.0.0.0";
+		public const string Version = "1.1.0.0";
 
 		internal static new ManualLogSource Logger;
-		internal static LogLevel DebugLogLevel = LogLevel.Debug;
+		internal static LogLevel DebugLogLevel;
 		internal static UnityEngine.MonoBehaviour instance;
 
 		internal static ConfigEntry<float> CoroutineSlotChangeDelay { get; set; }
@@ -69,6 +69,7 @@ namespace AccStateSync
 			{
 				DebugLogLevel = LogLevelInfo.Value ? LogLevel.Info : LogLevel.Debug;
 			};
+			DebugLogLevel = LogLevelInfo.Value ? LogLevel.Info : LogLevel.Debug;
 
 			MakerAPI.MakerBaseLoaded += MakerAPI_MakerBaseLoaded;
 			MakerAPI.MakerFinishedLoading += (object sender, EventArgs e) => CreateMakerInterface();

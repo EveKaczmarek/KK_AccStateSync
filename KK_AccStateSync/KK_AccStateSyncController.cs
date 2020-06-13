@@ -75,8 +75,6 @@ namespace AccStateSync
 
 					Logger.Log(DebugLogLevel, $"[OnCoordinateBeingLoaded] CurOutfitTriggerInfo.Parts count: {CurOutfitTriggerInfo.Parts.Count()}");
 				}
-				CurOutfitTriggerInfo = CharaTriggerInfo[CurrentCoordinateIndex];
-				CurOutfitVirtualGroupNames = CharaVirtualGroupNames[CurrentCoordinateIndex];
 				InitCurOutfitTriggerInfo();
 
 				base.OnCoordinateBeingLoaded(coordinate);
@@ -148,11 +146,8 @@ namespace AccStateSync
 				}
 
 				TriggerEnabled = true;
-				VirtualGroupStates.Clear();
 
 				FillVirtualGroupStates();
-
-				CurOutfitVirtualGroupNames = CharaVirtualGroupNames?.ElementAtOrDefault(CurrentCoordinateIndex);
 				FillVirtualGroupNames();
 
 				if (MakerAPI.InsideMaker)

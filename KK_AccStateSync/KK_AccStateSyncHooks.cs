@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
+using ChaCustom;
 
 namespace AccStateSync
 {
@@ -27,6 +28,17 @@ namespace AccStateSync
 				{
 					if (controller.CoroutineCounter <= CoroutineCounterMax.Value)
 						controller.CoroutineCounter++;
+				}
+			}
+
+			[HarmonyPostfix, HarmonyPatch(typeof(CvsAccessory), "UpdateSelectAccessoryType", new[] {typeof(int)})]
+			internal static void CvsAccessoryUpdateSelectAccessoryTypePostfix(CvsAccessory __instance, int index)
+			{
+				AccStateSyncController controller = GetController(KKAPI.Maker.MakerAPI.GetCharacterControl());
+				if (controller != null)
+				{
+					if (index == 0)
+						controller.ResetSlot((int)__instance.slotNo);
 				}
 			}
 		}

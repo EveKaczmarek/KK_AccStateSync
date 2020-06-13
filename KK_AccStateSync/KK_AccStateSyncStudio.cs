@@ -50,6 +50,8 @@ namespace AccStateSync
 			AccStateSyncController controller = CurOCIChar.charInfo.GetComponent<AccStateSyncController>();
 			if (controller == null)
 				return;
+			if (!controller.TriggerEnabled)
+				return;
 
 			int i = 0;
 			Dictionary<string, bool> VirtualGroupStates = controller.VirtualGroupStates;
@@ -58,7 +60,7 @@ namespace AccStateSync
 				string label = group.Key;
 				if (AccParentNames.ContainsKey(group.Key))
 					label = AccParentNames[group.Key];
-				else if (controller.CurOutfitVirtualGroupNames.ContainsKey(group.Key))
+				else if ((bool) controller.CurOutfitVirtualGroupNames?.ContainsKey(group.Key))
 					label = controller.CurOutfitVirtualGroupNames[group.Key];
 				CreateStudioUIText(group.Key, i, label);
 				CreateStudioUIToggle(group.Key, i, group.Value);
