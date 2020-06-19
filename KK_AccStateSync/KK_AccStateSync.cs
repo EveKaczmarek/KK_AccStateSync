@@ -20,7 +20,7 @@ namespace AccStateSync
 	{
 		public const string Name = "KK_AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "1.1.0.0";
+		public const string Version = "2.0.0.0";
 
 		internal static new ManualLogSource Logger;
 		internal static LogLevel DebugLogLevel;
@@ -71,13 +71,12 @@ namespace AccStateSync
 			};
 			DebugLogLevel = LogLevelInfo.Value ? LogLevel.Info : LogLevel.Debug;
 
-			MakerAPI.MakerBaseLoaded += MakerAPI_MakerBaseLoaded;
-			MakerAPI.MakerFinishedLoading += (object sender, EventArgs e) => CreateMakerInterface();
-
 			AccessoriesApi.SelectedMakerAccSlotChanged += (object sender, AccessorySlotEventArgs eventArgs) => GetController(MakerAPI.GetCharacterControl()).AccSlotChangedHandler(eventArgs.SlotIndex);
 			AccessoriesApi.AccessoryTransferred += (object sender, AccessoryTransferEventArgs eventArgs) => GetController(MakerAPI.GetCharacterControl()).AccessoryTransferredHandler(eventArgs.SourceSlotIndex, eventArgs.DestinationSlotIndex);
 			AccessoriesApi.AccessoriesCopied += (object sender, AccessoryCopyEventArgs eventArgs) => GetController(MakerAPI.GetCharacterControl()).AccessoriesCopiedHandler((int)eventArgs.CopySource, (int)eventArgs.CopyDestination, eventArgs.CopiedSlotIndexes.ToList());
 
+			MakerAPI.MakerBaseLoaded += MakerAPI_MakerBaseLoaded;
+			MakerAPI.MakerFinishedLoading += (sender, e) => CreateMakerInterface();
 			MakerAPI.RegisterCustomSubCategories += (sender, e) =>
 			{
 				CharaMakerPreviewSidebarToggle = e.AddSidebarControl(new SidebarToggle("Force Preview", CharaMakerPreview.Value, this));
@@ -85,18 +84,23 @@ namespace AccStateSync
 			};
 			MakerAPI.MakerExiting += (sender, e) =>
 			{
+				HooksInstanceCharaMaker.UnpatchAll(HooksInstanceCharaMaker.Id);
+				HooksInstanceCharaMaker = null;
 				CharaMakerPreviewSidebarToggle = null;
 			};
 
-			StudioAPI.StudioLoadedChanged += (sender, e) => RegisterStudioControls();
+			UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, lsm) =>
+			{
+				if (s.name == "HProc")
+					HooksInstanceHScene = HarmonyWrapper.PatchAll(typeof(HooksHScene));
+			};
 
 			HarmonyWrapper.PatchAll(typeof(Hooks));
 
-			if (UnityEngine.Application.dataPath.EndsWith("Koikatu_Data"))
-				HarmonyWrapper.PatchAll(typeof(HooksHScene));
-
 			if (UnityEngine.Application.dataPath.EndsWith("KoikatuVR_Data"))
 				HarmonyWrapper.PatchAll(typeof(HooksVR));
+			else if (UnityEngine.Application.dataPath.EndsWith("CharaStudio_Data"))
+				StudioAPI.StudioLoadedChanged += (sender, e) => RegisterStudioControls();
 
 			foreach (var key in Enum.GetValues(typeof(ChaAccessoryDefine.AccessoryParentKey)))
 				AccParentNames[key.ToString()] = ChaAccessoryDefine.dictAccessoryParent[(int) key];
@@ -104,6 +108,7 @@ namespace AccStateSync
 
 		internal static void MakerAPI_MakerBaseLoaded(object sender, RegisterCustomControlsEvent e)
 		{
+			HooksInstanceCharaMaker = HarmonyWrapper.PatchAll(typeof(HooksCharaMaker));
 			LoadCharaExtdataToggle = e.AddLoadToggle(new MakerLoadToggle("AccStateSync"));
 			LoadCoordinateExtdataToggle = e.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("AccStateSync"));
 		}

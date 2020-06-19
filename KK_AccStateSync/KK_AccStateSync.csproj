@@ -105,6 +105,7 @@
     <Compile Include="KK_AccStateSyncExtdata.cs" />
     <Compile Include="KK_AccStateSyncStudio.cs" />
     <Compile Include="KK_AccStateSyncH.cs" />
+    <Compile Include="KK_AccStateSyncMigration.cs" />
     <Compile Include="MoreAccessories_Support.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

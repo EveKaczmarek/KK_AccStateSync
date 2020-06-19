@@ -6,6 +6,9 @@ namespace AccStateSync
 {
 	public partial class AccStateSync
 	{
+		public static HarmonyLib.Harmony HooksInstanceCharaMaker = null;
+		public static HarmonyLib.Harmony HooksInstanceHScene = null;
+
 		internal class Hooks
 		{
 			[HarmonyPostfix, HarmonyPatch(typeof(ChaControl), "SetClothesState")]
@@ -30,7 +33,10 @@ namespace AccStateSync
 						controller.CoroutineCounter++;
 				}
 			}
+		}
 
+		internal class HooksCharaMaker
+		{
 			[HarmonyPostfix, HarmonyPatch(typeof(CvsAccessory), "UpdateSelectAccessoryType", new[] {typeof(int)})]
 			internal static void CvsAccessoryUpdateSelectAccessoryTypePostfix(CvsAccessory __instance, int index)
 			{
@@ -38,7 +44,7 @@ namespace AccStateSync
 				if (controller != null)
 				{
 					if (index == 0)
-						controller.ResetSlot((int)__instance.slotNo);
+						controller.CvsAccessoryUpdateSelectAccessoryTypePostfix((int)__instance.slotNo);
 				}
 			}
 		}
@@ -61,6 +67,7 @@ namespace AccStateSync
 			[HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), "Start")]
 			internal static void HSceneProcStartPostfix(List<ChaControl> ___lstFemale, HSprite ___sprite)
 			{
+				Logger.Log(DebugLogLevel, "HSceneProcStartPostfix");
 				HSceneHeroine = ___lstFemale;
 				HSprites.Add(___sprite);
 			}
@@ -77,6 +84,9 @@ namespace AccStateSync
 			{
 				InsideHScene = false;
 				HSprites.Clear();
+				HooksInstanceHScene.UnpatchAll(HooksInstanceHScene.Id);
+				HooksInstanceHScene = null;
+				Logger.Log(DebugLogLevel, "HSceneProcOnDestroyPostFix");
 			}
 		}
 	}

@@ -14,25 +14,17 @@ namespace AccStateSync
 			internal void ResetCharaTriggerInfo()
 			{
 				Logger.Log(DebugLogLevel, $"[ResetCharaTriggerInfo][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
-				CharaTriggerInfo = new List<OutfitTriggerInfo>();
+				CharaTriggerInfo.Clear();
 				for (int i = 0; i < 7; i++)
-					CharaTriggerInfo.Add(new OutfitTriggerInfo(i));
+					CharaTriggerInfo[i] = new OutfitTriggerInfo(i);
 			}
 
 			internal void ResetCharaVirtualGroupNames()
 			{
 				Logger.Log(DebugLogLevel, $"[ResetCharaVirtualGroupNames][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
-				CharaVirtualGroupNames = new List<Dictionary<string, string>>();
+				CharaVirtualGroupNames.Clear();
 				for (int i = 0; i < 7; i++)
-					CharaVirtualGroupNames.Add(new Dictionary<string, string>());
-			}
-
-			internal void CopySlotTriggerInfo(AccTriggerInfo CopySource, AccTriggerInfo CopyDestination)
-			{
-				CopyDestination.Slot = CopySource.Slot;
-				CopyDestination.Kind = CopySource.Kind;
-				CopyDestination.Group = CopySource.Group;
-				CopyDestination.State = CopySource.State.ToList();
+					CharaVirtualGroupNames[i] = new Dictionary<string, string>();
 			}
 
 			internal void SyncCharaTriggerInfo()
@@ -48,66 +40,65 @@ namespace AccStateSync
 
 			internal void SyncOutfitTriggerInfo(int CoordinateIndex)
 			{
-				if (!TriggerEnabled)
-				{
-					Logger.Log(DebugLogLevel, $"[SyncOutfitTriggerInfo][{ChaControl.chaFile.parameter?.fullname}] TriggerEnabled false");
-					return;
-				}
+				Logger.Log(DebugLogLevel, $"[SyncOutfitTriggerInfo][{ChaControl.chaFile.parameter?.fullname}] Process OutfitTriggerInfo for Coordinate {CoordinateIndex}");
 
 				List<ChaFileAccessory.PartsInfo> PartsInfo = MoreAccessories_Support.GetCoordinatePartsInfo(ChaControl, CoordinateIndex);
-				OutfitTriggerInfo OutfitTriggerInfo = CharaTriggerInfo.ElementAtOrDefault(CoordinateIndex);
 
-				Logger.Log(DebugLogLevel, $"[SyncOutfitTriggerInfo][{ChaControl.chaFile.parameter?.fullname}]Process OutfitTriggerInfo for Coordinate {CoordinateIndex}");
+				if (!CharaTriggerInfo.ContainsKey(CoordinateIndex))
+					CharaTriggerInfo[CoordinateIndex] = new OutfitTriggerInfo(CoordinateIndex);
+				OutfitTriggerInfo OutfitTriggerInfo = CharaTriggerInfo[CoordinateIndex];
 
-				List<AccTriggerInfo> TriggerParts = OutfitTriggerInfo.Parts;
-				int PartsInfoCount = PartsInfo.Count();
-				int TriggerPartsCount = TriggerParts.Count();
-
-				Logger.Log(DebugLogLevel, $"[SyncOutfitTriggerInfo][{ChaControl.chaFile.parameter?.fullname}][{CoordinateIndex}] Count {TriggerPartsCount} : {PartsInfoCount}");
-
-				if (TriggerPartsCount > PartsInfoCount)
+				Logger.Log(DebugLogLevel, $"[SyncCharaTriggerInfo][{ChaControl.chaFile.parameter?.fullname}] OutfitTriggerInfo.Parts.Count: {OutfitTriggerInfo.Parts.Count()}");
+				List<int> Keys = OutfitTriggerInfo.Parts.Keys.ToList<int>();
+				foreach (int SlotIndex in Keys)
 				{
-					CharaTriggerInfo[CoordinateIndex].Parts = CharaTriggerInfo[CoordinateIndex].Parts.Take(PartsInfoCount).ToList();
-					Logger.LogWarning($"[SyncOutfitTriggerInfo][{ChaControl.chaFile.parameter?.fullname}] AccTriggerInfo for Coordinate {CoordinateIndex} Slot {TriggerPartsCount} -> {PartsInfoCount}");
-				}
-				else if (TriggerPartsCount < PartsInfoCount)
-				{
-					for (int j = TriggerPartsCount; j < PartsInfoCount; j++)
-						CharaTriggerInfo[CoordinateIndex].Parts.Add(new AccTriggerInfo(j) );
-					Logger.Log(DebugLogLevel, $"[SyncOutfitTriggerInfo][{ChaControl.chaFile.parameter?.fullname}] AccTriggerInfo for Coordinate {CoordinateIndex} Slot {TriggerPartsCount} -> {PartsInfoCount - 1}");
-				}
-				for (int i = 0; i < PartsInfoCount; i++)
-				{
-					AccTriggerInfo TriggerPart = TriggerParts.ElementAtOrDefault(i);
-					if ((TriggerPart.Kind != -1) && (PartsInfo[i].type == 120))
-					{
-						CharaTriggerInfo[CoordinateIndex].Parts[i] = new AccTriggerInfo(i);
-						Logger.LogMessage($"AccTriggerInfo for Coordinate {CoordinateIndex} Slot {i + 1:00} has been reset");
-					}
+					AccTriggerInfo TriggerPart = OutfitTriggerInfo.Parts[SlotIndex];
+					Logger.Log(DebugLogLevel, $"[SyncCharaTriggerInfo][{ChaControl.chaFile.parameter?.fullname}][Slot: {SlotIndex}][Kind: {TriggerPart.Kind}]");
+
+					if (PartsInfo.ElementAtOrDefault(SlotIndex) == null)
+						CharaTriggerInfo[CoordinateIndex].Parts.Remove(SlotIndex);
 					else
 					{
 						if (TriggerPart.Kind == -1)
-							CharaTriggerInfo[CoordinateIndex].Parts[i] = new AccTriggerInfo(i);
-						else if (MathfEx.RangeEqualOn(0, TriggerPart.Kind, 7))
-							CharaTriggerInfo[CoordinateIndex].Parts[i].Group = "";
-						else if (TriggerPart.Kind == 9)
-							CharaTriggerInfo[CoordinateIndex].Parts[i].Group = PartsInfo[i].parentKey;
-						else if (TriggerPart.Kind > 9)
-							CharaTriggerInfo[CoordinateIndex].Parts[i].Group = "custom_" + (TriggerPart.Kind - 9).ToString();
+						{
+							CharaTriggerInfo[CoordinateIndex].Parts.Remove(SlotIndex);
+							Logger.LogMessage($"AccTriggerInfo for Coordinate {CoordinateIndex} Slot{SlotIndex + 1:00} has been reset");
+						}
+						else
+						{
+							if (PartsInfo[SlotIndex].type == 120)
+							{
+								CharaTriggerInfo[CoordinateIndex].Parts.Remove(SlotIndex);
+								Logger.LogMessage($"AccTriggerInfo for Coordinate {CoordinateIndex} Slot{SlotIndex + 1:00} has been reset");
+							}
+							else
+							{
+								if (MathfEx.RangeEqualOn(0, TriggerPart.Kind, 7))
+									CharaTriggerInfo[CoordinateIndex].Parts[SlotIndex].Group = "";
+								else if (TriggerPart.Kind == 9)
+									CharaTriggerInfo[CoordinateIndex].Parts[SlotIndex].Group = PartsInfo[SlotIndex].parentKey;
+								else if (TriggerPart.Kind > 9)
+									CharaTriggerInfo[CoordinateIndex].Parts[SlotIndex].Group = "custom_" + (TriggerPart.Kind - 9).ToString();
+							}
+						}
 					}
 				}
 			}
 
 			internal void FillVirtualGroupStates()
 			{
-				VirtualGroupStates.Clear();
+				if (CurOutfitTriggerInfo?.Parts?.Count() == 0)
+					return;
+
 				Dictionary<string, bool> tmpVGS = new Dictionary<string, bool>();
+				List<AccTriggerInfo> Filtered = CurOutfitTriggerInfo.Parts.Values.Where(x => x.Kind >= 9).Where(x => !string.IsNullOrEmpty(x.Group))?.ToList() ?? new List<AccTriggerInfo>();
 				List<string> Groups = new List<string>();
-				if (CurOutfitTriggerInfo.Parts.Count() > 0)
-					Groups = CurOutfitTriggerInfo.Parts.Where(x => x.Kind >= 9).OrderBy(x => x.Kind).OrderBy(x => x.Group).GroupBy(x => x.Group).Select(x => x.First().Group).ToList();
+				if (Filtered.Count() > 0)
+					Groups = Filtered.OrderBy(x => x.Kind).OrderBy(x => x.Group).GroupBy(x => x.Group).Select(x => x.First().Group).ToList();
 				foreach (string Group in Groups)
 				{
-					if (VirtualGroupStates.ContainsKey(Group))
+					Logger.Log(DebugLogLevel, $"[FillVirtualGroupStates][{ChaControl.chaFile.parameter?.fullname}] Group: {Group}");
+					if ((bool) VirtualGroupStates?.ContainsKey(Group))
 						tmpVGS[Group] = VirtualGroupStates[Group];
 					else
 						tmpVGS[Group] = true;
@@ -117,17 +108,16 @@ namespace AccStateSync
 
 			internal void FillVirtualGroupNames()
 			{
-				if (CharaVirtualGroupNames?.Count() == 0)
-					ResetCharaVirtualGroupNames();
-				CurOutfitVirtualGroupNames = CharaVirtualGroupNames?.ElementAtOrDefault(CurrentCoordinateIndex);
-				if (CurOutfitVirtualGroupNames == null)
-				{
-					Logger.Log(DebugLogLevel, $"[FillVirtualGroupNames][{ChaControl.chaFile.parameter?.fullname}] Init");
-					CharaVirtualGroupNames[CurrentCoordinateIndex] = new Dictionary<string, string>();
+				if (CurOutfitTriggerInfo?.Parts?.Count() == 0)
 					return;
-				}
 
-				int max = CurOutfitTriggerInfo.Parts.Max(x => x.Kind);
+				if (!CharaVirtualGroupNames.ContainsKey(CurrentCoordinateIndex))
+					CharaVirtualGroupNames[CurrentCoordinateIndex] = new Dictionary<string, string>();
+				if (CharaVirtualGroupNames[CurrentCoordinateIndex] == null)
+					CharaVirtualGroupNames[CurrentCoordinateIndex] = new Dictionary<string, string>();
+				CurOutfitVirtualGroupNames = CharaVirtualGroupNames[CurrentCoordinateIndex];
+
+				int max = CurOutfitTriggerInfo.Parts.Values.Max(x => x.Kind);
 				max = max > (9 + DefaultCustomGroupCount) ? (max - 9) : DefaultCustomGroupCount;
 				int i = (int) CurOutfitVirtualGroupNames?.Count();
 				if (i < max)
@@ -141,15 +131,20 @@ namespace AccStateSync
 
 			internal void ToggleByClothesState(ChaControl chaCtrl, int kind, int state)
 			{
-				if (TriggerEnabled)
-				{
-					if (!MathfEx.RangeEqualOn(0, kind, 7))
-						return;
+				if (!TriggerEnabled)
+					return;
 
-					List<AccTriggerInfo> Parts = CurOutfitTriggerInfo.Parts.Where(x => x.Kind == kind).ToList();
-					foreach (AccTriggerInfo Part in Parts)
-						chaCtrl.SetAccessoryState(Part.Slot, Part.State[state]);
-				}
+				Logger.Log(DebugLogLevel, $"[ToggleByClothesState][{chaCtrl.chaFile.parameter?.fullname}] Fired!!");
+
+				if (CurOutfitTriggerInfo?.Parts?.Count() == 0)
+					return;
+				if (!MathfEx.RangeEqualOn(0, kind, 7))
+					return;
+				List<AccTriggerInfo> Parts = CurOutfitTriggerInfo?.Parts?.Values?.Where(x => x.Kind == kind)?.ToList() ?? new List<AccTriggerInfo>();
+				if (Parts.Count() == 0)
+					return;
+				foreach (AccTriggerInfo Part in Parts)
+					chaCtrl.SetAccessoryState(Part.Slot, Part.State[state]);
 			}
 
 			private IEnumerator CoroutineSyncAllAccToggle(float InitCounter)
@@ -162,28 +157,28 @@ namespace AccStateSync
 
 			internal void SyncAllAccToggle()
 			{
+				if (!TriggerEnabled)
+					return;
+
 				Logger.Log(DebugLogLevel, $"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
 
+				if (CurOutfitTriggerInfo?.Parts?.Count() == 0)
+					return;
 				if ((MakerAPI.InsideMaker) && (!CharaMakerPreview.Value))
 				{
 					Logger.Log(DebugLogLevel, $"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}] Disabled by config");
 					return;
 				}
-				if (!TriggerEnabled)
+
+				List<int> Kinds = CurOutfitTriggerInfo.Parts.Values.OrderBy(x => x.Kind).GroupBy(x => x.Kind).Select(x => x.First().Kind).ToList() ?? new List<int>();
+				if (Kinds.Count() == 0)
 				{
-					Logger.Log(DebugLogLevel, $"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}] TriggerEnabled false");
+					Logger.Log(DebugLogLevel, $"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}] Nothing to trigger");
 					return;
 				}
-
-				List<int> Kinds = CurOutfitTriggerInfo.Parts?.OrderBy(x => x.Kind).GroupBy(x => x.Kind).Select(x => x.First().Kind).ToList();
 				Logger.Log(DebugLogLevel, $"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}][Kinds: {string.Join(",", Kinds.Select(Kind => Kind.ToString()).ToArray())}]");
-				if ((Kinds.Count() <= 1) && (Kinds[0] == -1))
-				{
-					Logger.Log(DebugLogLevel, $"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}] No trigger");
-					return;
-				}
 
-				foreach (AccTriggerInfo Part in CurOutfitTriggerInfo.Parts)
+				foreach (AccTriggerInfo Part in CurOutfitTriggerInfo.Parts.Values)
 				{
 					if (MathfEx.RangeEqualOn(0, Part.Kind, 7))
 					{
@@ -205,15 +200,16 @@ namespace AccStateSync
 			internal void ToggleByVirtualGroup(string group, bool show)
 			{
 				if (!TriggerEnabled)
-				{
-					Logger.Log(DebugLogLevel, $"[ToggleByVirtualGroup][{ChaControl.chaFile.parameter?.fullname}] TriggerEnabled false");
 					return;
-				}
+
+				if (CurOutfitTriggerInfo?.Parts?.Count() == 0)
+					return;
+
 				Logger.Log(DebugLogLevel, $"[ToggleByVirtualGroup][{ChaControl.chaFile.parameter?.fullname}][group: {group}][show: {show}]");
 
 				VirtualGroupStates[group] = show;
 
-				foreach (AccTriggerInfo Part in CurOutfitTriggerInfo.Parts)
+				foreach (AccTriggerInfo Part in CurOutfitTriggerInfo.Parts.Values)
 				{
 					if ((Part.Kind >= 9) && (!Part.Group.IsNullOrEmpty()))
 					{

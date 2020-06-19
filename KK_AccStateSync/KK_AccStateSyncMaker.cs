@@ -15,47 +15,40 @@ namespace AccStateSync
 		{
 			internal void AccSlotChangedHandler(int SlotIndex, bool Skip = false)
 			{
-				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
-
 				if (!MakerAPI.InsideAndLoaded) return;
 
-				if (!TriggerEnabled)
-				{
-					Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}] TriggerEnabled false");
-					return;
-				}
-				CurOutfitTriggerInfo = CharaTriggerInfo.ElementAtOrDefault(CurrentCoordinateIndex);
-				if (CurOutfitTriggerInfo == null) // basically won't happen
-				{
-					Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}] CurOutfitTriggerInfo is null");
-					return;
-				}
-
-				CheckOutfitTriggerInfoCount(CurrentCoordinateIndex);
+				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
 
 				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}][SlotIndex]: {SlotIndex}");
 
 				List<ChaFileAccessory.PartsInfo> PartsInfo = CharaAccInfo;
 				ChaFileAccessory.PartsInfo PartInfo = PartsInfo.ElementAtOrDefault(SlotIndex);
-				if ((PartInfo == null) || (CurOutfitTriggerInfo.Parts.ElementAtOrDefault(SlotIndex) == null))
+				if ((PartInfo == null))
 				{
-					Logger.LogError($"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}][PartInfo: {PartInfo}][CurSlotTriggerInfo: {CurSlotTriggerInfo}]");
+					Logger.LogError($"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}] Cannot retrive info for Slot{CurSlotTriggerInfo.Slot + 1:00}");
 					return;
 				}
 
-				CopySlotTriggerInfo(CurOutfitTriggerInfo.Parts[SlotIndex], CurSlotTriggerInfo);
+				if (!CurOutfitTriggerInfo.Parts.ContainsKey(SlotIndex))
+					CurSlotTriggerInfo = new AccTriggerInfo(SlotIndex);
+				else
+					CopySlotTriggerInfo(CurOutfitTriggerInfo.Parts[SlotIndex], CurSlotTriggerInfo);
 
 				if (!Skip)
 				{
 					if ((CurSlotTriggerInfo.Kind > -1) && (PartInfo.type == 120))
 					{
-						CurOutfitTriggerInfo.Parts[SlotIndex] = new AccTriggerInfo(SlotIndex);
-						Logger.LogMessage($"AccTriggerInfo for Coordinate {CurrentCoordinateIndex} Slot {CurSlotTriggerInfo.Slot + 1:00} has been reset");
+						CharaTriggerInfo[CurrentCoordinateIndex].Parts.Remove(SlotIndex);
+						CurSlotTriggerInfo = new AccTriggerInfo(SlotIndex);
+						Logger.LogMessage($"AccTriggerInfo for Coordinate {CurrentCoordinateIndex} Slot{CurSlotTriggerInfo.Slot + 1:00} has been reset");
 					}
 				}
 
 				foreach (KeyValuePair<string, GameObject> group in tglASSgroup)
-					Destroy(group.Value);
+				{
+					if (group.Value.gameObject != null)
+						Destroy(group.Value);
+				}
 				tglASSgroup.Clear();
 
 				AnchorOffsetMinY = (int) tglASSobj["tglASS0"].GetComponent<RectTransform>().offsetMin.y - 80;
@@ -92,47 +85,29 @@ namespace AccStateSync
 				ChaControl.StartCoroutine(CoroutineSyncAllAccToggle(CoroutineSlotChangeDelay.Value));
 			}
 
-			internal void CheckOutfitTriggerInfoCount(int CoordinateIndex)
-			{
-				if (!MakerAPI.InsideMaker) return;
-
-				bool Current = (CoordinateIndex == CurrentCoordinateIndex);
-				int InfoCount = CharaTriggerInfo[CoordinateIndex].Parts.Count();
-				int PartCount = MoreAccessories_Support.GetCoordinatePartsInfo(ChaControl, CoordinateIndex).Count();
-
-				if (InfoCount > PartCount) // shit happend
-				{
-					CharaTriggerInfo[CoordinateIndex].Parts = CharaTriggerInfo[CoordinateIndex].Parts.Take(PartCount).ToList();
-					Logger.LogError($"[CheckOutfitTriggerInfoCount][{ChaControl.chaFile.parameter?.fullname}] CharaTriggerInfo[{CoordinateIndex}].Parts removed: {InfoCount} -> {PartCount}");
-				}
-
-				if (InfoCount < PartCount)
-				{
-					for (int i = InfoCount; i < PartCount; i++)
-						CharaTriggerInfo[CoordinateIndex].Parts.Add( new AccTriggerInfo(i) );
-					Logger.Log(DebugLogLevel, $"[CheckOutfitTriggerInfoCount][{ChaControl.chaFile.parameter?.fullname}] CharaTriggerInfo[{CoordinateIndex}].Parts {InfoCount} -> {PartCount}");
-				}
-
-				if (Current)
-					CurOutfitTriggerInfo = CharaTriggerInfo[CoordinateIndex];
-			}
-
 			internal void AccessoriesCopiedHandler(int CopySource, int CopyDestination, List<int> CopiedSlotIndexes)
 			{
 				if (!MakerAPI.InsideAndLoaded) return;
 
 				Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}][Soruce: {CopySource}][Destination: {CopyDestination}][CopiedSlotIndexes: {string.Join(",", CopiedSlotIndexes.Select(Slot => Slot.ToString()).ToArray())}]");
 
-				CheckOutfitTriggerInfoCount(CopySource);
-				CheckOutfitTriggerInfoCount(CopyDestination);
-
 				int i = 9;
-				int j = CharaTriggerInfo[CopyDestination].Parts.Max(x => x.Kind);
 				foreach (int Slot in CopiedSlotIndexes)
 				{
-					CopySlotTriggerInfo(CharaTriggerInfo[CopySource].Parts[Slot], CharaTriggerInfo[CopyDestination].Parts[Slot]);
-					i = CharaTriggerInfo[CopySource].Parts[Slot].Kind > i ? CharaTriggerInfo[CopySource].Parts[Slot].Kind : i;
+					if (CharaTriggerInfo[CopyDestination].Parts.ContainsKey(Slot))
+						CharaTriggerInfo[CopyDestination].Parts.Remove(Slot);
+
+					if (CharaTriggerInfo[CopySource].Parts.ContainsKey(Slot))
+					{
+						CharaTriggerInfo[CopyDestination].Parts[Slot] = new AccTriggerInfo(Slot);
+						CopySlotTriggerInfo(CharaTriggerInfo[CopySource].Parts[Slot], CharaTriggerInfo[CopyDestination].Parts[Slot]);
+						i = CharaTriggerInfo[CopySource].Parts[Slot].Kind > i ? CharaTriggerInfo[CopySource].Parts[Slot].Kind : i;
+					}
 				}
+
+				int j = -1;
+				if (CharaTriggerInfo[CopyDestination].Parts.Count() > 0)
+					j = CharaTriggerInfo[CopyDestination].Parts.Values.Max(x => x.Kind);
 				if (i > j)
 				{
 					for (int Kind = 10; Kind < (i + 1); Kind++)
@@ -157,17 +132,12 @@ namespace AccStateSync
 				if (!MakerAPI.InsideAndLoaded) return;
 
 				Logger.Log(DebugLogLevel, $"[AccessoryTransferredHandler][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
-
-				CheckOutfitTriggerInfoCount(CoordinateIndex);
-
-				if (!TriggerEnabled)
+				if (CharaTriggerInfo[CoordinateIndex].Parts.ContainsKey(SourceSlotIndex))
 				{
-					Logger.Log(DebugLogLevel, $"[AccessoryTransferredHandler][{ChaControl.chaFile.parameter?.fullname}] TriggerEnabled false");
-					return;
+					CharaTriggerInfo[CoordinateIndex].Parts[DestinationSlotIndex] = new AccTriggerInfo(DestinationSlotIndex);
+					CopySlotTriggerInfo(CharaTriggerInfo[CoordinateIndex].Parts[SourceSlotIndex], CharaTriggerInfo[CoordinateIndex].Parts[DestinationSlotIndex]);
+					CharaTriggerInfo[CoordinateIndex].Parts[DestinationSlotIndex].Slot = DestinationSlotIndex;
 				}
-				OutfitTriggerInfo Todo = CharaTriggerInfo.ElementAtOrDefault(CoordinateIndex);
-				CopySlotTriggerInfo(Todo.Parts[SourceSlotIndex], Todo.Parts[DestinationSlotIndex]);
-				Todo.Parts[DestinationSlotIndex].Slot = DestinationSlotIndex;
 			}
 
 			internal void RenameGroup(string group, string label)
@@ -216,7 +186,7 @@ namespace AccStateSync
 					Logger.LogMessage($"Cannot go below {DefaultCustomGroupCount} custom group");
 					return;
 				}
-				if (CurOutfitTriggerInfo.Parts.Where(x => x.Group == group).ToList().Count() > 0)
+				if (CurOutfitTriggerInfo.Parts.Values?.Where(x => x.Group == group)?.ToList()?.Count() > 0)
 				{
 					Logger.LogMessage($"Cannot remove [{group}][{CurOutfitVirtualGroupNames[group]}] because it's being assigned by slots");
 					return;
@@ -225,25 +195,17 @@ namespace AccStateSync
 				CurOutfitVirtualGroupNames.Remove(group);
 			}
 
-			internal void ResetSlot(int SlotIndex)
+			internal void CvsAccessoryUpdateSelectAccessoryTypePostfix(int SlotIndex)
 			{
-				if (!TriggerEnabled)
-				{
-					Logger.Log(DebugLogLevel, $"[ResetSlot][{ChaControl.chaFile.parameter?.fullname}] TriggerEnabled false");
+				if (!CharaTriggerInfo[CurrentCoordinateIndex].Parts.ContainsKey(SlotIndex))
 					return;
-				}
 
-				AccTriggerInfo Part = CharaTriggerInfo?.ElementAtOrDefault(CurrentCoordinateIndex)?.Parts?.ElementAtOrDefault(SlotIndex);
-				if (Part == null)
-				{
-					Logger.LogError($"[ResetSlot][{ChaControl.chaFile.parameter?.fullname}] Part info null");
-					return;
-				}
+				AccTriggerInfo Part = CharaTriggerInfo[CurrentCoordinateIndex].Parts[SlotIndex];
 
 				if (Part.Kind > -1)
 				{
-					CharaTriggerInfo[CurrentCoordinateIndex].Parts[SlotIndex] = new AccTriggerInfo(SlotIndex);
-					Logger.LogMessage($"AccTriggerInfo for Coordinate {CurrentCoordinateIndex} Slot {SlotIndex + 1:00} has been reset");
+					CharaTriggerInfo[CurrentCoordinateIndex].Parts.Remove(SlotIndex);
+					Logger.LogMessage($"AccTriggerInfo for Coordinate {CurrentCoordinateIndex} Slot{SlotIndex + 1:00} has been reset");
 					AccSlotChangedHandler(SlotIndex);
 				}
 			}

@@ -75,15 +75,25 @@ namespace AccStateSync
 				}
 
 				int SlotNo = pluginCtrl.CurSlotTriggerInfo.Slot;
-				pluginCtrl.CopySlotTriggerInfo(pluginCtrl.CurSlotTriggerInfo, pluginCtrl.CurOutfitTriggerInfo.Parts[SlotNo]);
-
-				if ((pluginCtrl.CurSlotTriggerInfo.Kind >= 9) && (!pluginCtrl.CurSlotTriggerInfo.Group.IsNullOrEmpty()))
+				if (pluginCtrl.CurSlotTriggerInfo.Kind == -1)
 				{
-					if (!pluginCtrl.VirtualGroupStates.ContainsKey(pluginCtrl.CurSlotTriggerInfo.Group))
-						pluginCtrl.VirtualGroupStates[pluginCtrl.CurSlotTriggerInfo.Group] = true;
+					if (pluginCtrl.CurOutfitTriggerInfo.Parts.ContainsKey(SlotNo))
+						pluginCtrl.CurOutfitTriggerInfo.Parts.Remove(SlotNo);
+				}
+				else
+				{
+					if (!pluginCtrl.CurOutfitTriggerInfo.Parts.ContainsKey(SlotNo))
+						pluginCtrl.CurOutfitTriggerInfo.Parts[SlotNo] = new AccTriggerInfo(SlotNo);
+					CopySlotTriggerInfo(pluginCtrl.CurSlotTriggerInfo, pluginCtrl.CurOutfitTriggerInfo.Parts[SlotNo]);
+
+					if ((pluginCtrl.CurSlotTriggerInfo.Kind >= 9) && (!pluginCtrl.CurSlotTriggerInfo.Group.IsNullOrEmpty()))
+					{
+						if (!pluginCtrl.VirtualGroupStates.ContainsKey(pluginCtrl.CurSlotTriggerInfo.Group))
+							pluginCtrl.VirtualGroupStates[pluginCtrl.CurSlotTriggerInfo.Group] = true;
+					}
 				}
 
-				Logger.LogMessage($"SlotNo: {SlotNo + 1:00} updated");
+				Logger.LogMessage($"Slot{SlotNo + 1:00} updated");
 				pluginCtrl.AccSlotChangedHandler(AccessoriesApi.SelectedMakerAccSlot, true);
 			});
 			btnSave.gameObject.SetActive(true);

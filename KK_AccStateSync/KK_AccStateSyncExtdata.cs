@@ -1,5 +1,6 @@
 ﻿using MessagePack;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace AccStateSync
@@ -29,9 +30,17 @@ namespace AccStateSync
 			[Key("Index")]
 			public int Index { get; set; }
 			[Key("Parts")]
-			public List<AccTriggerInfo> Parts { get; set; } = new List<AccTriggerInfo>();
+			public Dictionary<int, AccTriggerInfo> Parts { get; set; } = new Dictionary<int, AccTriggerInfo>();
 
 			public OutfitTriggerInfo(int index) { Index = index; }
+		}
+
+		internal static void CopySlotTriggerInfo(AccTriggerInfo CopySource, AccTriggerInfo CopyDestination)
+		{
+			CopyDestination.Slot = CopySource.Slot;
+			CopyDestination.Kind = CopySource.Kind;
+			CopyDestination.Group = CopySource.Group;
+			CopyDestination.State = CopySource.State.ToList();
 		}
 	}
 }

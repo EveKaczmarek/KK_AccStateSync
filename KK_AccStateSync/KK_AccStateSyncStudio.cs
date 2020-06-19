@@ -40,14 +40,17 @@ namespace AccStateSync
 		internal static void ClearStudioUI()
 		{
 			foreach (Transform child in ASSPanel.transform)
-				Object.Destroy(child.gameObject);
+			{
+				if (child.gameObject != null)
+					Destroy(child.gameObject);
+			}
 		}
 
 		internal static void UpdateStudioUI()
 		{
 			ClearStudioUI();
 
-			AccStateSyncController controller = CurOCIChar.charInfo.GetComponent<AccStateSyncController>();
+			AccStateSyncController controller = CurOCIChar?.charInfo?.GetComponent<AccStateSyncController>();
 			if (controller == null)
 				return;
 			if (!controller.TriggerEnabled)
