@@ -9,7 +9,7 @@ namespace AccStateSync
 
 		internal static List<List<bool>> clothesStates = new List<List<bool>>()
 		{
-			new List<bool>() { true, false, false, false }, // None
+			new List<bool>() { false, false, false, false }, // None
 			new List<bool>() { true, true, false, true }, // Top
 			new List<bool>() { true, true, false, true }, // Bottom
 			new List<bool>() { true, true, false, true }, // Bra

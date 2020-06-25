@@ -88,7 +88,10 @@ namespace AccStateSync
 			internal void FillVirtualGroupStates()
 			{
 				if (CurOutfitTriggerInfo?.Parts?.Count() == 0)
+				{
+					VirtualGroupStates?.Clear();
 					return;
+				}
 
 				Dictionary<string, bool> tmpVGS = new Dictionary<string, bool>();
 				List<AccTriggerInfo> Filtered = CurOutfitTriggerInfo.Parts.Values.Where(x => x.Kind >= 9).Where(x => !string.IsNullOrEmpty(x.Group))?.ToList() ?? new List<AccTriggerInfo>();
@@ -109,7 +112,10 @@ namespace AccStateSync
 			internal void FillVirtualGroupNames()
 			{
 				if (CurOutfitTriggerInfo?.Parts?.Count() == 0)
+				{
+					CurOutfitVirtualGroupNames?.Clear();
 					return;
+				}
 
 				if (!CharaVirtualGroupNames.ContainsKey(CurrentCoordinateIndex))
 					CharaVirtualGroupNames[CurrentCoordinateIndex] = new Dictionary<string, string>();
@@ -152,6 +158,7 @@ namespace AccStateSync
 				CoroutineCounter = InitCounter;
 				for (int i = 0; i < CoroutineCounter; ++i)
 					yield return null;
+				SkipAutoSave = false;
 				SyncAllAccToggle();
 			}
 

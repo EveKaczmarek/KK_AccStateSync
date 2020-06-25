@@ -20,7 +20,7 @@ namespace AccStateSync
 	{
 		public const string Name = "KK_AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "2.0.0.0";
+		public const string Version = "2.1.0.0";
 
 		internal static new ManualLogSource Logger;
 		internal static LogLevel DebugLogLevel;
@@ -31,6 +31,7 @@ namespace AccStateSync
 		internal static ConfigEntry<bool> CharaMakerPreview { get; set; }
 		internal static ConfigEntry<bool> StudioUseMoreAccBtn { get; set; }
 		internal static ConfigEntry<bool> LogLevelInfo { get; set; }
+		internal static ConfigEntry<bool> AutoSaveSetting { get; set; }
 
 		internal static SidebarToggle CharaMakerPreviewSidebarToggle;
 		internal static MakerLoadToggle LoadCharaExtdataToggle;
@@ -52,6 +53,7 @@ namespace AccStateSync
 			CharacterApi.RegisterExtraBehaviour<AccStateSyncController>(GUID);
 			MoreAccessories_Support.LoadAssembly();
 
+			AutoSaveSetting = Config.Bind("Maker", "Auto Save Setting", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 20 }));
 			CoroutineSlotChangeDelay = Config.Bind("Maker", "Slot Change Delay", 1f, new ConfigDescription("", null, new ConfigurationManagerAttributes { IsAdvanced = true, Order = 2 }));
 			CoroutineCounterMax = Config.Bind("Maker", "Maximun Coroutine Counter", 30f, new ConfigDescription("", null, new ConfigurationManagerAttributes { IsAdvanced = true, Order = 1 }));
 			CharaMakerPreview = Config.Bind("Maker", "CharaMaker Force Preview", true, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 10 }));
@@ -89,16 +91,18 @@ namespace AccStateSync
 				CharaMakerPreviewSidebarToggle = null;
 			};
 
-			UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, lsm) =>
-			{
-				if (s.name == "HProc")
-					HooksInstanceHScene = HarmonyWrapper.PatchAll(typeof(HooksHScene));
-			};
-
 			HarmonyWrapper.PatchAll(typeof(Hooks));
 
 			if (UnityEngine.Application.dataPath.EndsWith("KoikatuVR_Data"))
 				HarmonyWrapper.PatchAll(typeof(HooksVR));
+			else if (UnityEngine.Application.dataPath.EndsWith("Koikatu_Data"))
+			{
+				UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, lsm) =>
+				{
+					if (s.name == "HProc")
+						HooksInstanceHScene = HarmonyWrapper.PatchAll(typeof(HooksHScene));
+				};
+			}
 			else if (UnityEngine.Application.dataPath.EndsWith("CharaStudio_Data"))
 				StudioAPI.StudioLoadedChanged += (sender, e) => RegisterStudioControls();
 

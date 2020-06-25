@@ -16,6 +16,7 @@ namespace AccStateSync
 			internal void AccSlotChangedHandler(int SlotIndex, bool Skip = false)
 			{
 				if (!MakerAPI.InsideAndLoaded) return;
+				SkipAutoSave = true;
 
 				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
 
@@ -23,7 +24,7 @@ namespace AccStateSync
 
 				List<ChaFileAccessory.PartsInfo> PartsInfo = CharaAccInfo;
 				ChaFileAccessory.PartsInfo PartInfo = PartsInfo.ElementAtOrDefault(SlotIndex);
-				if ((PartInfo == null))
+				if (PartInfo == null)
 				{
 					Logger.LogError($"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}] Cannot retrive info for Slot{CurSlotTriggerInfo.Slot + 1:00}");
 					return;
@@ -63,10 +64,11 @@ namespace AccStateSync
 
 //				grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().value = ddASSListVal;
 				grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().RefreshShownValue();
-
+				bool clickable = CurSlotTriggerInfo.Kind == -1 ? false : true;
 				for (int x = 0; x < 4; x++)
 				{
 					tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[x];
+					tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().interactable = clickable;
 					tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][x] ? 1f : 0.2f;
 				}
 
@@ -208,6 +210,28 @@ namespace AccStateSync
 					Logger.LogMessage($"AccTriggerInfo for Coordinate {CurrentCoordinateIndex} Slot{SlotIndex + 1:00} has been reset");
 					AccSlotChangedHandler(SlotIndex);
 				}
+			}
+
+			internal void AutoSaveTrigger(int SlotIndex)
+			{
+				if (!MakerAPI.InsideAndLoaded) return;
+				if (!AutoSaveSetting.Value) return;
+				if (SkipAutoSave) return;
+
+				List<ChaFileAccessory.PartsInfo> PartsInfo = CharaAccInfo;
+				ChaFileAccessory.PartsInfo PartInfo = PartsInfo.ElementAtOrDefault(SlotIndex);
+				if ((PartInfo == null) || (PartInfo.type == 120))
+				{
+					if (CharaTriggerInfo[CurrentCoordinateIndex].Parts.ContainsKey(SlotIndex))
+					{
+						CharaTriggerInfo[CurrentCoordinateIndex].Parts.Remove(SlotIndex);
+						Logger.LogMessage($"AccTriggerInfo for Coordinate {CurrentCoordinateIndex} Slot{SlotIndex + 1:00} has been reset");
+					}
+					return;
+				}
+
+				Logger.LogMessage($"AutoSaveTrigger for Coordinate {CurrentCoordinateIndex} Slot{SlotIndex + 1:00}");
+				grpParent.Find("btnASSsave").GetComponentInChildren<Button>().onClick.Invoke();
 			}
 		}
 	}

@@ -11,7 +11,7 @@ namespace AccStateSync
 	{
 		public static bool InsideCharaStudio = false;
 		public static OCIChar CurOCIChar;
-		public static GameObject ASSPanel = null;
+		public static GameObject ASSPanel;
 
 		void Update()
 		{
@@ -55,7 +55,8 @@ namespace AccStateSync
 				return;
 			if (!controller.TriggerEnabled)
 				return;
-
+			if (controller.VirtualGroupStates.Count() == 0)
+				return;
 			int i = 0;
 			Dictionary<string, bool> VirtualGroupStates = controller.VirtualGroupStates;
 			foreach (KeyValuePair<string, bool> group in VirtualGroupStates)

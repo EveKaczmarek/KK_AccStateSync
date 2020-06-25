@@ -78,7 +78,10 @@ namespace AccStateSync
 				if (pluginCtrl.CurSlotTriggerInfo.Kind == -1)
 				{
 					if (pluginCtrl.CurOutfitTriggerInfo.Parts.ContainsKey(SlotNo))
+					{
 						pluginCtrl.CurOutfitTriggerInfo.Parts.Remove(SlotNo);
+						Logger.LogMessage($"AccTriggerInfo for Coordinate {pluginCtrl.CurrentCoordinateIndex} Slot{SlotNo + 1:00} has been reset");
+					}
 				}
 				else
 				{
@@ -91,9 +94,9 @@ namespace AccStateSync
 						if (!pluginCtrl.VirtualGroupStates.ContainsKey(pluginCtrl.CurSlotTriggerInfo.Group))
 							pluginCtrl.VirtualGroupStates[pluginCtrl.CurSlotTriggerInfo.Group] = true;
 					}
+					Logger.LogMessage($"Slot{SlotNo + 1:00} updated");
 				}
 
-				Logger.LogMessage($"Slot{SlotNo + 1:00} updated");
 				pluginCtrl.AccSlotChangedHandler(AccessoriesApi.SelectedMakerAccSlot, true);
 			});
 			btnSave.gameObject.SetActive(true);
@@ -124,6 +127,8 @@ namespace AccStateSync
 					vis = pluginCtrl.VirtualGroupStates[Part.Group] ? Part.State[0] : Part.State[3];
 				chaCtrl.SetAccessoryState(Part.Slot, vis);
 			}
+//			if (Part.Kind > -1)
+				pluginCtrl.AutoSaveTrigger(Part.Slot);
 		}
 
 		internal static void CreateMakerDropdownItems(List<string> labels, int i = -1)
@@ -167,9 +172,13 @@ namespace AccStateSync
 				}
 
 				int refIndex = dropdown.value <= 9 ? dropdown.value : 9;
-				for (int x = 0; x < 4; x++)
-					tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][x] ? 1f : 0.2f;
 				Part.Kind = dropdown.value <= 9 ? ddASSListVals[dropdown.value] : dropdown.value;
+				bool clickable = Part.Kind == -1 ? false : true;
+				for (int x = 0; x < 4; x++)
+				{
+					tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][x] ? 1f : 0.2f;
+					tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().interactable = clickable;
+				}
 
 				MakerSettingChangePreview(chaCtrl, Part);
 				Logger.Log(DebugLogLevel, $"[ddASSList][{chaCtrl.chaFile.parameter?.fullname}][Slot: {Part.Slot}][Kind: {Part.Kind}][State: {Part.State[0]}|{Part.State[1]}|{Part.State[2]}|{Part.State[3]}]");

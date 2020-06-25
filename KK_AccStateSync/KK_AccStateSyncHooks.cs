@@ -21,18 +21,6 @@ namespace AccStateSync
 					controller.ToggleByClothesState(__instance, clothesKind, state);
 				}
 			}
-
-			[HarmonyPriority(Priority.Last)]
-			[HarmonyPostfix, HarmonyPatch(typeof(ChaControl), "SetAccessoryStateCategory")]
-			internal static void SetAccessoryStateCategoryPostfix(ChaControl __instance, int cateNo, bool show)
-			{
-				AccStateSyncController controller = GetController(__instance);
-				if (controller != null)
-				{
-					if (controller.CoroutineCounter <= CoroutineCounterMax.Value)
-						controller.CoroutineCounter++;
-				}
-			}
 		}
 
 		internal class HooksCharaMaker
@@ -45,6 +33,18 @@ namespace AccStateSync
 				{
 					if (index == 0)
 						controller.CvsAccessoryUpdateSelectAccessoryTypePostfix((int)__instance.slotNo);
+				}
+			}
+
+			[HarmonyPriority(Priority.Last)]
+			[HarmonyPostfix, HarmonyPatch(typeof(ChaControl), "SetAccessoryStateCategory")]
+			internal static void SetAccessoryStateCategoryPostfix(ChaControl __instance, int cateNo, bool show)
+			{
+				AccStateSyncController controller = GetController(__instance);
+				if (controller != null)
+				{
+					if (controller.CoroutineCounter <= CoroutineCounterMax.Value)
+						controller.CoroutineCounter++;
 				}
 			}
 		}
