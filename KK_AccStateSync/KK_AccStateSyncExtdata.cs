@@ -35,7 +35,7 @@ namespace AccStateSync
 			public OutfitTriggerInfo(int index) { Index = index; }
 		}
 
-		internal static void CopySlotTriggerInfo(AccTriggerInfo CopySource, AccTriggerInfo CopyDestination)
+		public static void CopySlotTriggerInfo(AccTriggerInfo CopySource, AccTriggerInfo CopyDestination)
 		{
 			CopyDestination.Slot = CopySource.Slot;
 			CopyDestination.Kind = CopySource.Kind;

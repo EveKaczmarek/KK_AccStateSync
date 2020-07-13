@@ -4,8 +4,8 @@ using System.Linq;
 using UniRx;
 using BepInEx;
 using BepInEx.Configuration;
-using BepInEx.Harmony;
 using BepInEx.Logging;
+using HarmonyLib;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
@@ -16,11 +16,12 @@ namespace AccStateSync
 {
 	[BepInPlugin(GUID, Name, Version)]
 	[BepInDependency("marco.kkapi")]
+	[BepInDependency("com.joan6694.illusionplugins.moreaccessories")]
 	public partial class AccStateSync : BaseUnityPlugin
 	{
 		public const string Name = "KK_AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "2.1.0.0";
+		public const string Version = "2.5.0.0";
 
 		internal static new ManualLogSource Logger;
 		internal static LogLevel DebugLogLevel;
@@ -91,16 +92,16 @@ namespace AccStateSync
 				CharaMakerPreviewSidebarToggle = null;
 			};
 
-			HarmonyWrapper.PatchAll(typeof(Hooks));
+			Harmony.CreateAndPatchAll(typeof(Hooks));
 
 			if (UnityEngine.Application.dataPath.EndsWith("KoikatuVR_Data"))
-				HarmonyWrapper.PatchAll(typeof(HooksVR));
+				Harmony.CreateAndPatchAll(typeof(HooksVR));
 			else if (UnityEngine.Application.dataPath.EndsWith("Koikatu_Data"))
 			{
 				UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, lsm) =>
 				{
 					if (s.name == "HProc")
-						HooksInstanceHScene = HarmonyWrapper.PatchAll(typeof(HooksHScene));
+						HooksInstanceHScene = Harmony.CreateAndPatchAll(typeof(HooksHScene));
 				};
 			}
 			else if (UnityEngine.Application.dataPath.EndsWith("CharaStudio_Data"))
@@ -112,7 +113,7 @@ namespace AccStateSync
 
 		internal static void MakerAPI_MakerBaseLoaded(object sender, RegisterCustomControlsEvent e)
 		{
-			HooksInstanceCharaMaker = HarmonyWrapper.PatchAll(typeof(HooksCharaMaker));
+			HooksInstanceCharaMaker = Harmony.CreateAndPatchAll(typeof(HooksCharaMaker));
 			LoadCharaExtdataToggle = e.AddLoadToggle(new MakerLoadToggle("AccStateSync"));
 			LoadCoordinateExtdataToggle = e.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("AccStateSync"));
 		}

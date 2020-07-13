@@ -22,8 +22,7 @@ namespace AccStateSync
 
 				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}][SlotIndex]: {SlotIndex}");
 
-				List<ChaFileAccessory.PartsInfo> PartsInfo = CharaAccInfo;
-				ChaFileAccessory.PartsInfo PartInfo = PartsInfo.ElementAtOrDefault(SlotIndex);
+				ChaFileAccessory.PartsInfo PartInfo = AccessoriesApi.GetPartsInfo(SlotIndex);
 				if (PartInfo == null)
 				{
 					Logger.LogError($"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}] Cannot retrive info for Slot{CurSlotTriggerInfo.Slot + 1:00}");
@@ -218,8 +217,7 @@ namespace AccStateSync
 				if (!AutoSaveSetting.Value) return;
 				if (SkipAutoSave) return;
 
-				List<ChaFileAccessory.PartsInfo> PartsInfo = CharaAccInfo;
-				ChaFileAccessory.PartsInfo PartInfo = PartsInfo.ElementAtOrDefault(SlotIndex);
+				ChaFileAccessory.PartsInfo PartInfo = AccessoriesApi.GetPartsInfo(SlotIndex);
 				if ((PartInfo == null) || (PartInfo.type == 120))
 				{
 					if (CharaTriggerInfo[CurrentCoordinateIndex].Parts.ContainsKey(SlotIndex))

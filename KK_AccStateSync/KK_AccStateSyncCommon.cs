@@ -41,6 +41,7 @@ namespace AccStateSync
 			internal void SyncOutfitTriggerInfo(int CoordinateIndex)
 			{
 				Logger.Log(DebugLogLevel, $"[SyncOutfitTriggerInfo][{ChaControl.chaFile.parameter?.fullname}] Process OutfitTriggerInfo for Coordinate {CoordinateIndex}");
+				if (!MakerAPI.InsideAndLoaded) return;
 
 				List<ChaFileAccessory.PartsInfo> PartsInfo = MoreAccessories_Support.GetCoordinatePartsInfo(ChaControl, CoordinateIndex);
 
@@ -54,8 +55,9 @@ namespace AccStateSync
 				{
 					AccTriggerInfo TriggerPart = OutfitTriggerInfo.Parts[SlotIndex];
 					Logger.Log(DebugLogLevel, $"[SyncCharaTriggerInfo][{ChaControl.chaFile.parameter?.fullname}][Slot: {SlotIndex}][Kind: {TriggerPart.Kind}]");
+					ChaFileAccessory.PartsInfo PartInfo = PartsInfo.ElementAtOrDefault(SlotIndex);
 
-					if (PartsInfo.ElementAtOrDefault(SlotIndex) == null)
+					if (PartInfo == null)
 						CharaTriggerInfo[CoordinateIndex].Parts.Remove(SlotIndex);
 					else
 					{
@@ -66,7 +68,7 @@ namespace AccStateSync
 						}
 						else
 						{
-							if (PartsInfo[SlotIndex].type == 120)
+							if (PartInfo.type == 120)
 							{
 								CharaTriggerInfo[CoordinateIndex].Parts.Remove(SlotIndex);
 								Logger.LogMessage($"AccTriggerInfo for Coordinate {CoordinateIndex} Slot{SlotIndex + 1:00} has been reset");
@@ -76,7 +78,7 @@ namespace AccStateSync
 								if (MathfEx.RangeEqualOn(0, TriggerPart.Kind, 7))
 									CharaTriggerInfo[CoordinateIndex].Parts[SlotIndex].Group = "";
 								else if (TriggerPart.Kind == 9)
-									CharaTriggerInfo[CoordinateIndex].Parts[SlotIndex].Group = PartsInfo[SlotIndex].parentKey;
+									CharaTriggerInfo[CoordinateIndex].Parts[SlotIndex].Group = PartInfo.parentKey;
 								else if (TriggerPart.Kind > 9)
 									CharaTriggerInfo[CoordinateIndex].Parts[SlotIndex].Group = "custom_" + (TriggerPart.Kind - 9).ToString();
 							}
@@ -228,8 +230,6 @@ namespace AccStateSync
 						}
 					}
 				}
-				if (InsideCharaStudio)
-					MoreAccessories_Support.UpdateUI();
 			}
 		}
 	}

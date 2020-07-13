@@ -117,6 +117,8 @@ namespace AccStateSync
 				if (controller == null)
 					return;
 				controller.ToggleByVirtualGroup(name, value);
+				GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/00_Root/Viewport/Content/State").GetComponentInChildren<Button>().onClick.Invoke();
+				MoreAccessories_Support.UpdateUI();
 			});
 		}
 	}

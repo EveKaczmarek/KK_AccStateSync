@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -116,8 +115,8 @@ namespace AccStateSync
 			{
 				if (Part.Kind == 9)
 				{
-					List<ChaFileAccessory.PartsInfo> PartsInfo = MoreAccessories_Support.GetAccessoriesInfos(chaCtrl);
-					Part.Group = PartsInfo[Part.Slot].parentKey;
+					ChaFileAccessory.PartsInfo PartInfo = AccessoriesApi.GetPartsInfo(Part.Slot);
+					Part.Group = PartInfo.parentKey;
 				}
 				else
 					Part.Group = "custom_" + (Part.Kind - 9).ToString();

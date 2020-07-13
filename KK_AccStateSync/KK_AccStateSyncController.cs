@@ -28,8 +28,6 @@ namespace AccStateSync
 
 			public float CoroutineCounter = 0;
 
-			public List<ChaFileAccessory.PartsInfo> CharaAccInfo => MoreAccessories_Support.GetAccessoriesInfos(ChaControl);
-
 			protected override void Start()
 			{
 				Logger.Log(DebugLogLevel, "[Start] Fired!!");
