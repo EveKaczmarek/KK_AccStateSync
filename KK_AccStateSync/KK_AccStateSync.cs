@@ -90,7 +90,8 @@ namespace AccStateSync
 				HooksInstanceCharaMaker.UnpatchAll(HooksInstanceCharaMaker.Id);
 				HooksInstanceCharaMaker = null;
 				CharaMakerPreviewSidebarToggle = null;
-			};
+                LoadCharaExtdataToggle = null;
+            };
 
 			Harmony.CreateAndPatchAll(typeof(Hooks));
 
