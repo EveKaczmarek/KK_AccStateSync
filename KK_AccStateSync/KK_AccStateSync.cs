@@ -21,7 +21,7 @@ namespace AccStateSync
 	{
 		public const string Name = "KK_AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "2.5.0.0";
+		public const string Version = "2.6.0.0";
 
 		internal static new ManualLogSource Logger;
 		internal static LogLevel DebugLogLevel;
@@ -91,6 +91,7 @@ namespace AccStateSync
 				HooksInstanceCharaMaker = null;
 				CharaMakerPreviewSidebarToggle = null;
                 LoadCharaExtdataToggle = null;
+				LoadCoordinateExtdataToggle = null;
             };
 
 			Harmony.CreateAndPatchAll(typeof(Hooks));
