@@ -22,7 +22,7 @@ namespace AccStateSync
 			AcsMoveWindow = GameObject.Find("04_AccessoryTop/AcsMoveWindow01").transform;
 			imgWindowBack = AcsMoveWindow.Find("BasePanel/imgWindowBack").GetComponent<RectTransform>();
 			grpParent = AcsMoveWindow.Find("grpParent");
-			tglParent = GameObject.Find("tglSlot01/Slot01Top/tglNoShake").transform;
+			tglParent = GameObject.Find("tglSlot01/Slot01Top/tglResetColor").transform;
 			tglASSobj = new Dictionary<string, GameObject>();
 			tglASSgroup = new Dictionary<string, GameObject>();
 
