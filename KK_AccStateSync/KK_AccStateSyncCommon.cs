@@ -149,17 +149,53 @@ namespace AccStateSync
 				if (!MathfEx.RangeEqualOn(0, kind, 7))
 					return;
 				List<AccTriggerInfo> Parts = CurOutfitTriggerInfo?.Parts?.Values?.Where(x => x.Kind == kind)?.ToList() ?? new List<AccTriggerInfo>();
-				if (Parts.Count() == 0)
-					return;
-				foreach (AccTriggerInfo Part in Parts)
-					chaCtrl.SetAccessoryState(Part.Slot, Part.State[state]);
+				if (Parts.Count() > 0)
+				{
+					foreach (AccTriggerInfo Part in Parts)
+						chaCtrl.SetAccessoryState(Part.Slot, Part.State[state]);
+				}
+
+				int relKind = -1;
+				int relState = -1;
+
+				if ((kind == 0) && (CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["top"]))
+				{
+					relKind = 1;
+					relState = (state == 3) ? 3 : chaCtrl.fileStatus.clothesState[relKind];
+				}
+				else if ((kind == 1) && (CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["top"]))
+				{
+					relKind = 0;
+					relState = (state == 3) ? 3 : chaCtrl.fileStatus.clothesState[relKind];
+				}
+				else if ((kind == 2) && (CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["bra"]))
+				{
+					relKind = 3;
+					relState = (state == 3) ? 3 : chaCtrl.fileStatus.clothesState[relKind];
+				}
+				else if ((kind == 3) && (CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["bra"]))
+				{
+					relKind = 2;
+					relState = (state == 3) ? 3 : chaCtrl.fileStatus.clothesState[relKind];
+				}
+
+				if ((relKind > -1) && (relState > -1))
+				{
+					Parts = CurOutfitTriggerInfo?.Parts?.Values?.Where(x => x.Kind == relKind)?.ToList() ?? new List<AccTriggerInfo>();
+					if (Parts.Count() > 0)
+					{
+						foreach (AccTriggerInfo Part in Parts)
+							chaCtrl.SetAccessoryState(Part.Slot, Part.State[relState]);
+					}
+				}
 			}
 
-			private IEnumerator CoroutineSyncAllAccToggle(float InitCounter)
+			internal IEnumerator WaitForEndOfFrameSyncAllAccToggle()
 			{
-				CoroutineCounter = InitCounter;
-				for (int i = 0; i < CoroutineCounter; ++i)
-					yield return null;
+				// trick from MakerOptimizations, seems only works with 2 lines
+				yield return new UnityEngine.WaitForEndOfFrame();
+				yield return new UnityEngine.WaitForEndOfFrame();
+
 				SkipAutoSave = false;
 				SyncAllAccToggle();
 			}

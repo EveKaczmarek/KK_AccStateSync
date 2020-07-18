@@ -90,6 +90,13 @@ namespace AccStateSync
 							CharaVirtualGroupNames[CurrentCoordinateIndex] = MessagePackSerializer.Deserialize<Dictionary<string, string>>((byte[])loadedOutfitVirtualGroupNames);
 							Logger.Log(DebugLogLevel, $"[OnCoordinateBeingLoaded][{ChaControl.chaFile.parameter?.fullname}] CharaVirtualGroupNames[{CurrentCoordinateIndex}] loaded from extdata");
 						}
+
+						if ((CharaTriggerInfo[CurrentCoordinateIndex].OnePiece?.ContainsKey("top") != true) || (CharaTriggerInfo[CurrentCoordinateIndex].OnePiece?.ContainsKey("bra") != true))
+						{
+							Logger.Log(DebugLogLevel, $"[OnReload][{ChaControl.chaFile.parameter?.fullname}] Init OnePiece info for outfit[{CurrentCoordinateIndex}]");
+							CharaTriggerInfo[CurrentCoordinateIndex].OnePiece = new Dictionary<string, bool>() { ["top"] = false, ["bra"] = false };
+						}
+
 					}
 				}
 				InitCurOutfitTriggerInfo();
@@ -137,6 +144,15 @@ namespace AccStateSync
 								CharaVirtualGroupNames = MessagePackSerializer.Deserialize<Dictionary<int, Dictionary<string, string>>>((byte[])loadedCharaVirtualGroupNames);
 							Logger.Log(DebugLogLevel, $"[OnReload][{ChaControl.chaFile.parameter?.fullname}] CharaVirtualGroupNames loaded from extdata");
 						}
+
+						for (int i = 0; i < 7; i++)
+						{
+							if ((CharaTriggerInfo[i].OnePiece?.ContainsKey("top") != true) || (CharaTriggerInfo[i].OnePiece?.ContainsKey("bra") != true))
+							{
+								Logger.Log(DebugLogLevel, $"[OnReload][{ChaControl.chaFile.parameter?.fullname}] Init OnePiece info for outfit[{i}]");
+								CharaTriggerInfo[i].OnePiece = new Dictionary<string, bool>() { ["top"] = false, ["bra"] = false };
+							}
+						}
 					}
 				}
 				InitCurOutfitTriggerInfo();
@@ -161,6 +177,7 @@ namespace AccStateSync
 					if (CharaTriggerInfo[CurrentCoordinateIndex] == null)
 						CharaTriggerInfo[CurrentCoordinateIndex] = new OutfitTriggerInfo(CurrentCoordinateIndex);
 				}
+
 				CurOutfitTriggerInfo = CharaTriggerInfo[CurrentCoordinateIndex];
 				Logger.Log(DebugLogLevel, $"[InitCurOutfitTriggerInfo] CurOutfitTriggerInfo.Parts.Count() {CurOutfitTriggerInfo.Parts.Count()}");
 

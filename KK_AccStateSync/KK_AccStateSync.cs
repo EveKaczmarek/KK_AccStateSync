@@ -21,14 +21,12 @@ namespace AccStateSync
 	{
 		public const string Name = "KK_AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "2.6.0.0";
+		public const string Version = "2.7.5.0";
 
 		internal static new ManualLogSource Logger;
 		internal static LogLevel DebugLogLevel;
 		internal static UnityEngine.MonoBehaviour instance;
 
-		internal static ConfigEntry<float> CoroutineSlotChangeDelay { get; set; }
-		internal static ConfigEntry<float> CoroutineCounterMax { get; set; }
 		internal static ConfigEntry<bool> CharaMakerPreview { get; set; }
 		internal static ConfigEntry<bool> StudioUseMoreAccBtn { get; set; }
 		internal static ConfigEntry<bool> LogLevelInfo { get; set; }
@@ -55,8 +53,6 @@ namespace AccStateSync
 			MoreAccessories_Support.LoadAssembly();
 
 			AutoSaveSetting = Config.Bind("Maker", "Auto Save Setting", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 20 }));
-			CoroutineSlotChangeDelay = Config.Bind("Maker", "Slot Change Delay", 1f, new ConfigDescription("", null, new ConfigurationManagerAttributes { IsAdvanced = true, Order = 2 }));
-			CoroutineCounterMax = Config.Bind("Maker", "Maximun Coroutine Counter", 30f, new ConfigDescription("", null, new ConfigurationManagerAttributes { IsAdvanced = true, Order = 1 }));
 			CharaMakerPreview = Config.Bind("Maker", "CharaMaker Force Preview", true, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 10 }));
 			CharaMakerPreview.SettingChanged += (sender, args) =>
 			{

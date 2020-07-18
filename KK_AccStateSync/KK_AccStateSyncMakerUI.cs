@@ -99,6 +99,19 @@ namespace AccStateSync
 				pluginCtrl.AccSlotChangedHandler(AccessoriesApi.SelectedMakerAccSlot, true);
 			});
 			btnSave.gameObject.SetActive(true);
+
+			GameObject parent = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/03_ClothesTop");
+			foreach (Transform child in parent.transform)
+			{
+				Toggle toggle = child.GetComponent<Toggle>();
+				toggle.onValueChanged.AddListener( _ =>
+				{
+					ChaControl chaCtrl = MakerAPI.GetCharacterControl();
+					AccStateSyncController pluginCtrl = GetController(chaCtrl);
+					if (toggle.isOn)
+						instance.StartCoroutine(pluginCtrl.WaitForEndOfFrameSyncAllAccToggle());
+				});
+			}
 		}
 
 		internal static void MakerSettingChangePreview(ChaControl chaCtrl, AccTriggerInfo Part)
@@ -126,8 +139,7 @@ namespace AccStateSync
 					vis = pluginCtrl.VirtualGroupStates[Part.Group] ? Part.State[0] : Part.State[3];
 				chaCtrl.SetAccessoryState(Part.Slot, vis);
 			}
-//			if (Part.Kind > -1)
-				pluginCtrl.AutoSaveTrigger(Part.Slot);
+			pluginCtrl.AutoSaveTrigger(Part.Slot);
 		}
 
 		internal static void CreateMakerDropdownItems(List<string> labels, int i = -1)

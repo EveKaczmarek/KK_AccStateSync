@@ -61,7 +61,6 @@ namespace AccStateSync
 					extra = CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
 				CreateMakerDropdownItems(extra, ddASSListVal);
 
-//				grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().value = ddASSListVal;
 				grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().RefreshShownValue();
 				bool clickable = CurSlotTriggerInfo.Kind == -1 ? false : true;
 				for (int x = 0; x < 4; x++)
@@ -83,7 +82,7 @@ namespace AccStateSync
 
 				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}][Slot: {CurSlotTriggerInfo.Slot}][Kind: {CurSlotTriggerInfo.Kind}][State: {CurSlotTriggerInfo.State[0]}|{CurSlotTriggerInfo.State[1]}|{CurSlotTriggerInfo.State[2]}|{CurSlotTriggerInfo.State[3]}]");
 
-				ChaControl.StartCoroutine(CoroutineSyncAllAccToggle(CoroutineSlotChangeDelay.Value));
+				instance.StartCoroutine(WaitForEndOfFrameSyncAllAccToggle());
 			}
 
 			internal void AccessoriesCopiedHandler(int CopySource, int CopyDestination, List<int> CopiedSlotIndexes)
@@ -230,6 +229,30 @@ namespace AccStateSync
 
 				Logger.LogMessage($"AutoSaveTrigger for Coordinate {CurrentCoordinateIndex} Slot{SlotIndex + 1:00}");
 				grpParent.Find("btnASSsave").GetComponentInChildren<Button>().onClick.Invoke();
+			}
+
+			internal void VerifyOnePiece(int Category, int Kind)
+			{
+				if (!MakerAPI.InsideAndLoaded) return;
+
+				if (Category == 105)
+				{
+					CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["top"] = false;
+					if (Kind >= 3)
+					{
+						if (ChaControl.nowCoordinate.clothes.parts[1].id == 0)
+							CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["top"] = true;
+					}
+				}
+				else if (Category == 107)
+				{
+					CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["bra"] = false;
+					if (Kind == 2)
+					{
+						if (ChaControl.nowCoordinate.clothes.parts[3].id == 0)
+							CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["bra"] = true;
+					}
+				}
 			}
 		}
 	}

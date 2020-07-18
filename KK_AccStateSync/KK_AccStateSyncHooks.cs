@@ -37,14 +37,18 @@ namespace AccStateSync
 			}
 
 			[HarmonyPriority(Priority.Last)]
-			[HarmonyPostfix, HarmonyPatch(typeof(ChaControl), "SetAccessoryStateCategory")]
-			internal static void SetAccessoryStateCategoryPostfix(ChaControl __instance, int cateNo, bool show)
+			[HarmonyPostfix, HarmonyPatch(typeof(ListInfoBase), nameof(ListInfoBase.GetInfo))]
+			internal static void ListInfoBaseGetInfoPostfix(ListInfoBase __instance, ChaListDefine.KeyType keyType)
 			{
-				AccStateSyncController controller = GetController(__instance);
-				if (controller != null)
+				if (keyType == ChaListDefine.KeyType.Coordinate)
 				{
-					if (controller.CoroutineCounter <= CoroutineCounterMax.Value)
-						controller.CoroutineCounter++;
+					int Category = System.Int32.Parse(__instance.dictInfo[(int) ChaListDefine.KeyType.Category]);
+					if ((Category == 105) || (Category == 107))
+					{
+						AccStateSyncController controller = GetController(KKAPI.Maker.MakerAPI.GetCharacterControl());
+						if (controller != null)
+							controller.VerifyOnePiece(Category, System.Int32.Parse(__instance.dictInfo[(int) ChaListDefine.KeyType.Kind]));
+					}
 				}
 			}
 		}

@@ -31,6 +31,8 @@ namespace AccStateSync
 			public int Index { get; set; }
 			[Key("Parts")]
 			public Dictionary<int, AccTriggerInfo> Parts { get; set; } = new Dictionary<int, AccTriggerInfo>();
+			[Key("OnePiece")]
+			public Dictionary<string, bool> OnePiece { get; set; } = new Dictionary<string, bool>() { ["top"] = false, ["bra"] = false };
 
 			public OutfitTriggerInfo(int index) { Index = index; }
 		}
