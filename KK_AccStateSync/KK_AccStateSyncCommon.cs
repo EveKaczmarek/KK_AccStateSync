@@ -75,7 +75,7 @@ namespace AccStateSync
 							}
 							else
 							{
-								if (MathfEx.RangeEqualOn(0, TriggerPart.Kind, 7))
+								if (MathfEx.RangeEqualOn(0, TriggerPart.Kind, 8))
 									CharaTriggerInfo[CoordinateIndex].Parts[SlotIndex].Group = "";
 								else if (TriggerPart.Kind == 9)
 									CharaTriggerInfo[CoordinateIndex].Parts[SlotIndex].Group = PartInfo.parentKey;
@@ -146,7 +146,7 @@ namespace AccStateSync
 
 				if (CurOutfitTriggerInfo?.Parts?.Count() == 0)
 					return;
-				if (!MathfEx.RangeEqualOn(0, kind, 7))
+				if (!MathfEx.RangeEqualOn(0, kind, 6))
 					return;
 				List<AccTriggerInfo> Parts = CurOutfitTriggerInfo?.Parts?.Values?.Where(x => x.Kind == kind)?.ToList() ?? new List<AccTriggerInfo>();
 				if (Parts.Count() > 0)
@@ -190,6 +190,34 @@ namespace AccStateSync
 				}
 			}
 
+			internal void ToggleByShoesType(ChaControl chaCtrl, int kind, int state)
+			{
+				if (!TriggerEnabled)
+					return;
+
+				Logger.Log(DebugLogLevel, $"[ToggleByShoesType][{chaCtrl.chaFile.parameter?.fullname}] Fired!!");
+
+				if (CurOutfitTriggerInfo?.Parts?.Count() == 0)
+					return;
+				if ((kind != 7) && (kind != 8))
+					return;
+
+				int cur = (chaCtrl.fileStatus.shoesType == 0) ? 7 : 8;
+				int off = (cur == 7) ? 8 : 7;
+				List<AccTriggerInfo> Parts = CurOutfitTriggerInfo?.Parts?.Values?.Where(x => x.Kind == cur)?.ToList() ?? new List<AccTriggerInfo>();
+				if (Parts.Count() > 0)
+				{
+					foreach (AccTriggerInfo Part in Parts)
+						chaCtrl.SetAccessoryState(Part.Slot, Part.State[state]);
+				}
+				Parts = CurOutfitTriggerInfo?.Parts?.Values?.Where(x => x.Kind == off)?.ToList() ?? new List<AccTriggerInfo>();
+				if (Parts.Count() > 0)
+				{
+					foreach (AccTriggerInfo Part in Parts)
+						chaCtrl.SetAccessoryState(Part.Slot, false);
+				}
+			}
+
 			internal IEnumerator WaitForEndOfFrameSyncAllAccToggle()
 			{
 				// trick from MakerOptimizations, seems only works with 2 lines
@@ -223,13 +251,23 @@ namespace AccStateSync
 				}
 				Logger.Log(DebugLogLevel, $"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}][Kinds: {string.Join(",", Kinds.Select(Kind => Kind.ToString()).ToArray())}]");
 
+				byte[] ClothesState = ChaControl.fileStatus.clothesState;
+				byte ShoesType = ChaControl.fileStatus.shoesType;
 				foreach (AccTriggerInfo Part in CurOutfitTriggerInfo.Parts.Values)
 				{
-					if (MathfEx.RangeEqualOn(0, Part.Kind, 7))
+					if (MathfEx.RangeEqualOn(0, Part.Kind, 6))
 					{
-						int state = ChaControl.fileStatus.clothesState[Part.Kind];
+						int state = ClothesState[Part.Kind];
 						bool vis = Part.State[state];
 						Logger.Log(DebugLogLevel, $"[SyncAllAccToggle][{ChaControl.chaFile.parameter?.fullname}][slot: {Part.Slot}][kind: {Part.Kind}][state: {state}][vis: {vis}]");
+						ChaControl.SetAccessoryState(Part.Slot, vis);
+					}
+					else if ((Part.Kind == 7) || (Part.Kind == 8))
+					{
+						int clothesKind = (ShoesType == 0) ? 7 : 8;
+						bool vis = false;
+						if (clothesKind == Part.Kind)
+							vis = Part.State[ClothesState[Part.Kind]];
 						ChaControl.SetAccessoryState(Part.Slot, vis);
 					}
 					else if ((Part.Kind >= 9) && (!Part.Group.IsNullOrEmpty()))

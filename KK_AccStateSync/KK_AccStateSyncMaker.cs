@@ -53,13 +53,13 @@ namespace AccStateSync
 
 				AnchorOffsetMinY = (int) tglASSobj["tglASS0"].GetComponent<RectTransform>().offsetMin.y - 80;
 
-				int ddASSListVal = CurSlotTriggerInfo.Kind <= 9 ? ddASSListVals.IndexOf(CurSlotTriggerInfo.Kind) : CurSlotTriggerInfo.Kind;
-				int refIndex = ddASSListVal <= 9 ? ddASSListVal : 9;
+				int ddVal = CurSlotTriggerInfo.Kind <= 9 ? ddASSListVals.IndexOf(CurSlotTriggerInfo.Kind) : (CurSlotTriggerInfo.Kind + 1);
+				int ddASSListIndex = (ddVal < ddASSListVals.Count()) ? ddVal : (ddASSListVals.Count() - 1);
 
 				List<string> extra = new List<string>();
 				if (CurOutfitVirtualGroupNames?.Count() > 0)
 					extra = CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
-				CreateMakerDropdownItems(extra, ddASSListVal);
+				CreateMakerDropdownItems(extra, ddVal);
 
 				grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().RefreshShownValue();
 				bool clickable = CurSlotTriggerInfo.Kind == -1 ? false : true;
@@ -67,7 +67,7 @@ namespace AccStateSync
 				{
 					tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[x];
 					tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().interactable = clickable;
-					tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][x] ? 1f : 0.2f;
+					tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[ddASSListIndex][x] ? 1f : 0.2f;
 				}
 
 				FillVirtualGroupStates();
@@ -150,13 +150,16 @@ namespace AccStateSync
 				CurOutfitVirtualGroupNames[group] = label;
 				Logger.LogMessage($"[{group}] renamed into {label}");
 
-				int kind = System.Int32.Parse(group.Replace("custom_", "")) + 9;
+				int ddVal = System.Int32.Parse(group.Replace("custom_", "")) + 10;
 				TMP_Dropdown dropdown = grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>();
-				dropdown.options[kind].text = label;
+				dropdown.options[ddVal].text = label;
 				dropdown.RefreshShownValue();
-				GameObject toggle = tglASSgroup["tglASS_" + group];
-				if (toggle != null)
-					toggle.GetComponentInChildren<TextMeshProUGUI>().text = label;
+				if (tglASSgroup.ContainsKey("tglASS_" + group))
+				{
+					GameObject toggle = tglASSgroup["tglASS_" + group];
+					if (toggle != null)
+						toggle.GetComponentInChildren<TextMeshProUGUI>().text = label;
+				}
 			}
 
 			internal void RenameGroup(int kind, string label)

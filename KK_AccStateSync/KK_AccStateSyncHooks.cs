@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
+using System.Linq;
 using ChaCustom;
 
 namespace AccStateSync
@@ -18,7 +19,24 @@ namespace AccStateSync
 				if (controller != null)
 				{
 					int state = __instance.fileStatus.clothesState[clothesKind];
-					controller.ToggleByClothesState(__instance, clothesKind, state);
+					if (MathfEx.RangeEqualOn(0, clothesKind, 6))
+						controller.ToggleByClothesState(__instance, clothesKind, state);
+					else
+						controller.ToggleByShoesType(__instance, clothesKind, state);
+				}
+			}
+
+			[HarmonyPostfix, HarmonyPatch(typeof(ChaFileStatus), nameof(ChaFileStatus.shoesType), MethodType.Setter)]
+			internal static void ShoesTypePostfix(ChaFileStatus __instance)
+			{
+				ChaControl chaCtrl = FindObjectsOfType<ChaControl>().Where(x => x?.chaFile?.status == __instance).FirstOrDefault();
+				if (chaCtrl != null)
+				{
+					int clothesKind = chaCtrl.fileStatus.shoesType == 0 ? 7 : 8;
+					int state = chaCtrl.fileStatus.clothesState[clothesKind];
+					AccStateSyncController controller = GetController(chaCtrl);
+					if (controller != null)
+						controller.ToggleByShoesType(chaCtrl, clothesKind, state);
 				}
 			}
 		}

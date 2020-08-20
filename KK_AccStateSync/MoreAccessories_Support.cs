@@ -50,7 +50,6 @@ namespace AccStateSync
 		{
 			if (NewVer)
 			{
-//				object charAdditionalData = TryGetValueFromWeakKeyDict(MoreAccObj.GetField("_accessoriesByChar"), chaCtrl.chaFile);
 				TryGetValueFromWeakKeyDict(MoreAccObj.GetField("_accessoriesByChar"), chaCtrl.chaFile, out object charAdditionalData);
 				charAdditionalData.GetField("rawAccessoriesInfos").ToDictionary<ChaFileDefine.CoordinateType, List<ChaFileAccessory.PartsInfo>>()
 					.TryGetValue((ChaFileDefine.CoordinateType) CoordinateIndex, out List<ChaFileAccessory.PartsInfo> parts);
@@ -65,22 +64,7 @@ namespace AccStateSync
 				return parts ?? new List<ChaFileAccessory.PartsInfo>();
 			}
 		}
-/*
-		public static object TryGetValueFromWeakKeyDict(object weakDict, object Key)
-		{
-			object enumerator = weakDict.Invoke("GetEnumerator");
-			if ((bool) weakDict.Invoke("ContainsKey", new object[] { Key }))
-			{
-				while ((bool) enumerator.Invoke("MoveNext"))
-				{
-					object current = enumerator.GetProperty("Current");
-					if (current?.GetProperty("Key") == Key)
-						return current?.GetProperty("Value");
-				}
-			}
-			return null;
-		}
-*/
+
 		public static bool TryGetValueFromWeakKeyDict(object weakDict, object Key, out object result)
 		{
 			result = null;

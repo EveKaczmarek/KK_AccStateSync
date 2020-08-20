@@ -51,7 +51,7 @@ namespace AccStateSync
 				SyncOutfitTriggerInfo(CurrentCoordinateIndex);
 				ExtendedData.data.Add("OutfitTriggerInfo", MessagePackSerializer.Serialize(CharaTriggerInfo[CurrentCoordinateIndex]));
 				ExtendedData.data.Add("OutfitVirtualGroupNames", MessagePackSerializer.Serialize(CharaVirtualGroupNames[CurrentCoordinateIndex]));
-				ExtendedData.version = 2;
+				ExtendedData.version = 3;
 				SetCoordinateExtendedData(coordinate, ExtendedData);
 			}
 
@@ -62,7 +62,7 @@ namespace AccStateSync
 				PluginData ExtendedData = new PluginData();
 				ExtendedData.data.Add("CharaTriggerInfo", MessagePackSerializer.Serialize(CharaTriggerInfo));
 				ExtendedData.data.Add("CharaVirtualGroupNames", MessagePackSerializer.Serialize(CharaVirtualGroupNames));
-				ExtendedData.version = 2;
+				ExtendedData.version = 3;
 				SetExtendedData(ExtendedData);
 			}
 
@@ -96,7 +96,6 @@ namespace AccStateSync
 							Logger.Log(DebugLogLevel, $"[OnReload][{ChaControl.chaFile.parameter?.fullname}] Init OnePiece info for outfit[{CurrentCoordinateIndex}]");
 							CharaTriggerInfo[CurrentCoordinateIndex].OnePiece = new Dictionary<string, bool>() { ["top"] = false, ["bra"] = false };
 						}
-
 					}
 				}
 				InitCurOutfitTriggerInfo();

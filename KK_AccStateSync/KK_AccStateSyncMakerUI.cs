@@ -117,11 +117,19 @@ namespace AccStateSync
 		internal static void MakerSettingChangePreview(ChaControl chaCtrl, AccTriggerInfo Part)
 		{
 			AccStateSyncController pluginCtrl = GetController(chaCtrl);
-			if (MathfEx.RangeEqualOn(0, Part.Kind, 7))
+			if (MathfEx.RangeEqualOn(0, Part.Kind, 6))
 			{
 				int state = chaCtrl.fileStatus.clothesState[Part.Kind];
 				bool vis = Part.State[state];
 				Part.Group = "";
+				chaCtrl.SetAccessoryState(Part.Slot, vis);
+			}
+			else if ((Part.Kind == 7) || (Part.Kind == 8))
+			{
+				int clothesKind = (chaCtrl.fileStatus.shoesType == 0) ? 7 : 8;
+				bool vis = false;
+				if (clothesKind == Part.Kind)
+					vis = Part.State[chaCtrl.fileStatus.clothesState[Part.Kind]];
 				chaCtrl.SetAccessoryState(Part.Slot, vis);
 			}
 			else if (Part.Kind >= 9)
@@ -160,21 +168,6 @@ namespace AccStateSync
 				ChaControl chaCtrl = MakerAPI.GetCharacterControl();
 				AccStateSyncController pluginCtrl = GetController(chaCtrl);
 				AccTriggerInfo Part = pluginCtrl.CurSlotTriggerInfo;
-				int j = dropdown.options.Count();
-				if (dropdown.value == (j - 2))
-				{
-					pluginCtrl.PushGroup();
-					List<string> extra = pluginCtrl.CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
-					CreateMakerDropdownItems(extra, Part.Kind);
-					return;
-				}
-				else if (dropdown.value == (j - 1))
-				{
-					pluginCtrl.PopGroup();
-					List<string> extra = pluginCtrl.CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
-					CreateMakerDropdownItems(extra, Part.Kind);
-					return;
-				}
 
 				if (Part == null)
 				{
@@ -182,12 +175,26 @@ namespace AccStateSync
 					return;
 				}
 
-				int refIndex = dropdown.value <= 9 ? dropdown.value : 9;
-				Part.Kind = dropdown.value <= 9 ? ddASSListVals[dropdown.value] : dropdown.value;
+				int j = dropdown.options.Count();
+				if ((dropdown.value == (j - 1)) || (dropdown.value == (j - 2)))
+				{
+					if (dropdown.value == (j - 2))
+						pluginCtrl.PushGroup();
+					else if (dropdown.value == (j - 1))
+						pluginCtrl.PopGroup();
+					List<string> extra = pluginCtrl.CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
+					int ddVal = Part.Kind <= 9 ? ddASSListVals.IndexOf(Part.Kind) : (Part.Kind + 1);
+					CreateMakerDropdownItems(extra, ddVal);
+					return;
+				}
+
+				int n = ddASSListVals.Count(); // 11
+				int ddASSListIndex = (dropdown.value < n) ? dropdown.value : (n - 1);
+				Part.Kind = (dropdown.value < n) ? ddASSListVals[dropdown.value] : (dropdown.value - 1);
 				bool clickable = Part.Kind == -1 ? false : true;
 				for (int x = 0; x < 4; x++)
 				{
-					tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[refIndex][x] ? 1f : 0.2f;
+					tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[ddASSListIndex][x] ? 1f : 0.2f;
 					tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().interactable = clickable;
 				}
 
