@@ -91,6 +91,10 @@ namespace AccStateSync
 
 				Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}][Soruce: {CopySource}][Destination: {CopyDestination}][CopiedSlotIndexes: {string.Join(",", CopiedSlotIndexes.Select(Slot => Slot.ToString()).ToArray())}]");
 
+				int j = -1;
+				if (CharaTriggerInfo[CopyDestination].Parts.Count() > 0)
+					j = CharaTriggerInfo[CopyDestination].Parts.Values.Max(x => x.Kind);
+
 				int i = 9;
 				foreach (int Slot in CopiedSlotIndexes)
 				{
@@ -105,9 +109,6 @@ namespace AccStateSync
 					}
 				}
 
-				int j = -1;
-				if (CharaTriggerInfo[CopyDestination].Parts.Count() > 0)
-					j = CharaTriggerInfo[CopyDestination].Parts.Values.Max(x => x.Kind);
 				if (i > j)
 				{
 					for (int Kind = 10; Kind < (i + 1); Kind++)
@@ -115,15 +116,19 @@ namespace AccStateSync
 						string group = $"custom_{Kind - 9}";
 						if (!CharaVirtualGroupNames[CopyDestination].ContainsKey(group))
 						{
-							CharaVirtualGroupNames[CopyDestination][group] = $"Custom {Kind - 9}";
+							CharaVirtualGroupNames[CopyDestination][group] = CharaVirtualGroupNames[CopySource][group];
 							Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}][Group: {group}] created");
 						}
 					}
 				}
+
 				Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}] CharaVirtualGroupNames[{CopyDestination}].Count(): {CharaVirtualGroupNames[CopyDestination].Count()}");
 
 				if (CopyDestination == CurrentCoordinateIndex)
+				{
+					CurOutfitVirtualGroupNames = CharaVirtualGroupNames[CurrentCoordinateIndex];
 					AccSlotChangedHandler(AccessoriesApi.SelectedMakerAccSlot, true);
+				}
 			}
 
 			internal void AccessoryTransferredHandler(int SourceSlotIndex, int DestinationSlotIndex) => AccessoryTransferredHandler(SourceSlotIndex, DestinationSlotIndex, CurrentCoordinateIndex);
@@ -132,6 +137,8 @@ namespace AccStateSync
 				if (!MakerAPI.InsideAndLoaded) return;
 
 				Logger.Log(DebugLogLevel, $"[AccessoryTransferredHandler][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
+				if (CharaTriggerInfo[CoordinateIndex].Parts.ContainsKey(DestinationSlotIndex))
+					CharaTriggerInfo[CoordinateIndex].Parts.Remove(DestinationSlotIndex);
 				if (CharaTriggerInfo[CoordinateIndex].Parts.ContainsKey(SourceSlotIndex))
 				{
 					CharaTriggerInfo[CoordinateIndex].Parts[DestinationSlotIndex] = new AccTriggerInfo(DestinationSlotIndex);
