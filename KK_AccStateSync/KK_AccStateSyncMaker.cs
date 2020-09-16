@@ -220,6 +220,24 @@ namespace AccStateSync
 				}
 			}
 
+			internal void CvsAccessoryUpdateSelectAccessoryParentPostfix(int SlotIndex)
+			{
+				if (!CharaTriggerInfo[CurrentCoordinateIndex].Parts.ContainsKey(SlotIndex))
+					return;
+
+				Logger.Log(DebugLogLevel, $"[CvsAccessoryUpdateSelectAccessoryParentPostfix][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
+				AccTriggerInfo Part = CharaTriggerInfo[CurrentCoordinateIndex].Parts[SlotIndex];
+
+				if (Part.Kind == 9)
+				{
+					ChaFileAccessory.PartsInfo PartInfo = AccessoriesApi.GetPartsInfo(Part.Slot);
+					Part.Group = PartInfo.parentKey;
+					Logger.LogMessage($"Slot{SlotIndex + 1:00} has been assigned to {Part.Group}");
+
+					AccSlotChangedHandler(SlotIndex);
+				}
+			}
+
 			internal void AutoSaveTrigger(int SlotIndex)
 			{
 				if (!MakerAPI.InsideAndLoaded) return;

@@ -54,6 +54,14 @@ namespace AccStateSync
 				}
 			}
 
+			[HarmonyPostfix, HarmonyPatch(typeof(CvsAccessory), "UpdateSelectAccessoryParent", new[] {typeof(int)})]
+			internal static void CvsAccessoryUpdateSelectAccessoryParentPostfix(CvsAccessory __instance, int index)
+			{
+				AccStateSyncController controller = GetController(KKAPI.Maker.MakerAPI.GetCharacterControl());
+				if (controller != null)
+					controller.CvsAccessoryUpdateSelectAccessoryParentPostfix((int)__instance.slotNo);
+			}
+
 			[HarmonyPriority(Priority.Last)]
 			[HarmonyPostfix, HarmonyPatch(typeof(ListInfoBase), nameof(ListInfoBase.GetInfo))]
 			internal static void ListInfoBaseGetInfoPostfix(ListInfoBase __instance, ChaListDefine.KeyType keyType)
