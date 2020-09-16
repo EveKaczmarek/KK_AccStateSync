@@ -12,6 +12,7 @@ namespace AccStateSync
 		public static bool InsideCharaStudio = false;
 		public static OCIChar CurOCIChar;
 		public static GameObject ASSPanel;
+		private static CanvasGroup ASSPanelCanvasGroup;
 
 		void Update()
 		{
@@ -37,6 +38,13 @@ namespace AccStateSync
 			}
 		}
 
+		private static void SetVisibility(bool visible)
+        {
+			if (ASSPanelCanvasGroup == null) return;
+			ASSPanelCanvasGroup.alpha = visible ? 1 : 0;
+			ASSPanelCanvasGroup.blocksRaycasts = visible;
+		}
+
 		internal static void ClearStudioUI()
 		{
 			foreach (Transform child in ASSPanel.transform)
@@ -44,6 +52,7 @@ namespace AccStateSync
 				if (child.gameObject != null)
 					Destroy(child.gameObject);
 			}
+			SetVisibility(false);
 		}
 
 		internal static void UpdateStudioUI()
@@ -57,6 +66,7 @@ namespace AccStateSync
 				return;
 			if (controller.VirtualGroupStates.Count() == 0)
 				return;
+			SetVisibility(true);
 			int i = 0;
 			Dictionary<string, bool> VirtualGroupStates = controller.VirtualGroupStates;
 			foreach (KeyValuePair<string, bool> group in VirtualGroupStates)
@@ -91,6 +101,8 @@ namespace AccStateSync
 
 			ASSPanel = copy.gameObject;
 			ASSPanel.SetActive(true);
+			ASSPanelCanvasGroup = ASSPanel.GetOrAddComponent<CanvasGroup>();
+
 			ClearStudioUI();
 		}
 
