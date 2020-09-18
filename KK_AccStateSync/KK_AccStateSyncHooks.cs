@@ -73,7 +73,11 @@ namespace AccStateSync
 					{
 						AccStateSyncController controller = GetController(KKAPI.Maker.MakerAPI.GetCharacterControl());
 						if (controller != null)
-							controller.VerifyOnePiece(Category, System.Int32.Parse(__instance.dictInfo[(int) ChaListDefine.KeyType.Coordinate]));
+						{
+							int KeyTypeCoordinat = (int) ChaListDefine.KeyType.Coordinate;
+							string Coordinate = __instance.dictInfo.ContainsKey(KeyTypeCoordinat) ? __instance.dictInfo[KeyTypeCoordinat] : "0";
+							controller.VerifyOnePiece(Category, System.Int32.Parse(Coordinate));
+						}
 					}
 				}
 			}
