@@ -259,14 +259,15 @@ namespace AccStateSync
 				grpParent.Find("btnASSsave").GetComponentInChildren<Button>().onClick.Invoke();
 			}
 
-			internal void VerifyOnePiece(int Category, int Kind)
+			internal void VerifyOnePiece(int Category, int Coordinate)
 			{
 				if (!MakerAPI.InsideAndLoaded) return;
 
 				if (Category == 105)
 				{
+					Logger.Log(DebugLogLevel, $"[VerifyOnePiece][{ChaControl.chaFile.parameter?.fullname}][Category: {Category}][Coordinate: {Coordinate}]");
 					CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["top"] = false;
-					if (Kind >= 3)
+					if (Coordinate == 2)
 					{
 						if (ChaControl.nowCoordinate.clothes.parts[1].id == 0)
 							CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["top"] = true;
@@ -274,8 +275,9 @@ namespace AccStateSync
 				}
 				else if (Category == 107)
 				{
+					Logger.Log(DebugLogLevel, $"[VerifyOnePiece][{ChaControl.chaFile.parameter?.fullname}][Category: {Category}][Coordinate: {Coordinate}]");
 					CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["bra"] = false;
-					if (Kind == 2)
+					if (Coordinate == 2)
 					{
 						if (ChaControl.nowCoordinate.clothes.parts[3].id == 0)
 							CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["bra"] = true;
