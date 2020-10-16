@@ -7,13 +7,12 @@ namespace AccStateSync
 {
 	public partial class AccStateSync
 	{
-		public static HarmonyLib.Harmony HooksInstanceCharaMaker = null;
-		public static HarmonyLib.Harmony HooksInstanceHScene = null;
+		internal static Dictionary<string, Harmony> HooksInstance = new Dictionary<string, Harmony>();
 
 		internal class Hooks
 		{
 			[HarmonyPostfix, HarmonyPatch(typeof(ChaControl), "SetClothesState")]
-			internal static void SetClothesStatePostfix(ChaControl __instance, int clothesKind)
+			private static void SetClothesStatePostfix(ChaControl __instance, int clothesKind)
 			{
 				AccStateSyncController controller = GetController(__instance);
 				if (controller != null)
@@ -27,7 +26,7 @@ namespace AccStateSync
 			}
 
 			[HarmonyPostfix, HarmonyPatch(typeof(ChaFileStatus), nameof(ChaFileStatus.shoesType), MethodType.Setter)]
-			internal static void ShoesTypePostfix(ChaFileStatus __instance)
+			private static void ShoesTypePostfix(ChaFileStatus __instance)
 			{
 				ChaControl chaCtrl = FindObjectsOfType<ChaControl>().Where(x => x?.chaFile?.status == __instance).FirstOrDefault();
 				if (chaCtrl != null)
@@ -44,7 +43,7 @@ namespace AccStateSync
 		internal class HooksCharaMaker
 		{
 			[HarmonyPostfix, HarmonyPatch(typeof(CvsAccessory), "UpdateSelectAccessoryType", new[] {typeof(int)})]
-			internal static void CvsAccessoryUpdateSelectAccessoryTypePostfix(CvsAccessory __instance, int index)
+			private static void CvsAccessoryUpdateSelectAccessoryTypePostfix(CvsAccessory __instance, int index)
 			{
 				AccStateSyncController controller = GetController(KKAPI.Maker.MakerAPI.GetCharacterControl());
 				if (controller != null)
@@ -55,7 +54,7 @@ namespace AccStateSync
 			}
 
 			[HarmonyPostfix, HarmonyPatch(typeof(CvsAccessory), "UpdateSelectAccessoryParent", new[] {typeof(int)})]
-			internal static void CvsAccessoryUpdateSelectAccessoryParentPostfix(CvsAccessory __instance, int index)
+			private static void CvsAccessoryUpdateSelectAccessoryParentPostfix(CvsAccessory __instance, int index)
 			{
 				AccStateSyncController controller = GetController(KKAPI.Maker.MakerAPI.GetCharacterControl());
 				if (controller != null)
@@ -64,7 +63,7 @@ namespace AccStateSync
 
 			[HarmonyPriority(Priority.Last)]
 			[HarmonyPostfix, HarmonyPatch(typeof(ListInfoBase), nameof(ListInfoBase.GetInfo))]
-			internal static void ListInfoBaseGetInfoPostfix(ListInfoBase __instance, ChaListDefine.KeyType keyType)
+			private static void ListInfoBaseGetInfoPostfix(ListInfoBase __instance, ChaListDefine.KeyType keyType)
 			{
 				if (keyType == ChaListDefine.KeyType.Coordinate)
 				{
@@ -85,8 +84,9 @@ namespace AccStateSync
 
 		internal class HooksHScene
 		{
+			[HarmonyPriority(Priority.Last)]
 			[HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), "SetClothStateStartMotion")]
-			internal static void SetClothStateStartMotionPostfix(HSceneProc __instance)
+			private static void SetClothStateStartMotionPostfix(HSceneProc __instance)
 			{
 				foreach (var heroine in __instance.flags.lstHeroine)
 				{
@@ -94,32 +94,43 @@ namespace AccStateSync
 					Logger.Log(DebugLogLevel, $"[Harmony][HSceneProc][SetClothStateStartMotion][Postfix][{chaCtrl.chaFile.parameter?.fullname}]");
 					AccStateSyncController controller = GetController(chaCtrl);
 					if (controller != null)
+					{
+						if (AutoHideSecondary.Value)
+						{
+							for (int i = 0; i < 7; i++)
+							{
+								List<string> secondary = controller.CharaVirtualGroupInfo[i].Values?.Where(x => x.Secondary)?.Select(x => x.Group)?.ToList();
+								foreach (string group in secondary)
+									controller.CharaVirtualGroupInfo[i][group].State = false;
+							}
+						}
 						controller.SyncAllAccToggle();
+					}
 				}
 			}
 
 			[HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), "Start")]
-			internal static void HSceneProcStartPostfix(List<ChaControl> ___lstFemale, HSprite ___sprite)
+			private static void HSceneProcStartPostfix(List<ChaControl> ___lstFemale, HSprite ___sprite)
 			{
 				Logger.Log(DebugLogLevel, "HSceneProcStartPostfix");
-				HSceneHeroine = ___lstFemale;
-				HSprites.Add(___sprite);
+				HScene.Heroine = ___lstFemale;
+				HScene.Sprites.Add(___sprite);
 			}
 
 			[HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), "MapSameObjectDisable")]
-			internal static void HSceneProcMapSameObjectDisablePostFix()
+			private static void HSceneProcMapSameObjectDisablePostFix()
 			{
-				InsideHScene = true;
-				UpdateHUI();
+				HScene.Inside = true;
+				HScene.UpdateUI();
 			}
 
 			[HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), "OnDestroy")]
-			internal static void HSceneProcOnDestroyPostFix()
+			private static void HSceneProcOnDestroyPostFix()
 			{
-				InsideHScene = false;
-				HSprites.Clear();
-				HooksInstanceHScene.UnpatchAll(HooksInstanceHScene.Id);
-				HooksInstanceHScene = null;
+				HScene.Inside = false;
+				HScene.Sprites.Clear();
+				HooksInstance["HScene"].UnpatchAll(HooksInstance["HScene"].Id);
+				HooksInstance["HScene"] = null;
 				Logger.Log(DebugLogLevel, "HSceneProcOnDestroyPostFix");
 			}
 		}

@@ -33,7 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.BepInEx.Harmony.2.0.3.1\lib\net35\0Harmony.dll</HintPath>
+      <HintPath>..\packages\IllusionLibs.BepInEx.Harmony.2.0.6\lib\net35\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -44,24 +44,24 @@
       <HintPath>..\packages\IllusionLibs.Koikatu.Assembly-CSharp-firstpass.2019.4.27\lib\net35\Assembly-CSharp-firstpass.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="BepInEx, Version=5.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.BepInEx.5.1.0\lib\net35\BepInEx.dll</HintPath>
+    <Reference Include="BepInEx, Version=5.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\IllusionLibs.BepInEx.5.3.0\lib\net35\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx.Harmony, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.BepInEx.Harmony.2.0.3.1\lib\net35\BepInEx.Harmony.dll</HintPath>
+      <HintPath>..\packages\IllusionLibs.BepInEx.Harmony.2.0.6\lib\net35\BepInEx.Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="ConfigurationManager, Version=16.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\BepInEx.ConfigurationManager.16.0.0\lib\net35\ConfigurationManager.dll</HintPath>
+    <Reference Include="ConfigurationManager, Version=16.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\BepInEx.ConfigurationManager.16.1.0\lib\net35\ConfigurationManager.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ExtensibleSaveFormat, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExtensibleSaveFormat.Koikatu.15.4.0\lib\net35\ExtensibleSaveFormat.dll</HintPath>
+      <HintPath>..\packages\ExtensibleSaveFormat.Koikatu.16.0.0\lib\net35\ExtensibleSaveFormat.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="KKAPI, Version=1.13.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionModdingAPI.KKAPI.1.13.1\lib\net35\KKAPI.dll</HintPath>
+    <Reference Include="KKAPI, Version=1.13.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\IllusionModdingAPI.KKAPI.1.13.3\lib\net35\KKAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MoreAccessories, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -94,24 +94,26 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ConfigurationManagerAttributes.cs" />
-    <Compile Include="KK_AccStateSyncConstants.cs" />
-    <Compile Include="KK_AccStateSyncHooksVR.cs" />
-    <Compile Include="KK_AccStateSyncHooks.cs" />
-    <Compile Include="KK_AccStateSync.cs" />
-    <Compile Include="KK_AccStateSyncController.cs" />
-    <Compile Include="KK_AccStateSyncCommon.cs" />
-    <Compile Include="KK_AccStateSyncMaker.cs" />
-    <Compile Include="KK_AccStateSyncMakerUI.cs" />
-    <Compile Include="KK_AccStateSyncExtdata.cs" />
-    <Compile Include="KK_AccStateSyncStudio.cs" />
-    <Compile Include="KK_AccStateSyncH.cs" />
-    <Compile Include="KK_AccStateSyncMigration.cs" />
-    <Compile Include="MoreAccessories_Support.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Hooks.cs" />
+    <Compile Include="Hooks.VR.cs" />
+    <Compile Include="H.cs" />
+    <Compile Include="Main.cs" />
+    <Compile Include="Controller.cs" />
+    <Compile Include="Controller.Maker.cs" />
+    <Compile Include="Controller.Common.cs" />
+    <Compile Include="Maker.cs" />
+    <Compile Include="Extdata.cs" />
+    <Compile Include="Studio.cs" />
+    <Compile Include="Migration.cs" />
+    <Compile Include="MoreAccessories.cs" />
+    <Compile Include="AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\.editorconfig">
+      <Link>.editorconfig</Link>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <Import Project="..\Extension\Extension.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

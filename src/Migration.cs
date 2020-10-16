@@ -49,5 +49,26 @@ namespace AccStateSync
 			}
 			return VirtualGroupNames;
 		}
+
+		internal static Dictionary<string, VirtualGroupInfo> UpgradeVirtualGroupNamesV2(Dictionary<string, string> OldVirtualGroupNames)
+		{
+			Logger.Log(DebugLogLevel, $"[UpgradeVirtualGroupNamesV2] Fired!!");
+			Dictionary<string, VirtualGroupInfo> OutfitVirtualGroupInfo = new Dictionary<string, VirtualGroupInfo>();
+			if (OldVirtualGroupNames?.Count() > 0)
+			{
+				foreach (KeyValuePair<string, string> VirtualGroupName in OldVirtualGroupNames)
+				{
+					if (VirtualGroupName.Key.StartsWith("custom_"))
+					{
+						string Group = VirtualGroupName.Key;
+						int Kind = System.Int32.Parse(Group.Replace("custom_", "")) + 9;
+						string Label = VirtualGroupName.Value;
+
+						OutfitVirtualGroupInfo[VirtualGroupName.Key] = new VirtualGroupInfo(Group, Kind, Label);
+					}
+				}
+			}
+			return OutfitVirtualGroupInfo;
+		}
 	}
 }

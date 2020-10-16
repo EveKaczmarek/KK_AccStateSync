@@ -37,6 +37,40 @@ namespace AccStateSync
 			public OutfitTriggerInfo(int index) { Index = index; }
 		}
 
+		[Serializable]
+		[MessagePackObject]
+		public class VirtualGroupInfo
+		{
+			[Key("Kind")]
+			public int Kind { get; set; }
+			[Key("Group")]
+			public string Group { get; set; }
+			[Key("Label")]
+			public string Label { get; set; }
+			[Key("Secondary")]
+			public bool Secondary { get; set; } = false;
+			[Key("State")]
+			public bool State { get; set; } = true;
+
+			public VirtualGroupInfo(string group, int kind, string label = "")
+			{
+				Group = group;
+				Kind = kind;
+				if (label.IsNullOrEmpty())
+				{
+					if (kind > 9)
+						label = group.Replace("custom_", "Custom ");
+					else if (kind == 9)
+                    {
+						label = Group;
+						if (Constants.AccessoryParentNames.ContainsKey(Group))
+							label = Constants.AccessoryParentNames[Group];
+					}
+				}
+				Label = label;
+			}
+		}
+
 		public static void CopySlotTriggerInfo(AccTriggerInfo CopySource, AccTriggerInfo CopyDestination)
 		{
 			CopyDestination.Slot = CopySource.Slot;

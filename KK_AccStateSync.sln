@@ -3,15 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KK_AccStateSync", "KK_AccStateSync\KK_AccStateSync.csproj", "{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KK_AccStateSync", "src\KK_AccStateSync.csproj", "{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Extension", "Extension\Extension.shproj", "{0646BE09-F599-4EDB-B115-DE4043C8D3BE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{414A4FB9-DB00-4CB5-B8D4-16D2F1126DEF}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Extension\Extension.projitems*{013e81e6-1b18-4cac-ae2f-b146a8d5c16b}*SharedItemsImports = 4
-		Extension\Extension.projitems*{0646be09-f599-4edb-b115-de4043c8d3be}*SharedItemsImports = 13
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

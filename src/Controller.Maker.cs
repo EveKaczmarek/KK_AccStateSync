@@ -44,45 +44,37 @@ namespace AccStateSync
 					}
 				}
 
-				foreach (KeyValuePair<string, GameObject> group in tglASSgroup)
-				{
-					if (group.Value.gameObject != null)
-						Destroy(group.Value);
-				}
-				tglASSgroup.Clear();
+				SyncOutfitVirtualGroupInfo(CurrentCoordinateIndex);
+				CurOutfitVirtualGroupInfo = CharaVirtualGroupInfo[CurrentCoordinateIndex];
 
-				AnchorOffsetMinY = (int) tglASSobj["tglASS0"].GetComponent<RectTransform>().offsetMin.y - 80;
-
-				int ddVal = CurSlotTriggerInfo.Kind <= 9 ? ddASSListVals.IndexOf(CurSlotTriggerInfo.Kind) : (CurSlotTriggerInfo.Kind + 1);
-				int ddASSListIndex = (ddVal < ddASSListVals.Count()) ? ddVal : (ddASSListVals.Count() - 1);
-
-				List<string> extra = new List<string>();
-				if (CurOutfitVirtualGroupNames?.Count() > 0)
-					extra = CurOutfitVirtualGroupNames.Select(x => x.Value).ToList();
-				CreateMakerDropdownItems(extra, ddVal);
-
-				grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().RefreshShownValue();
-				bool clickable = CurSlotTriggerInfo.Kind == -1 ? false : true;
+				CharaMaker.ClearVirtualGroupToggle();
+				UI.AnchorOffsetMinY = (int) CharaMaker.tglASSobj["tglASS0"].GetComponent<RectTransform>().offsetMin.y - 80;
+				CharaMaker.CreateDropdownList(ChaControl);
+				UI.DropdownASSList item = CharaMaker.ddASSList.Values.Where(x => x.Kind == CurSlotTriggerInfo.Kind).FirstOrDefault();
+				CharaMaker.CreateDropdownItems(item.Index);
+				CharaMaker.grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>().RefreshShownValue();
+				bool clickable = CurSlotTriggerInfo.Kind != -1;
 				for (int x = 0; x < 4; x++)
 				{
-					tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[x];
-					tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().interactable = clickable;
-					tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = clothesStates[ddASSListIndex][x] ? 1f : 0.2f;
+					CharaMaker.tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[x];
+					CharaMaker.tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().interactable = clickable;
+					CharaMaker.tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = item.States[x] ? 1f : 0.2f;
 				}
 
-				FillVirtualGroupStates();
-
-				List<string> names = new List<string>();
-				if (VirtualGroupStates?.Count() > 0)
-					names = VirtualGroupStates.OrderBy(x => x.Key).Select(x => x.Key).ToList<string>();
-				foreach (string group in names)
-					CreateMakerVirtualGroupToggle(group);
-
-				imgWindowBack.offsetMin = new Vector2(0, ContainerOffsetMinY - MenuitemHeightOffsetY * names.Count());
+				int i = 0;
+				foreach (KeyValuePair<string, VirtualGroupInfo> group in CurOutfitVirtualGroupInfo)
+				{
+					if (CurOutfitTriggerInfo?.Parts?.Values?.Where(x => x.Kind == group.Value.Kind)?.Count() > 0)
+					{
+						CharaMaker.CreateVirtualGroupToggle(group.Key);
+						i++;
+					}
+				}
+				CharaMaker.imgWindowBack.offsetMin = new Vector2(0, UI.ContainerOffsetMinY - UI.MenuitemHeightOffsetY * i);
 
 				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{ChaControl.chaFile.parameter?.fullname}][Slot: {CurSlotTriggerInfo.Slot}][Kind: {CurSlotTriggerInfo.Kind}][State: {CurSlotTriggerInfo.State[0]}|{CurSlotTriggerInfo.State[1]}|{CurSlotTriggerInfo.State[2]}|{CurSlotTriggerInfo.State[3]}]");
 
-				instance.StartCoroutine(WaitForEndOfFrameSyncAllAccToggle());
+				Instance.StartCoroutine(WaitForEndOfFrameSyncAllAccToggle());
 			}
 
 			internal void AccessoriesCopiedHandler(int CopySource, int CopyDestination, List<int> CopiedSlotIndexes)
@@ -91,8 +83,10 @@ namespace AccStateSync
 
 				Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}][Soruce: {CopySource}][Destination: {CopyDestination}][CopiedSlotIndexes: {string.Join(",", CopiedSlotIndexes.Select(Slot => Slot.ToString()).ToArray())}]");
 
+				NullCheckOutfitTriggerInfo(CopyDestination);
+
 				int j = -1;
-				if (CharaTriggerInfo[CopyDestination].Parts.Count() > 0)
+				if (CharaTriggerInfo[CopyDestination]?.Parts?.Count() > 0)
 					j = CharaTriggerInfo[CopyDestination].Parts.Values.Max(x => x.Kind);
 
 				int i = 9;
@@ -114,19 +108,19 @@ namespace AccStateSync
 					for (int Kind = 10; Kind < (i + 1); Kind++)
 					{
 						string group = $"custom_{Kind - 9}";
-						if (!CharaVirtualGroupNames[CopyDestination].ContainsKey(group))
+						if (!CharaVirtualGroupInfo[CopyDestination].ContainsKey(group))
 						{
-							CharaVirtualGroupNames[CopyDestination][group] = CharaVirtualGroupNames[CopySource][group];
+							CharaVirtualGroupInfo[CopyDestination][group] = CharaVirtualGroupInfo[CopySource][group];
 							Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}][Group: {group}] created");
 						}
 					}
 				}
 
-				Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}] CharaVirtualGroupNames[{CopyDestination}].Count(): {CharaVirtualGroupNames[CopyDestination].Count()}");
+				Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{ChaControl.chaFile.parameter?.fullname}] CharaVirtualGroupNames[{CopyDestination}].Count(): {CharaVirtualGroupInfo[CopyDestination].Count()}");
 
 				if (CopyDestination == CurrentCoordinateIndex)
 				{
-					CurOutfitVirtualGroupNames = CharaVirtualGroupNames[CurrentCoordinateIndex];
+					CurOutfitVirtualGroupInfo = CharaVirtualGroupInfo[CurrentCoordinateIndex];
 					AccSlotChangedHandler(AccessoriesApi.SelectedMakerAccSlot, true);
 				}
 			}
@@ -137,6 +131,9 @@ namespace AccStateSync
 				if (!MakerAPI.InsideAndLoaded) return;
 
 				Logger.Log(DebugLogLevel, $"[AccessoryTransferredHandler][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
+
+				NullCheckOutfitTriggerInfo(CoordinateIndex);
+
 				if (CharaTriggerInfo[CoordinateIndex].Parts.ContainsKey(DestinationSlotIndex))
 					CharaTriggerInfo[CoordinateIndex].Parts.Remove(DestinationSlotIndex);
 				if (CharaTriggerInfo[CoordinateIndex].Parts.ContainsKey(SourceSlotIndex))
@@ -147,23 +144,61 @@ namespace AccStateSync
 				}
 			}
 
+			internal void PreviewChange()
+			{
+				AccTriggerInfo Part = CurSlotTriggerInfo;
+
+				if (MathfEx.RangeEqualOn(0, Part.Kind, 6))
+				{
+					int state = ChaControl.fileStatus.clothesState[Part.Kind];
+					bool vis = Part.State[state];
+					Part.Group = "";
+					ChaControl.SetAccessoryState(Part.Slot, vis);
+				}
+				else if ((Part.Kind == 7) || (Part.Kind == 8))
+				{
+					int clothesKind = (ChaControl.fileStatus.shoesType == 0) ? 7 : 8;
+					bool vis = false;
+					Part.Group = "";
+					if (clothesKind == Part.Kind)
+						vis = Part.State[ChaControl.fileStatus.clothesState[Part.Kind]];
+					ChaControl.SetAccessoryState(Part.Slot, vis);
+				}
+				else if (Part.Kind >= 9)
+				{
+					if (Part.Kind == 9)
+					{
+						ChaFileAccessory.PartsInfo PartInfo = AccessoriesApi.GetPartsInfo(Part.Slot);
+						Part.Group = PartInfo.parentKey;
+					}
+					else
+						Part.Group = "custom_" + (Part.Kind - 9).ToString();
+
+					bool vis = true;
+					if (CurOutfitVirtualGroupInfo.ContainsKey(Part.Group))
+						vis = CurOutfitVirtualGroupInfo[Part.Group].State ? Part.State[0] : Part.State[3];
+					ChaControl.SetAccessoryState(Part.Slot, vis);
+				}
+				AutoSaveTrigger(Part.Slot);
+			}
+
 			internal void RenameGroup(string group, string label)
 			{
-				if (!CurOutfitVirtualGroupNames.ContainsKey(group))
+				if (!CurOutfitVirtualGroupInfo.ContainsKey(group))
 				{
 					Logger.LogMessage($"Invalid group {group}");
 					return;
 				}
-				CurOutfitVirtualGroupNames[group] = label;
+				CurOutfitVirtualGroupInfo[group].Label = label;
 				Logger.LogMessage($"[{group}] renamed into {label}");
 
-				int ddVal = System.Int32.Parse(group.Replace("custom_", "")) + 10;
-				TMP_Dropdown dropdown = grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>();
-				dropdown.options[ddVal].text = label;
+				TMP_Dropdown dropdown = CharaMaker.grpParent.Find("ddASSList").GetComponentInChildren<TMP_Dropdown>();
+				UI.DropdownASSList item = CharaMaker.ddASSList.Values.Where(x => x.Kind == CurOutfitVirtualGroupInfo[group].Kind).FirstOrDefault();
+				dropdown.options[item.Index].text = label;
 				dropdown.RefreshShownValue();
-				if (tglASSgroup.ContainsKey("tglASS_" + group))
+				if (CharaMaker.tglASSgroup.ContainsKey("tglASS_" + group))
 				{
-					GameObject toggle = tglASSgroup["tglASS_" + group];
+					GameObject toggle = CharaMaker.tglASSgroup["tglASS_" + group];
 					if (toggle != null)
 						toggle.GetComponentInChildren<TextMeshProUGUI>().text = label;
 				}
@@ -182,32 +217,35 @@ namespace AccStateSync
 
 			internal void PushGroup()
 			{
-				int n = CurOutfitVirtualGroupNames.Count() + 1;
-				CurOutfitVirtualGroupNames[$"custom_{n}"] = $"Custom {n}";
+				int n = CurOutfitVirtualGroupInfo?.Values?.Where(x => x.Kind > 9)?.Count() > 0 ? CurOutfitVirtualGroupInfo.Values.Max(x => x.Kind) - 9 : 0;
+				n++;
+				string Group = $"custom_{n}";
+
+				CharaVirtualGroupInfo[CurrentCoordinateIndex][$"custom_{n}"] = new VirtualGroupInfo(Group, n + 9);
 				Logger.LogMessage($"[custom_{n}][Custom {n}] added");
 			}
 
 			internal void PopGroup()
 			{
-				int n = CurOutfitVirtualGroupNames.Count();
-				string group = $"custom_{n}";
-				if (n <= DefaultCustomGroupCount)
+				if (CurOutfitVirtualGroupInfo?.Values?.Where(x => x.Kind > 9)?.Count() == 0)
 				{
-					Logger.LogMessage($"Cannot go below {DefaultCustomGroupCount} custom group");
+					Logger.LogMessage($"Cannot go below 0 custom group");
 					return;
 				}
-				if (CurOutfitTriggerInfo.Parts.Values?.Where(x => x.Group == group)?.ToList()?.Count() > 0)
+
+				VirtualGroupInfo group = CurOutfitVirtualGroupInfo?.Values?.OrderByDescending(x => x.Kind)?.FirstOrDefault();
+				if (CurOutfitTriggerInfo?.Parts?.Values?.Where(x => x.Kind == group.Kind)?.Count() > 0)
 				{
-					Logger.LogMessage($"Cannot remove [{group}][{CurOutfitVirtualGroupNames[group]}] because it's being assigned by slots");
+					Logger.LogMessage($"Cannot remove [{group.Group}][{group.Label}] because it's being assigned by slots");
 					return;
 				}
-				Logger.LogMessage($"[{group}][{CurOutfitVirtualGroupNames[group]}] removed");
-				CurOutfitVirtualGroupNames.Remove(group);
+				Logger.LogMessage($"[{group.Group}][{group.Label}] removed");
+				CharaVirtualGroupInfo[CurrentCoordinateIndex].Remove(group.Group);
 			}
 
 			internal void CvsAccessoryUpdateSelectAccessoryTypePostfix(int SlotIndex)
 			{
-				if (!CharaTriggerInfo[CurrentCoordinateIndex].Parts.ContainsKey(SlotIndex))
+				if (!(bool) CharaTriggerInfo[CurrentCoordinateIndex]?.Parts?.ContainsKey(SlotIndex))
 					return;
 
 				AccTriggerInfo Part = CharaTriggerInfo[CurrentCoordinateIndex].Parts[SlotIndex];
@@ -222,7 +260,7 @@ namespace AccStateSync
 
 			internal void CvsAccessoryUpdateSelectAccessoryParentPostfix(int SlotIndex)
 			{
-				if (!CharaTriggerInfo[CurrentCoordinateIndex].Parts.ContainsKey(SlotIndex))
+				if (!(bool) CharaTriggerInfo[CurrentCoordinateIndex]?.Parts?.ContainsKey(SlotIndex))
 					return;
 
 				Logger.Log(DebugLogLevel, $"[CvsAccessoryUpdateSelectAccessoryParentPostfix][{ChaControl.chaFile.parameter?.fullname}] Fired!!");
@@ -247,7 +285,7 @@ namespace AccStateSync
 				ChaFileAccessory.PartsInfo PartInfo = AccessoriesApi.GetPartsInfo(SlotIndex);
 				if ((PartInfo == null) || (PartInfo.type == 120))
 				{
-					if (CharaTriggerInfo[CurrentCoordinateIndex].Parts.ContainsKey(SlotIndex))
+					if ((bool) CharaTriggerInfo[CurrentCoordinateIndex]?.Parts?.ContainsKey(SlotIndex))
 					{
 						CharaTriggerInfo[CurrentCoordinateIndex].Parts.Remove(SlotIndex);
 						Logger.LogMessage($"AccTriggerInfo for Coordinate {CurrentCoordinateIndex} Slot{SlotIndex + 1:00} has been reset");
@@ -256,7 +294,7 @@ namespace AccStateSync
 				}
 
 				Logger.LogMessage($"AutoSaveTrigger for Coordinate {CurrentCoordinateIndex} Slot{SlotIndex + 1:00}");
-				grpParent.Find("btnASSsave").GetComponentInChildren<Button>().onClick.Invoke();
+				CharaMaker.grpParent.Find("btnASSsave").GetComponentInChildren<Button>().onClick.Invoke();
 			}
 
 			internal void VerifyOnePiece(int Category, int Coordinate)
