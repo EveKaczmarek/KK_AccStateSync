@@ -61,7 +61,7 @@ namespace AccStateSync
 					if (kind > 9)
 						label = group.Replace("custom_", "Custom ");
 					else if (kind == 9)
-                    {
+					{
 						label = Group;
 						if (Constants.AccessoryParentNames.ContainsKey(Group))
 							label = Constants.AccessoryParentNames[Group];

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -7,65 +7,64 @@
     <ProjectGuid>{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>KK_AccStateSync</RootNamespace>
+    <RootNamespace>AccStateSync</RootNamespace>
     <AssemblyName>KK_AccStateSync</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <OutputPath>..\..\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;KK</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <OutputPath>..\..\bin\Release\</OutputPath>
+    <DefineConstants>TRACE;KK</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.BepInEx.Harmony.2.0.6\lib\net35\0Harmony.dll</HintPath>
+      <HintPath>..\..\packages\IllusionLibs.BepInEx.Harmony.2.0.6\lib\net35\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\lib\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\lib\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.Koikatu.Assembly-CSharp-firstpass.2019.4.27\lib\net35\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>..\..\packages\IllusionLibs.Koikatu.Assembly-CSharp-firstpass.2019.4.27\lib\net35\Assembly-CSharp-firstpass.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx, Version=5.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.BepInEx.5.3.0\lib\net35\BepInEx.dll</HintPath>
+      <HintPath>..\..\packages\IllusionLibs.BepInEx.5.3.0\lib\net35\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx.Harmony, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.BepInEx.Harmony.2.0.6\lib\net35\BepInEx.Harmony.dll</HintPath>
+      <HintPath>..\..\packages\IllusionLibs.BepInEx.Harmony.2.0.6\lib\net35\BepInEx.Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ConfigurationManager, Version=16.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\BepInEx.ConfigurationManager.16.1.0\lib\net35\ConfigurationManager.dll</HintPath>
+      <HintPath>..\..\packages\BepInEx.ConfigurationManager.16.1.0\lib\net35\ConfigurationManager.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ExtensibleSaveFormat, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExtensibleSaveFormat.Koikatu.16.0.0\lib\net35\ExtensibleSaveFormat.dll</HintPath>
+      <HintPath>..\..\packages\ExtensibleSaveFormat.Koikatu.16.0.0\lib\net35\ExtensibleSaveFormat.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="KKAPI, Version=1.13.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionModdingAPI.KKAPI.1.13.3\lib\net35\KKAPI.dll</HintPath>
+    <Reference Include="KKAPI, Version=1.14.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\IllusionModdingAPI.KKAPI.1.14.0\lib\net35\KKAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MoreAccessories, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.Koikatu.MoreAccessories.1.0.7\lib\net35\MoreAccessories.dll</HintPath>
+      <HintPath>..\..\packages\IllusionLibs.Koikatu.MoreAccessories.1.0.7\lib\net35\MoreAccessories.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -73,47 +72,47 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="TextMeshPro-1.0.55.56.0b12, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.Koikatu.TextMeshPro.2019.4.27\lib\net35\TextMeshPro-1.0.55.56.0b12.dll</HintPath>
+      <HintPath>..\..\packages\IllusionLibs.Koikatu.TextMeshPro.2019.4.27\lib\net35\TextMeshPro-1.0.55.56.0b12.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.Koikatu.UnityEngine.5.6.2\lib\net35\UnityEngine.dll</HintPath>
+      <HintPath>..\..\packages\IllusionLibs.Koikatu.UnityEngine.5.6.2\lib\net35\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IllusionLibs.Koikatu.UnityEngine.UI.5.6.2\lib\net35\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\..\packages\IllusionLibs.Koikatu.UnityEngine.UI.5.6.2\lib\net35\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-  <Choose>
-    <When Condition=" '$(Configuration)' == 'DEBUG' ">
-      <ItemGroup>
-        <Compile Include="DisplayObjectInfo.cs" />
-      </ItemGroup>
-    </When>
-  </Choose>
   <ItemGroup>
-    <Compile Include="ConfigurationManagerAttributes.cs" />
-    <Compile Include="Constants.cs" />
+    <Compile Include="Misc.cs" />
     <Compile Include="Hooks.cs" />
     <Compile Include="Hooks.VR.cs" />
     <Compile Include="H.cs" />
-    <Compile Include="Main.cs" />
-    <Compile Include="Controller.cs" />
-    <Compile Include="Controller.Maker.cs" />
-    <Compile Include="Controller.Common.cs" />
+    <Compile Include="Plugin.cs" />
+    <Compile Include="Controller\KKAPI.cs" />
+    <Compile Include="Controller\API.cs" />
+    <Compile Include="Controller\Maker.cs" />
+    <Compile Include="Controller\Common.cs" />
+    <Compile Include="Controller\Event.cs" />
     <Compile Include="Maker.cs" />
     <Compile Include="Extdata.cs" />
     <Compile Include="Studio.cs" />
     <Compile Include="Migration.cs" />
     <Compile Include="MoreAccessories.cs" />
-    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\.editorconfig">
       <Link>.editorconfig</Link>
     </None>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\JetPack\JetPack.csproj">
+      <Project>{ac0d512f-f352-44ce-9d33-d8e5e440336b}</Project>
+      <Name>JetPack</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
