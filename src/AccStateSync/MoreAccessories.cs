@@ -9,7 +9,6 @@ namespace AccStateSync
 		internal static readonly BepInEx.Logging.ManualLogSource Logger = AccStateSync.Logger;
 		internal static Type MoreAccType = null;
 		internal static object MoreAccObj;
-		internal static bool NewVer = false;
 		internal static Harmony HarmonyInstance;
 
 		internal static void LoadAssembly()
@@ -18,7 +17,6 @@ namespace AccStateSync
 			MoreAccObj = Traverse.Create(MoreAccType).Field("_self").GetValue();
 
 			BepInEx.Bootstrap.Chainloader.PluginInfos.TryGetValue("com.joan6694.illusionplugins.moreaccessories", out BepInEx.PluginInfo target);
-			NewVer = !(target.Metadata.Version.CompareTo(new Version("1.0.10")) < 0);
 		}
 
 		internal static void HarmonyPatch()

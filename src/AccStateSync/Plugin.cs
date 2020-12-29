@@ -14,13 +14,13 @@ namespace AccStateSync
 {
 	[BepInPlugin(GUID, Name, Version)]
 	[BepInDependency("marco.kkapi")]
-	[BepInDependency("madevil.JetPack")]
+	[BepInDependency("madevil.JetPack", "1.0.1")]
 	[BepInDependency("com.joan6694.illusionplugins.moreaccessories")]
 	public partial class AccStateSync : BaseUnityPlugin
 	{
 		public const string Name = "AccStateSync";
 		public const string GUID = "madevil.kk.ass";
-		public const string Version = "3.1.0.0";
+		public const string Version = "3.1.1.0";
 
 		internal static new ManualLogSource Logger;
 		internal static LogLevel DebugLogLevel;

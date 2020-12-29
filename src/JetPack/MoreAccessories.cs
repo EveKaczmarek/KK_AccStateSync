@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -133,8 +134,7 @@ namespace JetPack
 			_moreAccessoriesInstance = MoreAccessories._self;
 
 			BepInEx.Bootstrap.Chainloader.PluginInfos.TryGetValue("com.joan6694.illusionplugins.moreaccessories", out BepInEx.PluginInfo _pluginInfo);
-			_legacy = _pluginInfo.Metadata.Version.CompareTo(new Version("1.0.10")) < 0;
-			_accessoriesByChar = _moreAccessoriesInstance.Field<Dictionary<ChaFile, MoreAccessories.CharAdditionalData>>("_accessoriesByChar");
+			_legacy = _pluginInfo.Metadata.Version.CompareTo(new Version("1.1.0")) < 0;
 		}
 
 		public static Type GetCvsPatchType(string name) => _moreAccessoriesType.Assembly.GetType($"MoreAccessoriesKOI.CvsAccessory_Patches+CvsAccessory_{name}_Patches");
@@ -147,7 +147,16 @@ namespace JetPack
 			public CharAdditionalData(ChaControl chaCtrl)
 			{
 				this.chaCtrl = chaCtrl;
-				_accessoriesByChar.TryGetValue(chaCtrl.chaFile, out _charAdditionalData);
+
+				object accessoriesByChar = Traverse.Create(_moreAccessoriesInstance).Field("_accessoriesByChar").GetValue();
+				MethodInfo tryMethod = AccessTools.Method(accessoriesByChar.GetType(), "TryGetValue");
+				object[] parameters = new object[] { chaCtrl.chaFile, null };
+				tryMethod.Invoke(accessoriesByChar, parameters);
+				/*
+				_accessoriesByChar = _moreAccessoriesInstance.Field<Dictionary<ChaFile, MoreAccessories.CharAdditionalData>>("_accessoriesByChar");
+				_accessoriesByChar?.TryGetValue(chaCtrl.chaFile, out _charAdditionalData);
+				*/
+				_charAdditionalData = parameters[1] as MoreAccessories.CharAdditionalData;
 			}
 			public object rawAccessoriesInfos => _charAdditionalData?.Field<object>("rawAccessoriesInfos");
 			public List<bool> showAccessories => _charAdditionalData?.showAccessories;

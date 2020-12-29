@@ -25,7 +25,7 @@ namespace JetPack
 	{
 		public const string GUID = "madevil.JetPack";
 		public const string Name = "JetPack";
-		public const string Version = "1.0.0.0";
+		public const string Version = "1.0.1.0";
 
 		internal static new ManualLogSource Logger { get; private set; }
 		internal static Core PluginInstance { get; private set; }
