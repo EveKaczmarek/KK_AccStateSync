@@ -126,7 +126,7 @@ namespace JetPack
 		internal static bool _legacy = false;
 		internal static Type _moreAccessoriesType;
 		internal static MoreAccessories _moreAccessoriesInstance;
-		internal static Dictionary<ChaFile, MoreAccessories.CharAdditionalData> _accessoriesByChar;
+		internal static object _accessoriesByChar; // => Traverse.Create(_moreAccessoriesInstance).Field("_accessoriesByChar").GetValue();
 
 		internal static void Init()
 		{
@@ -135,6 +135,7 @@ namespace JetPack
 
 			BepInEx.Bootstrap.Chainloader.PluginInfos.TryGetValue("com.joan6694.illusionplugins.moreaccessories", out BepInEx.PluginInfo _pluginInfo);
 			_legacy = _pluginInfo.Metadata.Version.CompareTo(new Version("1.1.0")) < 0;
+			_accessoriesByChar = Traverse.Create(_moreAccessoriesInstance).Field("_accessoriesByChar").GetValue();
 		}
 
 		public static Type GetCvsPatchType(string name) => _moreAccessoriesType.Assembly.GetType($"MoreAccessoriesKOI.CvsAccessory_Patches+CvsAccessory_{name}_Patches");
@@ -148,10 +149,9 @@ namespace JetPack
 			{
 				this.chaCtrl = chaCtrl;
 
-				object accessoriesByChar = Traverse.Create(_moreAccessoriesInstance).Field("_accessoriesByChar").GetValue();
-				MethodInfo tryMethod = AccessTools.Method(accessoriesByChar.GetType(), "TryGetValue");
+				MethodInfo tryMethod = AccessTools.Method(_accessoriesByChar.GetType(), "TryGetValue");
 				object[] parameters = new object[] { chaCtrl.chaFile, null };
-				tryMethod.Invoke(accessoriesByChar, parameters);
+				tryMethod.Invoke(_accessoriesByChar, parameters);
 				/*
 				_accessoriesByChar = _moreAccessoriesInstance.Field<Dictionary<ChaFile, MoreAccessories.CharAdditionalData>>("_accessoriesByChar");
 				_accessoriesByChar?.TryGetValue(chaCtrl.chaFile, out _charAdditionalData);

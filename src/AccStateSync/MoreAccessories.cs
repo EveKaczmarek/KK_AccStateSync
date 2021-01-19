@@ -47,7 +47,7 @@ namespace AccStateSync
 		{
 			internal static bool CharaMakerPreview_Block_Prefix()
 			{
-				if (AccStateSync.CharaMakerPreview.Value)
+				if (KKAPI.Maker.MakerAPI.InsideMaker && AccStateSync.CharaMakerPreview.Value)
 					return false;
 				return true;
 			}
