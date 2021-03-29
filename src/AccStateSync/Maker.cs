@@ -31,8 +31,8 @@ namespace AccStateSync
 			internal static RectTransform imgWindowBack;
 			internal static Transform grpParent;
 			internal static Transform tglParent;
-			internal static Dictionary<string, GameObject> tglASSobj;
-			internal static Dictionary<string, GameObject> tglASSgroup;
+			internal static Dictionary<string, GameObject> tglASSobj = new Dictionary<string, GameObject>();
+			internal static Dictionary<string, GameObject> tglASSgroup = new Dictionary<string, GameObject>();
 			internal static GameObject btnASSsave;
 			internal static GameObject ddASSList;
 			internal static Dictionary<int, UI.DropdownASSList> ddASSListDic = new Dictionary<int, UI.DropdownASSList>();
@@ -178,7 +178,7 @@ namespace AccStateSync
 						}
 
 						int Slot = pluginCtrl.CurSlotTriggerInfo.Slot;
-						ChaFileAccessory.PartsInfo PartInfo = AccessoriesApi.GetPartsInfo(Slot);
+						ChaFileAccessory.PartsInfo PartInfo = chaCtrl.GetPartsInfo(Slot);
 						if ((PartInfo == null) || (PartInfo.type == 120) || (pluginCtrl.CurSlotTriggerInfo.Kind == -1))
 						{
 							if (pluginCtrl.CurOutfitTriggerInfo.Parts.ContainsKey(Slot))
@@ -274,7 +274,7 @@ namespace AccStateSync
 						CurSlotTriggerInfo.Group = "";
 					else if (CurSlotTriggerInfo.Kind == 9)
 					{
-						ChaFileAccessory.PartsInfo PartInfo = AccessoriesApi.GetPartsInfo(CurSlotTriggerInfo.Slot);
+						ChaFileAccessory.PartsInfo PartInfo = chaCtrl.GetPartsInfo(CurSlotTriggerInfo.Slot);
 						CurSlotTriggerInfo.Group = PartInfo.parentKey;
 					}
 					else

@@ -34,7 +34,7 @@ namespace AccStateSync
 
 				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{CharaFullName}][SlotIndex]: {SlotIndex}");
 
-				ChaFileAccessory.PartsInfo PartInfo = AccessoriesApi.GetPartsInfo(SlotIndex);
+				ChaFileAccessory.PartsInfo PartInfo = ChaControl.GetPartsInfo(SlotIndex);
 				if (PartInfo == null)
 				{
 					Logger.LogError($"[AccSlotChangedHandler][{CharaFullName}] Cannot retrive info for Slot{SlotIndex + 1:00}");
