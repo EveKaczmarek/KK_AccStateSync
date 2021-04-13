@@ -1,107 +1,101 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UniRx;
-using ChaCustom;
+using ParadoxNotion.Serialization;
+using MessagePack;
 
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 
-using KKAPI.Maker;
-
 namespace JetPack
 {
 	[BepInPlugin(GUID, Name, Version)]
 	[BepInDependency("marco.kkapi")]
-	[BepInDependency("com.deathweasel.bepinex.materialeditor")]
-	[BepInDependency("com.joan6694.illusionplugins.moreaccessories")]
+	[BepInDependency("com.deathweasel.bepinex.materialeditor", "3.0")]
+	[BepInDependency("com.joan6694.illusionplugins.moreaccessories", "1.0.9")]
 	public partial class Core : BaseUnityPlugin
 	{
 		public const string GUID = "madevil.JetPack";
 		public const string Name = "JetPack";
-		public const string Version = "1.0.3.0";
+		public const string Version = "2.0.0.0";
 
-		internal static new ManualLogSource Logger { get; private set; }
-		internal static Core PluginInstance { get; private set; }
-		internal static Harmony HarmonyInstance { get; private set; }
+		internal static ManualLogSource _logger;
+		internal static Harmony _hookInstance;
 
-		internal static ConfigEntry<bool> CfgDebugMsg { get; set; }
+		private static ConfigEntry<bool> _cfgDebugMsg;
 
 		private void Awake()
 		{
-			Logger = base.Logger;
-			PluginInstance = this;
+			_logger = base.Logger;
 
-			CfgDebugMsg = Config.Bind("Debug", "Display debug message", false);
+			_cfgDebugMsg = Config.Bind("Debug", "Display debug message", false);
+
+			if (Application.dataPath.EndsWith("CharaStudio_Data"))
+				CharaStudio.Running = true;
+			if (Application.dataPath.EndsWith("KoikatuVR_Data"))
+			{
+				CharaHscene.Inside = true;
+				CharaHscene.VR = true;
+			}
 		}
 
 		private void Start()
 		{
 			Game.HasDarkness = typeof(ChaControl).GetProperties(AccessTools.all).Any(x => x.Name == "exType");
 
-			HarmonyInstance = Harmony.CreateAndPatchAll(typeof(Hooks));
-			Accessory.Init();
+			_hookInstance = Harmony.CreateAndPatchAll(typeof(Hooks));
 
-			if (Application.dataPath.EndsWith("CharaStudio_Data"))
+			Chara.Init();
+			KKAPI.Init();
+			MoreAccessories.Init();
+			MaterialEditor.Init();
+
+			if (CharaStudio.Running)
 			{
-				Studio.Running = true;
-				Chara.Init();
-				KKAPI.Studio.StudioAPI.StudioLoadedChanged += Studio.RegisterControls;
+				CharaStudio.OnStudioLoaded += CharaStudio.RegisterControls;
+				SceneManager.sceneLoaded += CharaStudio.SceneLoaded;
+			}
+			else if (CharaHscene.VR)
+			{
+				CharaHscene.Init();
+				CharaHscene.Hooks.Init();
+				CharaHscene.InvokeOnHSceneStartLoading(null, null);
 			}
 			else
 			{
-				Maker.Init();
-				MakerAPI.MakerFinishedLoading += Maker.MakerFinishedLoading;
-				MakerAPI.MakerExiting += Maker.MakerExiting;
+				SceneManager.sceneLoaded += SceneLoaded;
+				CharaMaker.Init();
+				CharaHscene.Init();
 			}
 		}
 
-		internal class Hooks { }
-
-		internal static void DebugLog(object data) => DebugLog(LogLevel.Warning, data);
-		internal static void DebugLog(LogLevel level, object data)
+		private static void SceneLoaded(Scene _scene, LoadSceneMode _loadSceneMode)
 		{
-			if (CfgDebugMsg.Value)
-				Logger.Log(level, data);
-		}
-	}
-
-	public partial class Maker
-	{
-		internal static void MakerFinishedLoading(object sender, EventArgs args)
-		{
-			HarmonyInstance = Harmony.CreateAndPatchAll(typeof(Hooks));
-
-			int OnCustomSelectListClickCount = OnCustomSelectListClick?.GetInvocationList()?.Length ?? 0;
-			if (OnCustomSelectListClickCount > 0)
+			DebugLog($"[SceneLoaded][name: {_scene.name}][mode: {_loadSceneMode}]");
+			if (_scene.name == "CustomScene")
+				CharaMaker.InvokeOnMakerStartLoading(null, null);
+			else if (_scene.name == "HProc")
 			{
-				Core.DebugLog($"[MakerFinishedLoading][(OnCustomSelectListClick: {OnCustomSelectListClickCount}]");
-				HarmonyInstance.PatchAll(typeof(HooksCustomSelectListCtrl));
+				CharaHscene.Inside = true;
+				CharaHscene.Hooks.Init();
+				CharaHscene.InvokeOnHSceneStartLoading(null, null);
 			}
-
-			int OnPointerEnterCount = OnPointerEnter?.GetInvocationList()?.Length ?? 0;
-			int OnPointerExitCount = OnPointerExit?.GetInvocationList()?.Length ?? 0;
-			if (OnPointerEnterCount + OnPointerExitCount > 0)
-			{
-				Core.DebugLog($"[MakerFinishedLoading][(OnPointerEnter + OnPointerExit: {OnPointerEnterCount + OnPointerExitCount}]");
-				HarmonyInstance.PatchAll(typeof(HooksSelectable));
-			}
-
-			//CustomChangeMainMenu CustomChangeMainMenu = GameObject.FindObjectsOfType<CustomChangeMainMenu>().FirstOrDefault();
-			CustomChangeMainMenu CustomChangeMainMenu = Singleton<CustomChangeMainMenu>.Instance;
-			CvsNavMenuInit(CustomChangeMainMenu);
 		}
 
-		internal static void MakerExiting(object sender, EventArgs args)
+		private static class Hooks { }
+
+		internal static void DebugLog(object _msg) => DebugLog(LogLevel.Warning, _msg);
+		internal static void DebugLog(LogLevel _level, object _msg)
 		{
-			HarmonyInstance.UnpatchAll(HarmonyInstance.Id);
-			HarmonyInstance = null;
+			if (_cfgDebugMsg.Value)
+				_logger.Log(_level, _msg);
+			else
+				_logger.Log(LogLevel.Debug, _msg);
 		}
 	}
 
@@ -110,12 +104,50 @@ namespace JetPack
 		public static bool HasDarkness = false;
 	}
 
-	public partial class Toolbox
+	public static partial class Toolbox
 	{
-		public static T MessagepackClone<T>(T sourceObj)
+		public static T MessagepackClone<T>(T _object)
 		{
-			byte[] bytes = MessagePack.MessagePackSerializer.Serialize(sourceObj);
-			return MessagePack.MessagePackSerializer.Deserialize<T>(bytes);
+			byte[] _byte = MessagePackSerializer.Serialize(_object);
+			return MessagePackSerializer.Deserialize<T>(_byte);
 		}
+
+		public static object JsonClone(this object _self)
+		{
+			if (_self == null)
+				return null;
+			string _json = JSONSerializer.Serialize(_self.GetType(), _self);
+			return JSONSerializer.Deserialize(_self.GetType(), _json);
+		}
+
+		public static BaseUnityPlugin GetPluginInstance(string _guid)
+		{
+			BepInEx.Bootstrap.Chainloader.PluginInfos.TryGetValue(_guid, out PluginInfo _pluginInfo);
+			return _pluginInfo?.Instance;
+		}
+
+		public static bool PluginVersionCompare(string _guid, string _version)
+		{
+			BepInEx.Bootstrap.Chainloader.PluginInfos.TryGetValue(_guid, out PluginInfo _pluginInfo);
+			if (_pluginInfo == null) return false;
+			return _pluginInfo.Metadata.Version.CompareTo(new Version(_version)) > -1;
+		}
+
+		public static bool PluginVersionCompare(BaseUnityPlugin _instance, string _version)
+		{
+			return _instance.Info.Metadata.Version.CompareTo(new Version(_version)) > -1;
+		}
+
+		public static T[] AddToArray<T>(this T[] _self, T _item)
+		{
+			List<T> _list = _self.ToList();
+			_list.Add(_item);
+			return _list.ToArray();
+		}
+	}
+
+	public partial class Storage
+    {
+		public static int _focusWindowID = -1;
 	}
 }

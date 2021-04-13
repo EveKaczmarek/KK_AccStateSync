@@ -1,55 +1,57 @@
 ﻿using System;
 
+using BepInEx;
 using HarmonyLib;
 
 namespace AccStateSync
 {
-	class MoreAccessories
+	public partial class AccStateSync
 	{
-		internal static readonly BepInEx.Logging.ManualLogSource Logger = AccStateSync.Logger;
-		internal static Type MoreAccType = null;
-		internal static object MoreAccObj;
-		internal static Harmony HarmonyInstance;
-
-		internal static void LoadAssembly()
+		class MoreAccessories
 		{
-			MoreAccType = Type.GetType("MoreAccessoriesKOI.MoreAccessories, MoreAccessories");
-			MoreAccObj = Traverse.Create(MoreAccType).Field("_self").GetValue();
+			internal static BaseUnityPlugin _instance;
 
-			BepInEx.Bootstrap.Chainloader.PluginInfos.TryGetValue("com.joan6694.illusionplugins.moreaccessories", out BepInEx.PluginInfo target);
-		}
+			internal static Type _type = null;
+			internal static bool _newVer = false;
 
-		internal static void HarmonyPatch()
-		{
-			HarmonyInstance = Harmony.CreateAndPatchAll(typeof(Hooks));
-
-			HarmonyInstance.Patch(MoreAccType.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateAll_Patches").GetMethod("Postfix", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
-			HarmonyInstance.Patch(MoreAccType.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateCategory_Patches").GetMethod("Postfix", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
-
-			HarmonyInstance.Patch(typeof(ChaControl).GetMethod("SetAccessoryStateAll", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
-			HarmonyInstance.Patch(typeof(ChaControl).GetMethod("SetAccessoryStateCategory", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
-		}
-
-		internal static void HarmonyUnpatch()
-		{
-			if (HarmonyInstance == null) return;
-
-			HarmonyInstance.UnpatchAll(HarmonyInstance.Id);
-			HarmonyInstance = null;
-		}
-
-		internal static void UpdateUI()
-		{
-			AccessTools.Method(MoreAccType, "UpdateUI").Invoke(MoreAccObj, null);
-		}
-
-		internal class Hooks
-		{
-			internal static bool CharaMakerPreview_Block_Prefix()
+			internal static void Init()
 			{
-				if (KKAPI.Maker.MakerAPI.InsideMaker && AccStateSync.CharaMakerPreview.Value)
-					return false;
-				return true;
+				_instance = JetPack.MoreAccessories.Instance;
+				_type = _instance.GetType();
+
+				_newVer = JetPack.MoreAccessories.NewVer;
+			}
+
+			internal static void HarmonyPatch()
+			{
+				_hooksInstance["MoreAccessories"] = Harmony.CreateAndPatchAll(typeof(Hooks));
+
+				_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateAll_Patches").GetMethod("Postfix", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
+				_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateCategory_Patches").GetMethod("Postfix", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
+
+				_hooksInstance["MoreAccessories"].Patch(typeof(ChaControl).GetMethod("SetAccessoryStateAll", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
+				_hooksInstance["MoreAccessories"].Patch(typeof(ChaControl).GetMethod("SetAccessoryStateCategory", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
+			}
+
+			internal static void HarmonyUnpatch()
+			{
+				if (_hooksInstance["MoreAccessories"] == null) return;
+
+				_hooksInstance["MoreAccessories"].UnpatchAll(_hooksInstance["MoreAccessories"].Id);
+				_hooksInstance["MoreAccessories"] = null;
+			}
+
+			internal static void UpdateUI()
+			{
+				AccessTools.Method(_type, "UpdateUI").Invoke(_instance, null);
+			}
+
+			internal class Hooks
+			{
+				internal static bool CharaMakerPreview_Block_Prefix()
+				{
+					return !(JetPack.CharaMaker.Inside && _cfgCharaMakerPreview.Value);
+				}
 			}
 		}
 	}

@@ -13,85 +13,52 @@ namespace JetPack
 {
 	public static partial class Extensions
 	{
-		private struct MemberKey
+		public static List<ChaFileAccessory.PartsInfo> ListPartsInfo(this ChaControl _self, int _coordinateIndex) => Accessory.ListPartsInfo(_self, _coordinateIndex);
+		public static ChaFileAccessory.PartsInfo GetPartsInfo(this ChaControl _self, int _slotIndex) => Accessory.GetPartsInfo(_self, _slotIndex);
+		public static ChaFileAccessory.PartsInfo GetPartsInfo(this ChaControl _self, int _coordinateIndex, int _slotIndex) => Accessory.GetPartsInfo(_self, _coordinateIndex, _slotIndex);
+		public static bool GetAccessoryVisibility(this ChaControl _self, int _slotIndex) => Accessory.GetAccessoryVisibility(_self, _slotIndex);
+
+		public static bool SetActiveIfDifferent(this GameObject _self, bool _active)
 		{
-			public readonly Type type;
-			public readonly string name;
-			private readonly int _hashCode;
-
-			public MemberKey(Type inType, string inName)
-			{
-				type = inType;
-				name = inName;
-				_hashCode = type.GetHashCode() ^ name.GetHashCode();
-			}
-
-			public override int GetHashCode()
-			{
-				return _hashCode;
-			}
-		}
-
-		private static readonly Dictionary<MemberKey, FieldInfo> _fieldCache = new Dictionary<MemberKey, FieldInfo>();
-
-		public static T Field<T>(this Traverse self, string name) where T : class
-		{
-			return self.Field(name).GetValue<T>() ?? null;
-		}
-
-		public static T Field<T>(this object self, string name) where T : class
-		{
-			MemberKey key = new MemberKey(self.GetType(), name);
-			if (_fieldCache.TryGetValue(key, out FieldInfo info) == false)
-			{
-				info = key.type.GetField(key.name, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-				_fieldCache.Add(key, info);
-			}
-			return info.GetValue(self) as T ?? null;
-		}
-
-		public static bool SetActiveIfDifferent(this GameObject self, bool active)
-		{
-			if (self.activeSelf == active)
+			if (_self.activeSelf == _active)
 				return false;
 
-			self.SetActive(active);
+			_self.SetActive(_active);
 			return true;
 		}
 
-		public static RectTransform rectTransform(this GameObject self) => self.GetComponent<RectTransform>();
-		public static RectTransform rectTransform(this Transform self) => self.GetComponent<RectTransform>();
+		public static string GetFullName(this ChaControl _self) => _self.chaFile.parameter?.fullname.Trim();
 
-		public static void SetRect(this Transform self, Vector2 offsetMin, Vector2 offsetMax)
+		public static List<bool> GetClothesStates(this ChaControl _self, int _slotIndex) => Chara.Clothes.GetClothesStates(_self, _slotIndex);
+
+		public static object RefTryGetValue(this object _self, object _key)
 		{
-			RectTransform RT = self.GetComponent<RectTransform>();
-			RT.offsetMin = offsetMin;
-			RT.offsetMax = offsetMax;
-		}
-		public static void SetRect(this Transform self, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
-		{
-			RectTransform RT = self.GetComponent<RectTransform>();
-			RT.anchorMin = anchorMin;
-			RT.anchorMax = anchorMax;
-			RT.offsetMin = offsetMin;
-			RT.offsetMax = offsetMax;
-		}
-		public static void SetRect(this Transform self, float anchorLeft, float anchorBottom, float anchorRight, float anchorTop, float offsetLeft, float offsetBottom, float offsetRight, float offsetTop)
-		{
-			RectTransform RT = self.GetComponent<RectTransform>();
-			RT.anchorMin = new Vector2(anchorLeft, anchorBottom);
-			RT.anchorMax = new Vector2(anchorRight, anchorTop);
-			RT.offsetMin = new Vector2(offsetLeft, offsetBottom);
-			RT.offsetMax = new Vector2(offsetRight, offsetTop);
+			if (_self == null) return null;
+
+			MethodInfo _tryMethod = AccessTools.Method(_self.GetType(), "TryGetValue");
+			object[] _parameters = new object[] { _key, null };
+			_tryMethod.Invoke(_self, _parameters);
+			return _parameters[1];
 		}
 
-		public static List<ChaFileAccessory.PartsInfo> ListPartsInfo(this ChaControl self, int CoordinateIndex) => Accessory.ListPartsInfo(self, CoordinateIndex);
-		public static ChaFileAccessory.PartsInfo GetPartsInfo(this ChaControl self, int SlotIndex) => Accessory.GetPartsInfo(self, SlotIndex);
-		public static ChaFileAccessory.PartsInfo GetPartsInfo(this ChaControl self, int CoordinateIndex, int SlotIndex) => Accessory.GetPartsInfo(self, CoordinateIndex, SlotIndex);
-		public static ChaAccessoryComponent GetChaAccessoryComponent(this ChaControl self, int SlotIndex) => Accessory.GetChaAccessoryComponent(self, SlotIndex);
-		public static bool GetAccessoryVisibility(this ChaControl self, int SlotIndex) => Accessory.GetAccessoryVisibility(self, SlotIndex);
-		public static int GetAccessoryStateCategory(this ChaControl self, int SlotIndex) => Accessory.GetAccessoryStateCategory(self, SlotIndex);
-		public static string GetFullName(this ChaControl self) => self.chaFile.parameter?.fullname.Trim();
-		public static List<bool> GetClothesStates(this ChaControl self, int SlotIndex) => Chara.Clothes.GetClothesStates(self, SlotIndex);
+		public static object RefElementAt(this object _self, int _key)
+		{
+			if (_self == null)
+				return null;
+			if (_key > (Traverse.Create(_self).Property("Count").GetValue<int>() - 1))
+				return null;
+
+			return Traverse.Create(_self).Method("get_Item", new object[] { _key }).GetValue();
+		}
+
+		public static T RefElementAt<T>(this object _self, int _key)
+		{
+			if (_self == null)
+				return default(T);
+			if (_key > (Traverse.Create(_self).Property("Count").GetValue<int>() - 1))
+				return default(T);
+
+			return Traverse.Create(_self).Method("get_Item", new object[] { _key }).GetValue<T>();
+		}
 	}
 }

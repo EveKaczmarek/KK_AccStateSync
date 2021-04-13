@@ -1,41 +1,19 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-
-using UnityEngine;
-
-using KKAPI.Chara;
-using KKAPI.Maker;
-using JetPack;
-
 namespace AccStateSync
 {
 	public partial class AccStateSync
 	{
-		public partial class AccStateSyncController : CharaCustomFunctionController
+		public partial class AccStateSyncController
 		{
-			internal void OnVirtualGroupStateChange(string group, bool state)
+			internal void OnVirtualGroupStateChange(string _group, bool _state)
 			{
-				CurOutfitVirtualGroupInfo[group].State = state;
-				ToggleByVirtualGroup(group, state);
-			}
-
-			internal IEnumerator OnCurSlotTriggerInfoChangeCoroutine()
-			{
-				yield return new WaitForEndOfFrame();
-				yield return new WaitForEndOfFrame();
-
-				OnCurSlotTriggerInfoChange();
+				CharaVirtualGroupInfo[_currentCoordinateIndex][_group].State = _state;
+				ToggleByVirtualGroup(_group, _state);
 			}
 
 			internal void OnCurSlotTriggerInfoChange()
 			{
-				if (!MakerAPI.InsideAndLoaded) return;
-
-				UpdateStatesToggle();
+				if (!JetPack.CharaMaker.Loaded) return;
 				PreviewChange();
-				AutoSaveTrigger();
 			}
 		}
 	}

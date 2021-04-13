@@ -11,51 +11,84 @@ using HarmonyLib;
 
 namespace JetPack
 {
-	public partial class Studio
+	public partial class CharaStudio
 	{
 		public static int OnLoadingChara { get; internal set; } = 0;
 
 		internal static void CharaInit()
 		{
-			OnCharaLoad += (sender, args) =>
+			OnCharaLoad += (_sender, _args) =>
 			{
-				if (args.State == CharaLoadState.Pre)
+				if (_args.State == CharaLoadState.Pre)
 					OnLoadingChara++;
-				else if (args.State == CharaLoadState.Coroutine)
+				else if (_args.State == CharaLoadState.Coroutine)
 					OnLoadingChara--;
-				Core.DebugLog($"[OnCharaLoad][CharaLoadState: {args.Mode} {args.State}][Count: {OnLoadingChara}]");
+				Core.DebugLog($"[OnCharaLoad][CharaLoadState: {_args.Mode} {_args.State}][Count: {OnLoadingChara}]");
 			};
 
-			HarmonyInstance.PatchAll(typeof(HooksChara));
+			_hookInstance.PatchAll(typeof(HooksChara));
 		}
 
-		public static ChaControl GetChaControl(OICharInfo chara)
+		public static IEnumerable<OCIChar> GetSelectedOCIChar()
 		{
-			if (StudioInstance == null) throw new InvalidOperationException("Studio is not initialized yet!");
-			return StudioInstance.dicInfo.Values.OfType<OCIChar>().Select(x => x.charInfo).FirstOrDefault(x => x.chaFile == chara.charFile);
+			return GetSelectedObjects().OfType<OCIChar>();
 		}
 
-		public static OCIChar GetOCIChar(OICharInfo chara)
+		public static IEnumerable<ObjectCtrlInfo> GetSelectedObjects()
 		{
-			if (StudioInstance == null) throw new InvalidOperationException("Studio is not initialized yet!");
-			return StudioInstance.dicInfo.Values.OfType<OCIChar>().FirstOrDefault(x => x.charInfo.chaFile == chara.charFile);
+			if (!Loaded)
+				yield break;
+
+			for (int i = 0; i < ListSelectNodes.Count; i++)
+				if (Instance.dicInfo.TryGetValue(ListSelectNodes[i], out ObjectCtrlInfo _info))
+					yield return _info;
 		}
 
-		public static OCIChar GetOCIChar(ChaControl chara)
+		public static ChaControl GetChaControl(OICharInfo _chara)
 		{
-			if (StudioInstance == null) throw new InvalidOperationException("Studio is not initialized yet!");
-			return StudioInstance.dicInfo.Values.OfType<OCIChar>().FirstOrDefault(x => x.charInfo == chara);
+			if (Instance == null) throw new InvalidOperationException("Studio is not initialized yet!");
+			return Instance.dicInfo.Values.OfType<OCIChar>().Select(x => x.charInfo).FirstOrDefault(x => x.chaFile == _chara.charFile);
 		}
 
-		public static MPCharCtrl GetMPCharCtrl(OCIChar chara)
+		public static ChaControl GetChaControl(OCIChar _chara)
 		{
-			MPCharCtrl[] charas = GameObject.FindObjectsOfType<MPCharCtrl>();
-			foreach (MPCharCtrl charCtrl in charas)
+			if (Instance == null) throw new InvalidOperationException("Studio is not initialized yet!");
+			return _chara?.charInfo;
+		}
+
+		public static OCIChar GetOCIChar(OICharInfo _chara)
+		{
+			if (Instance == null) throw new InvalidOperationException("Studio is not initialized yet!");
+			return Instance.dicInfo.Values.OfType<OCIChar>().FirstOrDefault(x => x.charInfo.chaFile == _chara.charFile);
+		}
+
+		public static OCIChar GetOCIChar(ChaControl _chara)
+		{
+			if (Instance == null) throw new InvalidOperationException("Studio is not initialized yet!");
+			return Instance.dicInfo.Values.OfType<OCIChar>().FirstOrDefault(x => x.charInfo == _chara);
+		}
+
+		public static MPCharCtrl GetMPCharCtrl(OCIChar _chara)
+		{
+			MPCharCtrl[] _charas = GameObject.FindObjectsOfType<MPCharCtrl>();
+			foreach (MPCharCtrl _charCtrl in _charas)
 			{
-				if (charCtrl.ociChar == chara)
-					return charCtrl;
+				if (_charCtrl.ociChar == _chara)
+					return _charCtrl;
 			}
 			return null;
+		}
+
+		public static bool RefreshCharaStatePanel()
+		{
+			if (!Loaded) return false;
+			if (CurOCIChar == null) return false;
+			MPCharCtrl _chara = GetMPCharCtrl(CurOCIChar);
+			if (_chara == null) return false;
+			int _select = Traverse.Create(_chara).Field<int>("select").Value;
+			if (_select != 0) return false;
+			_chara.OnClickRoot(0);
+			return true;
 		}
 
 		public static event EventHandler<CharaLoadEventArgs> OnCharaLoad;
@@ -63,28 +96,28 @@ namespace JetPack
 		public enum CharaLoadState { Pre, Post, Coroutine }
 		public class CharaLoadEventArgs : EventArgs
 		{
-			public CharaLoadEventArgs(OCIChar chara, CharaLoadMode mode, CharaLoadState state)
+			public CharaLoadEventArgs(OCIChar _chara, CharaLoadMode _mode, CharaLoadState _state)
 			{
-				ChaControl = chara?.charInfo;
-				OCIChar = chara;
-				Mode = mode;
-				State = state;
+				ChaControl = _chara?.charInfo;
+				OCIChar = _chara;
+				Mode = _mode;
+				State = _state;
 			}
 
-			public CharaLoadEventArgs(ChaControl chara, CharaLoadMode mode, CharaLoadState state)
+			public CharaLoadEventArgs(ChaControl _chara, CharaLoadMode _mode, CharaLoadState _state)
 			{
-				ChaControl = chara;
-				OCIChar = GetOCIChar(chara);
-				Mode = mode;
-				State = state;
+				ChaControl = _chara;
+				OCIChar = GetOCIChar(_chara);
+				Mode = _mode;
+				State = _state;
 			}
 
-			public CharaLoadEventArgs(OICharInfo chara, CharaLoadMode mode, CharaLoadState state)
+			public CharaLoadEventArgs(OICharInfo _chara, CharaLoadMode _mode, CharaLoadState _state)
 			{
-				ChaControl = GetChaControl(chara);
-				OCIChar = GetOCIChar(chara);
-				Mode = mode;
-				State = state;
+				ChaControl = GetChaControl(_chara);
+				OCIChar = GetOCIChar(_chara);
+				Mode = _mode;
+				State = _state;
 			}
 
 			public ChaControl ChaControl { get; }
@@ -112,10 +145,10 @@ namespace JetPack
 				Core.DebugLog($"OCIChar_ChangeChara_Postfix");
 				OnCharaLoad?.Invoke(null, new CharaLoadEventArgs(__instance, CharaLoadMode.Change, CharaLoadState.Post));
 				//StudioInstance.StartCoroutine(OCIChar_ChangeChara_Coroutine(__instance, CharaLoadState.Post));
-				StudioInstance.StartCoroutine(OCIChar_ChangeChara_Coroutine(__instance, CharaLoadState.Coroutine));
+				Instance.StartCoroutine(OCIChar_ChangeChara_Coroutine(__instance, CharaLoadState.Coroutine));
 			}
 
-			internal static IEnumerator OCIChar_ChangeChara_Coroutine(OCIChar chara, CharaLoadState state)
+			internal static IEnumerator OCIChar_ChangeChara_Coroutine(OCIChar _chara, CharaLoadState _state)
 			{
 				yield return new WaitForEndOfFrame();
 				yield return new WaitForEndOfFrame();
@@ -123,13 +156,13 @@ namespace JetPack
 				yield return new WaitForEndOfFrame();
 				yield return new WaitForEndOfFrame();
 
-				Core.DebugLog($"OCIChar_ChangeChara_Postfix_Coroutine [state: {state}]");
+				Core.DebugLog($"OCIChar_ChangeChara_Postfix_Coroutine [state: {_state}]");
 				/*
 				if (state == CharaLoadState.Post)
 					StudioInstance.StartCoroutine(OCIChar_ChangeChara_Coroutine(chara, CharaLoadState.Coroutine));
 				else
 				*/
-					OnCharaLoad?.Invoke(null, new CharaLoadEventArgs(chara, CharaLoadMode.Change, state));
+					OnCharaLoad?.Invoke(null, new CharaLoadEventArgs(_chara, CharaLoadMode.Change, _state));
 			}
 
 			[HarmonyPriority(Priority.First)]
@@ -152,7 +185,7 @@ namespace JetPack
 				// only fires when adding chara
 				Core.DebugLog($"AddObjectChara_Add_Postfix");
 				OnCharaLoad?.Invoke(null, new CharaLoadEventArgs(new OCIChar(), CharaLoadMode.Add, CharaLoadState.Post));
-				StudioInstance.StartCoroutine(AddObjectChara_Coroutine(null, CharaLoadMode.Add));
+				Instance.StartCoroutine(AddObjectChara_Coroutine(null, CharaLoadMode.Add));
 			}
 			/*
 			[HarmonyPriority(Priority.First)]
@@ -195,16 +228,16 @@ namespace JetPack
 				// only fires when loading scene
 				Core.DebugLog($"AddObjectChara_Load_Postfix");
 				OnCharaLoad?.Invoke(null, new CharaLoadEventArgs(_info, CharaLoadMode.Load, CharaLoadState.Post));
-				StudioInstance.StartCoroutine(AddObjectChara_Coroutine(GetOCIChar(_info), CharaLoadMode.Load));
+				Instance.StartCoroutine(AddObjectChara_Coroutine(GetOCIChar(_info), CharaLoadMode.Load));
 			}
 
-			internal static IEnumerator AddObjectChara_Coroutine(OCIChar chara, CharaLoadMode mode)
+			internal static IEnumerator AddObjectChara_Coroutine(OCIChar _chara, CharaLoadMode _mode)
 			{
 				yield return new WaitForEndOfFrame();
 				yield return new WaitForEndOfFrame();
 
-				OnCharaLoad?.Invoke(null, new CharaLoadEventArgs(chara, mode, CharaLoadState.Coroutine));
-				Core.DebugLog($"AddObjectChara_Coroutine [mode: {mode}]");
+				OnCharaLoad?.Invoke(null, new CharaLoadEventArgs(_chara, _mode, CharaLoadState.Coroutine));
+				Core.DebugLog($"AddObjectChara_Coroutine [mode: {_mode}]");
 			}
 		}
 	}

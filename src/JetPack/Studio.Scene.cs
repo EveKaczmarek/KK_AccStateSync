@@ -12,11 +12,11 @@ using HarmonyLib;
 
 namespace JetPack
 {
-	public partial class Studio
+	public partial class CharaStudio
 	{
 		internal static void SceneInit()
 		{
-			HarmonyInstance.PatchAll(typeof(HooksScene));
+			_hookInstance.PatchAll(typeof(HooksScene));
 		}
 
 		public static event EventHandler<SceneLoadEventArgs> OnSceneLoad;
@@ -24,11 +24,11 @@ namespace JetPack
 		public enum SceneLoadState { Pre, Post, Coroutine }
 		public class SceneLoadEventArgs : EventArgs
 		{
-			public SceneLoadEventArgs(string path, SceneLoadMode mode, SceneLoadState state)
+			public SceneLoadEventArgs(string _path, SceneLoadMode _mode, SceneLoadState _state)
 			{
-				Path = path;
-				Mode = mode;
-				State = state;
+				Path = _path;
+				Mode = _mode;
+				State = _state;
 			}
 
 			public string Path { get; }
@@ -39,7 +39,7 @@ namespace JetPack
 		internal partial class HooksScene
 		{
 			[HarmonyPriority(Priority.First)]
-			[HarmonyPrefix, HarmonyPatch(typeof(global::Studio.Studio), nameof(global::Studio.Studio.SaveScene))]
+			[HarmonyPrefix, HarmonyPatch(typeof(Studio.Studio), nameof(Studio.Studio.SaveScene))]
 			private static void Studio_SaveScene_Prefix()
 			{
 				Core.DebugLog($"Studio_SaveScene_Prefix");
@@ -47,16 +47,16 @@ namespace JetPack
 			}
 
 			[HarmonyPriority(Priority.Last)]
-			[HarmonyPostfix, HarmonyPatch(typeof(global::Studio.Studio), nameof(global::Studio.Studio.SaveScene))]
+			[HarmonyPostfix, HarmonyPatch(typeof(Studio.Studio), nameof(Studio.Studio.SaveScene))]
 			private static void Studio_SaveScene_Postfix()
 			{
 				Core.DebugLog($"Studio_SaveScene_Postfix");
 				OnSceneLoad?.Invoke(null, new SceneLoadEventArgs(null, SceneLoadMode.Save, SceneLoadState.Post));
-				StudioInstance.StartCoroutine(Studio_LoadSceneCoroutine_Postfix_Coroutine(null, SceneLoadMode.Save));
+				Instance.StartCoroutine(Studio_LoadSceneCoroutine_Postfix_Coroutine(null, SceneLoadMode.Save));
 			}
 
 			[HarmonyPriority(Priority.First)]
-			[HarmonyPrefix, HarmonyPatch(typeof(global::Studio.Studio), nameof(global::Studio.Studio.ImportScene))]
+			[HarmonyPrefix, HarmonyPatch(typeof(Studio.Studio), nameof(Studio.Studio.ImportScene))]
 			private static void Studio_ImportScene_Prefix(string _path)
 			{
 				Core.DebugLog($"Studio_ImportScene_Prefix");
@@ -64,30 +64,44 @@ namespace JetPack
 			}
 
 			[HarmonyPriority(Priority.Last)]
-			[HarmonyPostfix, HarmonyPatch(typeof(global::Studio.Studio), nameof(global::Studio.Studio.ImportScene))]
+			[HarmonyPostfix, HarmonyPatch(typeof(Studio.Studio), nameof(Studio.Studio.ImportScene))]
 			private static void Studio_ImportScene_Postfix(string _path)
 			{
 				Core.DebugLog($"Studio_ImportScene_Postfix");
 				OnSceneLoad?.Invoke(null, new SceneLoadEventArgs(_path, SceneLoadMode.Import, SceneLoadState.Post));
-				StudioInstance.StartCoroutine(Studio_LoadSceneCoroutine_Postfix_Coroutine(_path, SceneLoadMode.Import));
+				Instance.StartCoroutine(Studio_LoadSceneCoroutine_Postfix_Coroutine(_path, SceneLoadMode.Import));
 			}
 
 			[HarmonyPriority(Priority.Last)]
-			[HarmonyPostfix, HarmonyPatch(typeof(global::Studio.Studio), nameof(global::Studio.Studio.LoadSceneCoroutine))]
+			[HarmonyPostfix, HarmonyPatch(typeof(Studio.Studio), nameof(Studio.Studio.LoadSceneCoroutine))]
+			/*
 			private static void Studio_LoadSceneCoroutine_Postfix(string _path)
 			{
 				Core.DebugLog($"Studio_LoadSceneCoroutine_Postfix");
 				OnSceneLoad?.Invoke(null, new SceneLoadEventArgs(_path, SceneLoadMode.Load, SceneLoadState.Post));
-				StudioInstance.StartCoroutine(Studio_LoadSceneCoroutine_Postfix_Coroutine(_path, SceneLoadMode.Load));
+				Instance.StartCoroutine(Studio_LoadSceneCoroutine_Postfix_Coroutine(_path, SceneLoadMode.Load));
+			}
+			*/
+			private static void Studio_LoadSceneCoroutine_Postfix(string _path, ref IEnumerator __result)
+			{
+				IEnumerator original = __result;
+				__result = new[] { original, LoadCoPostfixCo(_path) }.GetEnumerator();
 			}
 
-			internal static IEnumerator Studio_LoadSceneCoroutine_Postfix_Coroutine(string path, SceneLoadMode mode)
+			private static IEnumerator LoadCoPostfixCo(string _path)
+			{
+				Core.DebugLog($"Studio_LoadSceneCoroutine_Postfix");
+				OnSceneLoad?.Invoke(null, new SceneLoadEventArgs(_path, SceneLoadMode.Load, SceneLoadState.Post));
+				yield break;
+			}
+
+			internal static IEnumerator Studio_LoadSceneCoroutine_Postfix_Coroutine(string _path, SceneLoadMode _mode)
 			{
 				yield return new WaitForEndOfFrame();
 				yield return new WaitForEndOfFrame();
 
-				Core.DebugLog($"Studio_LoadSceneCoroutine_Postfix_Coroutine [mode: {mode}]");
-				OnSceneLoad?.Invoke(null, new SceneLoadEventArgs(path, SceneLoadMode.Load, SceneLoadState.Coroutine));
+				Core.DebugLog($"Studio_LoadSceneCoroutine_Postfix_Coroutine [mode: {_mode}]");
+				OnSceneLoad?.Invoke(null, new SceneLoadEventArgs(_path, SceneLoadMode.Load, SceneLoadState.Coroutine));
 			}
 		}
 	}

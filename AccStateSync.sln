@@ -4,9 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccStateSync", "src\AccStateSync\AccStateSync.csproj", "{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{AC0D512F-F352-44CE-9D33-D8E5E440336B} = {AC0D512F-F352-44CE-9D33-D8E5E440336B}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JetPack", "src\JetPack\JetPack.csproj", "{AC0D512F-F352-44CE-9D33-D8E5E440336B}"
 EndProject

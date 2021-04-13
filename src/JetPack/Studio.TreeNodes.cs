@@ -1,77 +1,73 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using Studio;
 
 using HarmonyLib;
 
 namespace JetPack
 {
-	public partial class Studio
+	public partial class CharaStudio
 	{
 		public static OCIChar CurOCIChar;
 		public static int CurTreeNodeObjID = -1;
 
 		internal static void TreeNodesInit()
 		{
-			OnSelectNodeChange += (sender, args) =>
+			OnSelectNodeChange += (_sender, _args) =>
 			{
-				Core.DebugLog($"[OnSelectNodeChange][{args.OldNodeID}][{args.NewNodeID}]");
+				Core.DebugLog($"[OnSelectNodeChange][{_args.OldNodeID}][{_args.NewNodeID}]");
 			};
 
 			//Core.DebugLog($"[TreeNodesInit][(OnSelectSingle: {OnSelectSingle?.GetInvocationList()?.Length}]");
-			OnSelectSingle += (sender, args) =>
+			OnSelectSingle += (_sender, _args) =>
 			{
-				int OldTreeNodeObjID = CurTreeNodeObjID;
+				int _old = CurTreeNodeObjID;
 
-				if (args.SelectNode == null || ListSelectNodes.Count == 0)
+				if (_args.SelectNode == null || ListSelectNodes.Count == 0)
 				{
-					if (OldTreeNodeObjID > -1)
+					if (_old > -1)
 					{
 						CurOCIChar = null;
 						CurTreeNodeObjID = -1;
 
-						OnSelectNodeChange?.Invoke(StudioInstance.treeNodeCtrl, new TreeNodesSelectChangeEventArgs(OldTreeNodeObjID, CurTreeNodeObjID));
+						OnSelectNodeChange?.Invoke(Instance.treeNodeCtrl, new TreeNodesSelectChangeEventArgs(_old, CurTreeNodeObjID));
 					}
 					return;
 				}
 
-				if (StudioInstance.dicInfo.TryGetValue(args.SelectNode, out ObjectCtrlInfo info))
+				if (Instance.dicInfo.TryGetValue(_args.SelectNode, out ObjectCtrlInfo _info))
 				{
-					CurTreeNodeObjID = GetSceneId(info);
-					if (OldTreeNodeObjID != CurTreeNodeObjID)
+					CurTreeNodeObjID = GetSceneId(_info);
+					if (_old != CurTreeNodeObjID)
 					{
-						OCIChar selected = info as OCIChar;
-						if (selected?.GetType() != null)
-							CurOCIChar = selected;
+						OCIChar _selected = _info as OCIChar;
+						if (_selected?.GetType() != null)
+							CurOCIChar = _selected;
 						else
 							CurOCIChar = null;
 
-						OnSelectNodeChange?.Invoke(StudioInstance.treeNodeCtrl, new TreeNodesSelectChangeEventArgs(OldTreeNodeObjID, CurTreeNodeObjID));
+						OnSelectNodeChange?.Invoke(Instance.treeNodeCtrl, new TreeNodesSelectChangeEventArgs(_old, CurTreeNodeObjID));
 					}
 				}
 			};
 
-			HarmonyInstance.PatchAll(typeof(HooksTreeNodes));
+			_hookInstance.PatchAll(typeof(HooksTreeNodes));
 		}
 
-		public static List<TreeNodeObject> ListSelectNodes => Traverse.Create(StudioInstance.treeNodeCtrl).Property("selectNodes").GetValue<TreeNodeObject[]>().ToList();
+		//public static List<TreeNodeObject> ListSelectNodes => Traverse.Create(StudioInstance.treeNodeCtrl).Property("selectNodes").GetValue<TreeNodeObject[]>().ToList();
+		public static List<TreeNodeObject> ListSelectNodes => Instance.treeNodeCtrl.selectNodes?.ToList();
 
-		public static int GetSceneId(ObjectCtrlInfo obj)
+		public static int GetSceneId(ObjectCtrlInfo _info)
 		{
-			if (obj == null) throw new ArgumentNullException(nameof(obj));
-			if (StudioInstance == null) throw new InvalidOperationException("Studio is not initialized yet!");
+			if (_info == null) throw new ArgumentNullException(nameof(_info));
+			if (Instance == null) throw new InvalidOperationException("Studio is not initialized yet!");
 
-			foreach (KeyValuePair<int, ObjectCtrlInfo> info in StudioInstance.dicObjectCtrl)
+			foreach (KeyValuePair<int, ObjectCtrlInfo> x in Instance.dicObjectCtrl)
 			{
-				if (info.Value == obj)
-					return info.Key;
+				if (x.Value == _info)
+					return x.Key;
 			}
 			return -1;
 		}
@@ -80,10 +76,10 @@ namespace JetPack
 
 		public class TreeNodesSelectChangeEventArgs : EventArgs
 		{
-			public TreeNodesSelectChangeEventArgs(int oldNodeID, int newNodeID)
+			public TreeNodesSelectChangeEventArgs(int _oldNodeID, int _newNodeID)
 			{
-				OldNodeID = oldNodeID;
-				NewNodeID = newNodeID;
+				OldNodeID = _oldNodeID;
+				NewNodeID = _newNodeID;
 			}
 
 			public int OldNodeID { get; }
@@ -106,9 +102,9 @@ namespace JetPack
 
 		public class TreeNodeEventArgs : EventArgs
 		{
-			public TreeNodeEventArgs(TreeNodeObject selectNode)
+			public TreeNodeEventArgs(TreeNodeObject _node)
 			{
-				SelectNode = selectNode;
+				SelectNode = _node;
 			}
 
 			public TreeNodeObject SelectNode { get; }
@@ -132,7 +128,7 @@ namespace JetPack
 			}
 
 			[HarmonyPriority(Priority.First)]
-			[HarmonyPrefix, HarmonyPatch(typeof(global::Studio.Studio), nameof(global::Studio.Studio.InitScene))]
+			[HarmonyPrefix, HarmonyPatch(typeof(Studio.Studio), nameof(Studio.Studio.InitScene))]
 			private static void Studio_InitScene_Prefix(bool _close)
 			{
 				Core.DebugLog($"Studio_InitScene_Prefix");

@@ -3,7 +3,11 @@ using System.Linq;
 
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 using TMPro;
+
+using BepInEx.Logging;
+using HarmonyLib;
 
 using JetPack;
 
@@ -11,100 +15,118 @@ namespace AccStateSync
 {
 	public partial class AccStateSync
 	{
-		internal static class HScene
+		internal static class CharaHscene
 		{
-			internal static bool Inside = false;
-			internal static List<ChaControl> Heroine;
-			internal static List<HSprite> Sprites = new List<HSprite>();
+			internal static void RegisterEvents()
+			{
+				JetPack.CharaHscene.OnHSceneStartLoading += (_sender, _args) =>
+				{
+					_hooksInstance["HScene"] = Harmony.CreateAndPatchAll(typeof(HooksHScene));
+					_hooksInstance["HScene"].Patch(JetPack.CharaHscene.HSceneProcType.GetMethod("SetClothStateStartMotion", AccessTools.all), postfix: new HarmonyMethod(typeof(HooksHScene), nameof(HooksHScene.HSceneProc_SetClothStateStartMotion_Postfix)));
+				};
+				JetPack.CharaHscene.OnHSceneFinishedLoading += (_sender, _args) =>
+				{
+					ClearUI();
+					UpdateUI();
+				};
+				JetPack.CharaHscene.OnHSceneExiting += (_sender, _args) =>
+				{
+					_hooksInstance["HScene"].UnpatchAll(_hooksInstance["HScene"].Id);
+					_hooksInstance["HScene"] = null;
+				};
+			}
 
 			internal static void UpdateUI()
 			{
-				if (!Inside) return;
-				Logger.Log(DebugLogLevel, $"[UpdateUI] Fired!!");
+				if (!JetPack.CharaHscene.Loaded) return;
+				DebugMsg(LogLevel.Info, $"[UpdateUI] Fired!!");
 
 				UI.ContainerOffsetMinY = -144;
 				UI.MenuitemHeightOffsetY = -24;
 
-				int i = 0, Counter = 0;
-				foreach (ChaControl chaCtrl in Heroine)
+				int i = 0, _counter = 0;
+				foreach (ChaControl _chaCtrl in JetPack.CharaHscene.Heroine)
 				{
-					AccStateSyncController pluginCtrl = GetController(chaCtrl);
-					if ((pluginCtrl.TriggerEnabled) &&  (pluginCtrl.CurOutfitVirtualGroupInfo.Count() > 0))
+					AccStateSyncController _pluginCtrl = GetController(_chaCtrl);
+					if (_pluginCtrl.TriggerEnabled && _pluginCtrl.CharaVirtualGroupInfo[_chaCtrl.fileStatus.coordinateType].Count() > 0)
 					{
-						foreach (KeyValuePair<string, VirtualGroupInfo> group in pluginCtrl.CurOutfitVirtualGroupInfo)
+						foreach (KeyValuePair<string, VirtualGroupInfo> _group in _pluginCtrl.CharaVirtualGroupInfo[_chaCtrl.fileStatus.coordinateType])
 						{
-							if (pluginCtrl.GetPartsOfKind(group.Value.Kind).Count() > 0)
+							if (_pluginCtrl.GetPartsOfKind(_group.Value.Kind).Count() > 0)
 							{
-								CreateButton(chaCtrl, Counter, group.Key, i);
+								CreateButton(_chaCtrl, _counter, _group.Key, i);
 								i++;
 							}
 						}
 						i = 0;
 					}
-					Counter++;
+					_counter++;
 				}
 			}
 
 			internal static void ClearUI()
 			{
-				foreach (HSprite sprite in Sprites)
+				foreach (HSprite _sprite in JetPack.CharaHscene.Sprites)
 				{
-					if (Heroine.Count > 1)
+					if (JetPack.CharaHscene.Heroine.Count > 1)
 					{
-						ClearButton(sprite.lstMultipleFemaleDressButton[0].accessoryAll.gameObject);
-						ClearButton(sprite.lstMultipleFemaleDressButton[1].accessoryAll.gameObject);
+						ClearButton(_sprite.lstMultipleFemaleDressButton[0].accessoryAll.gameObject);
+						ClearButton(_sprite.lstMultipleFemaleDressButton[1].accessoryAll.gameObject);
 					}
 					else
-						ClearButton(sprite.categoryAccessoryAll.gameObject);
+						ClearButton(_sprite.categoryAccessoryAll.gameObject);
 				}
 			}
 
-			internal static void ClearButton(GameObject parent)
+			internal static readonly List<string> _whitelist = new List<string>() { "Clothing", "Undressing", "Category1Clothing", "Category1Undressing", "Category2Clothing", "Category2Undressing" };
+
+			internal static void ClearButton(GameObject _parent)
 			{
-				List<string> whitelist = new List<string>() { "Clothing", "Undressing", "Category1Clothing", "Category1Undressing", "Category2Clothing", "Category2Undressing" };
-				foreach (Transform child in parent.transform)
+				foreach (Transform _child in _parent.transform)
 				{
-					if (whitelist.IndexOf(child.name) < 0)
-						Destroy(child.gameObject);
+					if (_whitelist.IndexOf(_child.name) < 0)
+						Destroy(_child.gameObject);
 				}
 			}
 
-			internal static void CreateButton(ChaControl chaCtrl, int Counter, string group, int i)
+			internal static void CreateButton(ChaControl _chaCtrl, int _counter, string _group, int i)
 			{
-				foreach (HSprite sprite in Sprites)
+				int _currentCoordinateIndex = _chaCtrl.fileStatus.coordinateType;
+				foreach (HSprite _sprite in JetPack.CharaHscene.Sprites)
 				{
-					Transform parent;
-					if (Heroine.Count > 1)
-						parent = sprite.lstMultipleFemaleDressButton[Counter].accessoryAll.transform;
+					Transform _parent;
+					if (JetPack.CharaHscene.Heroine.Count > 1)
+						_parent = _sprite.lstMultipleFemaleDressButton[_counter].accessoryAll.transform;
 					else
-						parent = sprite.categoryAccessoryAll.transform;
+						_parent = _sprite.categoryAccessoryAll.transform;
 
-					Transform origin = sprite.categoryAccessory.lstButton[0].transform;
-					Transform copy = Instantiate(origin.transform, parent, false);
-					copy.name = $"btnASS_{Counter}_{group}";
+					Transform _origin = _sprite.categoryAccessory.lstButton[0].transform;
+					Transform _copy = Instantiate(_origin.transform, _parent, false);
+					_copy.name = $"btnASS_{_counter}_{_group}";
 
-					AccStateSyncController pluginCtrl = GetController(chaCtrl);
-					string label = pluginCtrl.CurOutfitVirtualGroupInfo[group].Label;
-					copy.GetComponentInChildren<TextMeshProUGUI>().text = label;
+					AccStateSyncController _pluginCtrl = GetController(_chaCtrl);
+					string _label = _pluginCtrl.CharaVirtualGroupInfo[_currentCoordinateIndex][_group].Label;
+					_copy.GetComponentInChildren<TextMeshProUGUI>().text = _label;
 
-					RectTransform copyRt = copy.GetComponent<RectTransform>();
-					copyRt.offsetMin = new Vector2(0, UI.ContainerOffsetMinY + (UI.MenuitemHeightOffsetY * (i + 1))); // -168 
-					copyRt.offsetMax = new Vector2(112, UI.ContainerOffsetMinY + (UI.MenuitemHeightOffsetY * i)); // -144 
+					RectTransform _copyRt = _copy.GetComponent<RectTransform>();
+					_copyRt.offsetMin = new Vector2(0, UI.ContainerOffsetMinY + (UI.MenuitemHeightOffsetY * (i + 1))); // -168 
+					_copyRt.offsetMax = new Vector2(112, UI.ContainerOffsetMinY + (UI.MenuitemHeightOffsetY * i)); // -144 
 
-					Button button = copy.GetComponentInChildren<Button>();
-					button.onClick.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.Off);
-					button.onClick.RemoveAllListeners();
-					button.onClick = new Button.ButtonClickedEvent();
-					button.image.raycastTarget = true;
+					Button _button = _copy.GetComponentInChildren<Button>();
+					for (int n = 0; n < _button.onClick.GetPersistentEventCount(); n++)
+						_button.onClick.SetPersistentListenerState(n, UnityEventCallState.Off);
+					_button.onClick.RemoveAllListeners();
+					_button.onClick = new Button.ButtonClickedEvent();
+					_button.image.raycastTarget = true;
 
-					button.onClick.AddListener(delegate ()
+					_button.onClick.AddListener(delegate ()
 					{
-						bool show = !pluginCtrl.CurOutfitVirtualGroupInfo[group].State;
-						pluginCtrl.OnVirtualGroupStateChange(group, show);
+						bool _show = !_pluginCtrl.CharaVirtualGroupInfo[_currentCoordinateIndex][_group].State;
+						_pluginCtrl.OnVirtualGroupStateChange(_group, _show);
 						Illusion.Game.Utils.Sound.Play(Illusion.Game.SystemSE.sel);
 					});
 
-					copy.gameObject.SetActiveIfDifferent(true);
+					_copy.gameObject.SetActiveIfDifferent(true);
 				}
 			}
 		}

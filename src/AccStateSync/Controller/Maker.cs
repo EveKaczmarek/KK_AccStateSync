@@ -3,414 +3,301 @@ using System.Collections.Generic;
 using System.Linq;
 
 using UnityEngine;
-using UnityEngine.UI;
 using UniRx;
-using TMPro;
 
-using KKAPI.Chara;
-using KKAPI.Maker;
+using BepInEx.Logging;
+
 using JetPack;
 
 namespace AccStateSync
 {
 	public partial class AccStateSync
 	{
-		public partial class AccStateSyncController : CharaCustomFunctionController
+		public partial class AccStateSyncController
 		{
-			internal IEnumerator AccSlotChangedHandlerCoroutine(int SlotIndex)
+			public AccTriggerInfo CurSlotTriggerInfo = null;
+			internal ChaFileAccessory.PartsInfo _curPartsInfo = null;
+
+			internal IEnumerator AccSlotChangedHandlerCoroutine(int _slotIndex)
 			{
 				yield return new WaitForEndOfFrame();
 				yield return new WaitForEndOfFrame();
 
-				AccSlotChangedHandler(SlotIndex);
+				AccSlotChangedHandler(_slotIndex);
 			}
 
-			internal void AccSlotChangedHandler(int SlotIndex)
+			internal void AccSlotChangedHandler(int _slotIndex)
 			{
-				if (!MakerAPI.InsideAndLoaded) return;
+				if (!JetPack.CharaMaker.Loaded) return;
 				SkipAutoSave = true;
 
-				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{CharaFullName}] Fired!!");
+				DebugMsg(LogLevel.Info, $"[AccSlotChangedHandler][{CharaFullName}] Fired!!");
 
-				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{CharaFullName}][SlotIndex]: {SlotIndex}");
-
-				ChaFileAccessory.PartsInfo PartInfo = ChaControl.GetPartsInfo(SlotIndex);
-				if (PartInfo == null)
+				DebugMsg(LogLevel.Info, $"[AccSlotChangedHandler][{CharaFullName}][SlotIndex]: {_slotIndex}");
+#if DEBUG
+				if (_slotIndex < 0)
 				{
-					Logger.LogError($"[AccSlotChangedHandler][{CharaFullName}] Cannot retrive info for Slot{SlotIndex + 1:00}");
+					_logger.LogError($"[AccSlotChangedHandler][{CharaFullName}] calling when SlotIndex = -1");
+					CurSlotTriggerInfo = null;
+					return;
+				}
+#endif
+				_curPartsInfo = ChaControl.GetPartsInfo(_slotIndex);
+				if (_curPartsInfo == null)
+				{
+					_logger.LogError($"[AccSlotChangedHandler][{CharaFullName}] Cannot retrive info for Slot{_slotIndex + 1:00}");
+					CurSlotTriggerInfo = null;
 					return;
 				}
 
-				if (!CurOutfitTriggerInfo.Parts.ContainsKey(SlotIndex))
-					CurSlotTriggerInfo = new AccTriggerInfo(SlotIndex);
-				else
-					CopySlotTriggerInfo(CurOutfitTriggerInfo.Parts[SlotIndex], CurSlotTriggerInfo);
+				CurSlotTriggerInfo = new AccTriggerInfo(_slotIndex);
+				if (CharaTriggerInfo[_currentCoordinateIndex].Parts.ContainsKey(_slotIndex))
+					CopySlotTriggerInfo(CharaTriggerInfo[_currentCoordinateIndex].Parts[_slotIndex], CurSlotTriggerInfo);
 
 				if (!SkipSlotChangePartTypeCheck)
 				{
-					if ((CurSlotTriggerInfo.Kind > -1) && (PartInfo.type == 120))
+					if ((CurSlotTriggerInfo.Kind > -1) && (_curPartsInfo.type == 120))
 					{
-						CharaTriggerInfo[CurrentCoordinateIndex].Parts.Remove(SlotIndex);
-						CurSlotTriggerInfo = new AccTriggerInfo(SlotIndex);
+						CharaTriggerInfo[_currentCoordinateIndex].Parts.Remove(_slotIndex);
+						CurSlotTriggerInfo = new AccTriggerInfo(_slotIndex);
 #if DEBUG
-						Logger.Log(BepInEx.Logging.LogLevel.Error | BepInEx.Logging.LogLevel.Message, $"AccTriggerInfo for Coordinate {CurrentCoordinateIndex} Slot{CurSlotTriggerInfo.Slot + 1:00} has been reset");
+						_logger.Log(LogLevel.Error | LogLevel.Message, $"AccTriggerInfo for Coordinate {_currentCoordinateIndex} Slot{CurSlotTriggerInfo.Slot + 1:00} has been reset");
 #else
-						Logger.LogMessage($"AccTriggerInfo for Coordinate {CurrentCoordinateIndex} Slot{CurSlotTriggerInfo.Slot + 1:00} has been reset");
+						_logger.LogMessage($"AccTriggerInfo for Coordinate {_currentCoordinateIndex} Slot{CurSlotTriggerInfo.Slot + 1:00} has been reset");
 #endif
 					}
 				}
 				SkipSlotChangePartTypeCheck = false;
 
-				SyncOutfitVirtualGroupInfo(CurrentCoordinateIndex);
-				CurOutfitVirtualGroupInfo = CharaVirtualGroupInfo[CurrentCoordinateIndex];
+				SyncOutfitVirtualGroupInfo(_currentCoordinateIndex);
 
-				CharaMaker.ClearVirtualGroupToggle();
-				UI.AnchorOffsetMinY = (int) CharaMaker.tglASSobj["tglASS0"].GetComponent<RectTransform>().offsetMin.y - 80;
-				CharaMaker.CreateDropdownList();
-				UI.DropdownASSList item = CharaMaker.ddASSListDic.Values.Where(x => x.Kind == CurSlotTriggerInfo.Kind).FirstOrDefault();
-				CharaMaker.CreateDropdownItems(item.Index);
-				CharaMaker.ddASSList.GetComponentInChildren<TMP_Dropdown>().RefreshShownValue();
+				DebugMsg(LogLevel.Info, $"[AccSlotChangedHandler][{CharaFullName}][Slot: {CurSlotTriggerInfo.Slot}][Kind: {CurSlotTriggerInfo.Kind}][State: {CurSlotTriggerInfo.State[0]}|{CurSlotTriggerInfo.State[1]}|{CurSlotTriggerInfo.State[2]}|{CurSlotTriggerInfo.State[3]}]");
 
-				UpdateStatesToggle();
-#if DEBUG
-				Logger.LogWarning($"[AccSlotChangedHandler][CurOutfitVirtualGroupInfo.Count: {CurOutfitVirtualGroupInfo.Count}]");
-#endif
-				int i = 0;
-				foreach (KeyValuePair<string, VirtualGroupInfo> group in CurOutfitVirtualGroupInfo)
+				if (_cfgCharaMakerPreview.Value)
+					_instance.StartCoroutine(SyncAllAccToggleCoroutine());
+
+				_instance.StartCoroutine(SkipAutoSaveCoroutine());
+
+				IEnumerator SkipAutoSaveCoroutine()
 				{
-					if (GetPartsOfKind(group.Value.Kind).Count() > 0)
-					{
-						CharaMaker.CreateVirtualGroupToggle(group.Key);
-						i++;
-					}
-				}
-				CharaMaker.imgWindowBack.offsetMin = new Vector2(0, UI.ContainerOffsetMinY - UI.MenuitemHeightOffsetY * i);
-
-				Logger.Log(DebugLogLevel, $"[AccSlotChangedHandler][{CharaFullName}][Slot: {CurSlotTriggerInfo.Slot}][Kind: {CurSlotTriggerInfo.Kind}][State: {CurSlotTriggerInfo.State[0]}|{CurSlotTriggerInfo.State[1]}|{CurSlotTriggerInfo.State[2]}|{CurSlotTriggerInfo.State[3]}]");
-
-				if (CharaMakerPreview.Value)
-					Instance.StartCoroutine(SyncAllAccToggleCoroutine());
-
-				Instance.StartCoroutine(SkipAutoSaveCoroutine());
-				//SkipAutoSave = false;
-			}
-
-			internal IEnumerator SkipAutoSaveCoroutine()
-			{
-				yield return new WaitForEndOfFrame();
-				yield return new WaitForEndOfFrame();
+					yield return new WaitForEndOfFrame();
+					yield return new WaitForEndOfFrame();
 #if DEBUG
-				Logger.LogError("SkipAutoSave off");
+					_logger.LogError("SkipAutoSave off");
 #endif
-				SkipAutoSave = false;
+					SkipAutoSave = false;
+				}
 			}
 
-			internal void AccessoriesCopiedHandler(int CopySource, int CopyDestination, List<int> CopiedSlotIndexes)
+			internal void AccessoriesCopiedHandler(int _srcCoordinateIndex, int _dstCoordinateIndex, List<int> CopiedSlotIndexes)
 			{
-				if (!MakerAPI.InsideAndLoaded) return;
+				DebugMsg(LogLevel.Info, $"[AccessoriesCopiedHandler][{CharaFullName}][Soruce: {_srcCoordinateIndex}][Destination: {_dstCoordinateIndex}][CopiedSlotIndexes: {string.Join(",", CopiedSlotIndexes.Select(x => x.ToString()).ToArray())}]");
 
-				Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{CharaFullName}][Soruce: {CopySource}][Destination: {CopyDestination}][CopiedSlotIndexes: {string.Join(",", CopiedSlotIndexes.Select(Slot => Slot.ToString()).ToArray())}]");
-
-				NullCheckOutfitTriggerInfo(CopyDestination);
+				NullCheckOutfitTriggerInfo(_dstCoordinateIndex);
 
 				int j = -1;
-				if (CharaTriggerInfo[CopyDestination]?.Parts?.Count() > 0)
-					j = CharaTriggerInfo[CopyDestination].Parts.Values.Max(x => x.Kind);
+				if (CharaTriggerInfo[_dstCoordinateIndex]?.Parts?.Count() > 0)
+					j = CharaTriggerInfo[_dstCoordinateIndex].Parts.Values.Max(x => x.Kind);
 
 				int i = 9;
-				foreach (int Slot in CopiedSlotIndexes)
+				foreach (int _slot in CopiedSlotIndexes)
 				{
-					if (CharaTriggerInfo[CopyDestination].Parts.ContainsKey(Slot))
-						CharaTriggerInfo[CopyDestination].Parts.Remove(Slot);
+					if (CharaTriggerInfo[_dstCoordinateIndex].Parts.ContainsKey(_slot))
+						CharaTriggerInfo[_dstCoordinateIndex].Parts.Remove(_slot);
 
-					if (CharaTriggerInfo[CopySource].Parts.ContainsKey(Slot))
+					if (CharaTriggerInfo[_srcCoordinateIndex].Parts.ContainsKey(_slot))
 					{
-						CharaTriggerInfo[CopyDestination].Parts[Slot] = new AccTriggerInfo(Slot);
-						CopySlotTriggerInfo(CharaTriggerInfo[CopySource].Parts[Slot], CharaTriggerInfo[CopyDestination].Parts[Slot]);
-						i = CharaTriggerInfo[CopySource].Parts[Slot].Kind > i ? CharaTriggerInfo[CopySource].Parts[Slot].Kind : i;
+						CharaTriggerInfo[_dstCoordinateIndex].Parts[_slot] = new AccTriggerInfo(_slot);
+						CopySlotTriggerInfo(CharaTriggerInfo[_srcCoordinateIndex].Parts[_slot], CharaTriggerInfo[_dstCoordinateIndex].Parts[_slot]);
+						i = CharaTriggerInfo[_srcCoordinateIndex].Parts[_slot].Kind > i ? CharaTriggerInfo[_srcCoordinateIndex].Parts[_slot].Kind : i;
 					}
 				}
 
 				if (i > j)
 				{
-					for (int Kind = 10; Kind < (i + 1); Kind++)
+					for (int _kind = 10; _kind < (i + 1); _kind++)
 					{
-						string group = $"custom_{Kind - 9}";
-						if (!CharaVirtualGroupInfo[CopyDestination].ContainsKey(group))
+						string _group = $"custom_{_kind - 9}";
+						if (!CharaVirtualGroupInfo[_dstCoordinateIndex].ContainsKey(_group))
 						{
-							CharaVirtualGroupInfo[CopyDestination][group] = CharaVirtualGroupInfo[CopySource][group];
-							Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{CharaFullName}][Group: {group}] created");
+							CharaVirtualGroupInfo[_dstCoordinateIndex][_group] = CharaVirtualGroupInfo[_srcCoordinateIndex][_group];
+							DebugMsg(LogLevel.Info, $"[AccessoriesCopiedHandler][{CharaFullName}][Group: {_group}] created");
 						}
 					}
 				}
 
-				Logger.Log(DebugLogLevel, $"[AccessoriesCopiedHandler][{CharaFullName}] CharaVirtualGroupNames[{CopyDestination}].Count(): {CharaVirtualGroupInfo[CopyDestination].Count()}");
+				DebugMsg(LogLevel.Info, $"[AccessoriesCopiedHandler][{CharaFullName}] CharaVirtualGroupNames[{_dstCoordinateIndex}].Count(): {CharaVirtualGroupInfo[_dstCoordinateIndex].Count()}");
 
-				if (CopyDestination == CurrentCoordinateIndex)
+				if (_dstCoordinateIndex == _currentCoordinateIndex)
 				{
-					SyncOutfitVirtualGroupInfo(CurrentCoordinateIndex);
-					CurOutfitVirtualGroupInfo = CharaVirtualGroupInfo[CurrentCoordinateIndex];
+					SyncOutfitVirtualGroupInfo(_currentCoordinateIndex);
 				}
 			}
 
-			internal void AccessoryTransferredHandler(int SourceSlotIndex, int DestinationSlotIndex) => AccessoryTransferredHandler(SourceSlotIndex, DestinationSlotIndex, CurrentCoordinateIndex);
-			internal void AccessoryTransferredHandler(int SourceSlotIndex, int DestinationSlotIndex, int CoordinateIndex)
+			internal void AccessoryTransferredHandler(int _srcSlotIndex, int _dstSlotIndex) => AccessoryTransferredHandler(_srcSlotIndex, _dstSlotIndex, _currentCoordinateIndex);
+			internal void AccessoryTransferredHandler(int _srcSlotIndex, int _dstSlotIndex, int _coordinateIndex)
 			{
-				if (!MakerAPI.InsideAndLoaded) return;
+				DebugMsg(LogLevel.Info, $"[AccessoryTransferredHandler][{CharaFullName}] Fired!!");
 
-				Logger.Log(DebugLogLevel, $"[AccessoryTransferredHandler][{CharaFullName}] Fired!!");
+				NullCheckOutfitTriggerInfo(_coordinateIndex);
 
-				NullCheckOutfitTriggerInfo(CoordinateIndex);
-
-				if (CharaTriggerInfo[CoordinateIndex].Parts.ContainsKey(DestinationSlotIndex))
-					CharaTriggerInfo[CoordinateIndex].Parts.Remove(DestinationSlotIndex);
-				if (CharaTriggerInfo[CoordinateIndex].Parts.ContainsKey(SourceSlotIndex))
+				if (CharaTriggerInfo[_coordinateIndex].Parts.ContainsKey(_dstSlotIndex))
+					CharaTriggerInfo[_coordinateIndex].Parts.Remove(_dstSlotIndex);
+				if (CharaTriggerInfo[_coordinateIndex].Parts.ContainsKey(_srcSlotIndex))
 				{
-					CharaTriggerInfo[CoordinateIndex].Parts[DestinationSlotIndex] = new AccTriggerInfo(DestinationSlotIndex);
-					CopySlotTriggerInfo(CharaTriggerInfo[CoordinateIndex].Parts[SourceSlotIndex], CharaTriggerInfo[CoordinateIndex].Parts[DestinationSlotIndex]);
-					CharaTriggerInfo[CoordinateIndex].Parts[DestinationSlotIndex].Slot = DestinationSlotIndex;
+					CharaTriggerInfo[_coordinateIndex].Parts[_dstSlotIndex] = new AccTriggerInfo(_dstSlotIndex);
+					CopySlotTriggerInfo(CharaTriggerInfo[_coordinateIndex].Parts[_srcSlotIndex], CharaTriggerInfo[_coordinateIndex].Parts[_dstSlotIndex]);
+					CharaTriggerInfo[_coordinateIndex].Parts[_dstSlotIndex].Slot = _dstSlotIndex;
 				}
-				SyncOutfitVirtualGroupInfo(CurrentCoordinateIndex);
+				SyncOutfitVirtualGroupInfo(_currentCoordinateIndex);
 			}
 
-			internal void RenameGroup(string group, string label)
+			internal void RenameGroup(string _group, string _label)
 			{
-				if (!CurOutfitVirtualGroupInfo.ContainsKey(group))
+				if (!CharaVirtualGroupInfo[_currentCoordinateIndex].ContainsKey(_group))
 				{
-					Logger.LogMessage($"Invalid group {group}");
+					_logger.LogMessage($"Invalid group {_group}");
 					return;
 				}
-				CurOutfitVirtualGroupInfo[group].Label = label;
-				Logger.LogMessage($"[{group}] renamed into {label}");
-
-				TMP_Dropdown dropdown = CharaMaker.ddASSList.GetComponentInChildren<TMP_Dropdown>();
-				UI.DropdownASSList item = CharaMaker.ddASSListDic.Values.Where(x => x.Kind == CurOutfitVirtualGroupInfo[group].Kind).FirstOrDefault();
-				dropdown.options[item.Index].text = label;
-				dropdown.RefreshShownValue();
-				if (CharaMaker.tglASSgroup.ContainsKey("tglASS_" + group))
-				{
-					GameObject toggle = CharaMaker.tglASSgroup["tglASS_" + group];
-					if (toggle != null)
-					{
-						if (VirtualGroupShowName.Value)
-							toggle.GetComponentInChildren<TextMeshProUGUI>().text = label + " (" + group + ")";
-						else
-							toggle.GetComponentInChildren<TextMeshProUGUI>().text = label;
-					}
-				}
-			}
-
-			internal void RenameGroup(int kind, string label)
-			{
-				if (kind <= 9)
-				{
-					Logger.LogMessage($"Invalid kind {kind}");
-					return;
-				}
-				string group = $"custom_{kind - 9}";
-				RenameGroup(group, label);
+				CharaVirtualGroupInfo[_currentCoordinateIndex][_group].Label = _label;
+				_logger.LogMessage($"[{_group}] renamed into {_label}");
 			}
 
 			internal void PushGroup()
 			{
-				int n = CurOutfitVirtualGroupInfo?.Values?.Where(x => x.Kind > 9)?.Count() > 0 ? CurOutfitVirtualGroupInfo.Values.Max(x => x.Kind) - 9 : 0;
+				int n = CharaVirtualGroupInfo[_currentCoordinateIndex]?.Values?.Where(x => x.Kind > 9)?.Count() > 0 ? CharaVirtualGroupInfo[_currentCoordinateIndex].Values.Max(x => x.Kind) - 9 : 0;
 				n++;
-				string Group = $"custom_{n}";
+				string _group = $"custom_{n}";
 
-				CharaVirtualGroupInfo[CurrentCoordinateIndex][$"custom_{n}"] = new VirtualGroupInfo(Group, n + 9);
-				Logger.LogMessage($"[custom_{n}][Custom {n}] added");
+				CharaVirtualGroupInfo[_currentCoordinateIndex][$"custom_{n}"] = new VirtualGroupInfo(_group, n + 9);
+				_logger.LogMessage($"[custom_{n}][Custom {n}] added");
 			}
 
 			internal void PopGroup()
 			{
-				if (CurOutfitVirtualGroupInfo?.Values?.Where(x => x.Kind > 9)?.Count() == 0)
+				if (CharaVirtualGroupInfo[_currentCoordinateIndex]?.Values?.Where(x => x.Kind > 9)?.Count() == 0)
 				{
-					Logger.LogMessage($"Cannot go below 0 custom group");
+					_logger.LogMessage($"Cannot go below 0 custom group");
 					return;
 				}
 
-				VirtualGroupInfo group = CurOutfitVirtualGroupInfo?.Values?.OrderByDescending(x => x.Kind)?.FirstOrDefault();
-				if (GetPartsOfKind(group.Kind).Count() > 0)
+				VirtualGroupInfo _group = CharaVirtualGroupInfo[_currentCoordinateIndex]?.Values?.OrderByDescending(x => x.Kind)?.FirstOrDefault();
+				if (GetPartsOfKind(_group.Kind).Count() > 0)
 				{
-					Logger.LogMessage($"Cannot remove [{group.Group}][{group.Label}] because it's being assigned by slots");
+					_logger.LogMessage($"Cannot remove [{_group.Group}][{_group.Label}] because it's being assigned by slots");
 					return;
 				}
-				Logger.LogMessage($"[{group.Group}][{group.Label}] removed");
-				CharaVirtualGroupInfo[CurrentCoordinateIndex].Remove(group.Group);
+				_logger.LogMessage($"[{_group.Group}][{_group.Label}] removed");
+				CharaVirtualGroupInfo[_currentCoordinateIndex].Remove(_group.Group);
 			}
 
-			internal void CreateGroupIfNotExist(string group)
-            {
-				if (CurOutfitVirtualGroupInfo.ContainsKey(CurSlotTriggerInfo.Group)) return;
-
-				CharaVirtualGroupInfo[CurrentCoordinateIndex][CurSlotTriggerInfo.Group] = new VirtualGroupInfo(CurSlotTriggerInfo.Group, CurSlotTriggerInfo.Kind);
-				CurOutfitVirtualGroupInfo = CharaVirtualGroupInfo[CurrentCoordinateIndex];
-
-				VirtualGroupInfo info = CurOutfitVirtualGroupInfo[CurSlotTriggerInfo.Group];
-				Logger.LogMessage($"Group: {info.Group} ({info.Label}) created");
-			}
-
-			internal void SetSecondaryGroup(int kind, bool secondary = true)
+			internal void SetSecondaryGroup(string _key, bool _secondary = true)
 			{
-				if (CurOutfitVirtualGroupInfo?.Values?.Where(x => x.Kind == kind)?.Count() == 0)
+				if (!(bool) CharaVirtualGroupInfo[_currentCoordinateIndex]?.ContainsKey(_key))
 				{
-					Logger.LogMessage($"Invalid kind {kind}");
+					_logger.LogMessage($"Invalid group {_key}");
 					return;
 				}
 
-				VirtualGroupInfo group = CurOutfitVirtualGroupInfo.Values.Where(x => x.Kind == kind).FirstOrDefault();
-				CharaVirtualGroupInfo[CurrentCoordinateIndex][group.Group].Secondary = secondary;
-				string MsgText = secondary ? "Secondary" : "Primary";
-				Logger.LogMessage($"[{group.Group}][{group.Label}] set as {MsgText}");
+				VirtualGroupInfo _group = CharaVirtualGroupInfo[_currentCoordinateIndex][_key];
+				_group.Secondary = _secondary;
+				_logger.LogMessage($"[{_group.Group}][{_group.Label}] set as {(_secondary ? "Secondary" : "Primary")}");
 			}
 
-			internal void SetSecondaryGroup(string key, bool secondary = true)
+			internal void CvsAccessory_UpdateSelectAccessoryType_Postfix(int _slotIndex)
 			{
-				if (!(bool) CurOutfitVirtualGroupInfo?.ContainsKey(key))
-				{
-					Logger.LogMessage($"Invalid group {key}");
-					return;
-				}
-
-				VirtualGroupInfo group = CharaVirtualGroupInfo[CurrentCoordinateIndex][key];
-				group.Secondary = secondary;
-				string MsgText = secondary ? "Secondary" : "Primary";
-				Logger.LogMessage($"[{group.Group}][{group.Label}] set as {MsgText}");
-			}
-
-			internal void CvsAccessory_UpdateSelectAccessoryType_Postfix(int SlotIndex)
-			{
-				if (SkipAutoSave)
+				if (SkipSlotChangePartTypeCheck)
 				{
 #if DEBUG
-					Logger.LogError($"[CvsAccessory_UpdateSelectAccessoryType_Postfix] skip autosave");
+					_logger.LogError($"[CvsAccessory_UpdateSelectAccessoryType_Postfix][AutoSave: {SkipAutoSave}][PartTypeCheck: {SkipSlotChangePartTypeCheck}]");
 #endif
 					return;
 				}
 
-				if (!(bool) CharaTriggerInfo[CurrentCoordinateIndex]?.Parts?.ContainsKey(SlotIndex))
-					return;
-
-				AccTriggerInfo Part = CharaTriggerInfo[CurrentCoordinateIndex].Parts[SlotIndex];
-				ChaFileAccessory.PartsInfo PartInfo = ChaControl.GetPartsInfo(CurrentCoordinateIndex, SlotIndex);
-
-				if ((PartInfo.type == 120) && (Part.Kind > -1))
-				{
-					CharaTriggerInfo[CurrentCoordinateIndex].Parts.Remove(SlotIndex);
-					Logger.LogMessage($"AccTriggerInfo for Coordinate {CurrentCoordinateIndex} Slot{SlotIndex + 1:00} has been reset");
-					AccSlotChangedHandler(SlotIndex);
-				}
+				AccSlotChangedHandler(_slotIndex);
 			}
 
-			internal void CvsAccessory_UpdateSelectAccessoryParent_Postfix(int SlotIndex)
+			internal void CvsAccessory_UpdateSelectAccessoryParent_Postfix(int _slotIndex)
 			{
-				if (SkipAutoSave)
+				if (SkipSlotChangePartTypeCheck)
 				{
 #if DEBUG
-					Logger.LogError($"[CvsAccessory_UpdateSelectAccessoryParent_Postfix] skip autosave");
+					_logger.LogError($"[CvsAccessory_UpdateSelectAccessoryParent_Postfix][AutoSave: {SkipAutoSave}][PartTypeCheck: {SkipSlotChangePartTypeCheck}]");
 #endif
 					return;
 				}
 
-				if (!CharaTriggerInfo[CurrentCoordinateIndex].Parts.ContainsKey(SlotIndex))
+				if (!CharaTriggerInfo.ContainsKey(_currentCoordinateIndex) || !CharaTriggerInfo[_currentCoordinateIndex].Parts.ContainsKey(_slotIndex))
 					return;
 
-				AccTriggerInfo Part = CharaTriggerInfo[CurrentCoordinateIndex].Parts[SlotIndex];
-				if (Part.Kind == 9)
-				{
-					ChaFileAccessory.PartsInfo PartInfo = ChaControl.GetPartsInfo(CurrentCoordinateIndex, SlotIndex);
-					Part.Group = PartInfo.parentKey;
-					Logger.LogMessage($"Slot{SlotIndex + 1:00} has been assigned to {Part.Group}");
-					AccSlotChangedHandler(SlotIndex);
-				}
+				if (CurSlotTriggerInfo?.Kind == 9)
+					SetCurSlotTriggerInfo(9);
 			}
 
-			internal void VerifyOnePiece(int Category, int Coordinate)
+			internal void CreateGroupIfNotExist()
 			{
-				if (!MakerAPI.InsideAndLoaded) return;
+				if (CharaVirtualGroupInfo[_currentCoordinateIndex].ContainsKey(CurSlotTriggerInfo.Group)) return;
 
-				if (Category == 105)
-				{
-					Logger.Log(DebugLogLevel, $"[VerifyOnePiece][{CharaFullName}][Category: {Category}][Coordinate: {Coordinate}]");
-					CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["top"] = false;
-					if (Coordinate == 2)
-					{
-						if (ChaControl.nowCoordinate.clothes.parts[1].id == 0)
-							CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["top"] = true;
-					}
-				}
-				else if (Category == 107)
-				{
-					Logger.Log(DebugLogLevel, $"[VerifyOnePiece][{CharaFullName}][Category: {Category}][Coordinate: {Coordinate}]");
-					CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["bra"] = false;
-					if (Coordinate == 2)
-					{
-						if (ChaControl.nowCoordinate.clothes.parts[3].id == 0)
-							CharaTriggerInfo[CurrentCoordinateIndex].OnePiece["bra"] = true;
-					}
-				}
-			}
+				CharaVirtualGroupInfo[_currentCoordinateIndex][CurSlotTriggerInfo.Group] = new VirtualGroupInfo(CurSlotTriggerInfo.Group, CurSlotTriggerInfo.Kind);
 
-			internal void UpdateStatesToggle()
-			{
-				UI.DropdownASSList item = CharaMaker.ddASSListDic.Values.Where(x => x.Kind == CurSlotTriggerInfo.Kind).FirstOrDefault();
-				List<bool> states = new List<bool>();
-				if (MathfEx.RangeEqualOn(0, CurSlotTriggerInfo.Kind, 8))
-					states = ChaControl.GetClothesStates(CurSlotTriggerInfo.Kind);
-				if (states.Count < 4)
-					states = item.States;
-
-				bool clickable = CurSlotTriggerInfo.Kind != -1;
-				for (int x = 0; x < 4; x++)
-				{
-					CharaMaker.tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().isOn = CurSlotTriggerInfo.State[x];
-					CharaMaker.tglASSobj[$"tglASS{x}"].GetComponentInChildren<Toggle>().interactable = clickable;
-					CharaMaker.tglASSobj[$"tglASS{x}"].GetComponentInChildren<TextMeshProUGUI>().alpha = states[x] ? 1f : 0.2f;
-				}
+				VirtualGroupInfo _group = CharaVirtualGroupInfo[_currentCoordinateIndex][CurSlotTriggerInfo.Group];
+				_logger.LogMessage($"Group: {_group.Group} ({_group.Label}) created");
 			}
 
 			internal void PreviewChange()
 			{
 				if (MathfEx.RangeEqualOn(0, CurSlotTriggerInfo.Kind, 6))
 				{
-					int state = ChaControl.fileStatus.clothesState[CurSlotTriggerInfo.Kind];
-					bool vis = CurSlotTriggerInfo.State[state];
-					ShowAccessory(CurSlotTriggerInfo.Slot, vis);
+					int _state = ChaControl.fileStatus.clothesState[CurSlotTriggerInfo.Kind];
+					bool _show = CurSlotTriggerInfo.State[_state];
+					ShowAccessory(CurSlotTriggerInfo.Slot, _show);
 				}
 				else if ((CurSlotTriggerInfo.Kind == 7) || (CurSlotTriggerInfo.Kind == 8))
 				{
-					int clothesKind = (ChaControl.fileStatus.shoesType == 0) ? 7 : 8;
-					bool vis = false;
-					if (clothesKind == CurSlotTriggerInfo.Kind)
-						vis = CurSlotTriggerInfo.State[ChaControl.fileStatus.clothesState[CurSlotTriggerInfo.Kind]];
-					ShowAccessory(CurSlotTriggerInfo.Slot, vis);
+					int _kind = (ChaControl.fileStatus.shoesType == 0) ? 7 : 8;
+					bool _show = false;
+					if (_kind == CurSlotTriggerInfo.Kind)
+						_show = CurSlotTriggerInfo.State[ChaControl.fileStatus.clothesState[_kind]];
+					ShowAccessory(CurSlotTriggerInfo.Slot, _show);
 				}
 				else if (CurSlotTriggerInfo.Kind >= 9)
 				{
-					CreateGroupIfNotExist(CurSlotTriggerInfo.Group);
-					bool vis = true;
-					if (CurOutfitVirtualGroupInfo.ContainsKey(CurSlotTriggerInfo.Group))
-						vis = CurOutfitVirtualGroupInfo[CurSlotTriggerInfo.Group].State ? CurSlotTriggerInfo.State[0] : CurSlotTriggerInfo.State[3];
+					CreateGroupIfNotExist();
+					bool _show = true;
+					if (CharaVirtualGroupInfo[_currentCoordinateIndex].ContainsKey(CurSlotTriggerInfo.Group))
+						_show = CharaVirtualGroupInfo[_currentCoordinateIndex][CurSlotTriggerInfo.Group].State ? CurSlotTriggerInfo.State[0] : CurSlotTriggerInfo.State[3];
 					else
-						Logger.LogError($"[PreviewChange] Group {CurSlotTriggerInfo.Group} not found in CurOutfitVirtualGroupInfo");
-					ShowAccessory(CurSlotTriggerInfo.Slot, vis);
+						_logger.LogError($"[PreviewChange] Group {CurSlotTriggerInfo.Group} not found in CurOutfitVirtualGroupInfo");
+					ShowAccessory(CurSlotTriggerInfo.Slot, _show);
 				}
 			}
 
-			internal void AutoSaveTrigger()
+			internal void SetCurSlotTriggerInfo(int _kind)
 			{
-				if (!MakerAPI.InsideAndLoaded) return;
-				if (!AutoSaveSetting.Value) return;
-				if (SkipAutoSave)
-				{
-#if DEBUG
-					Logger.LogError("AutoSaveTrigger skip autosave");
-#endif
-					return;
-				}
+				if (!JetPack.CharaMaker.Loaded) return;
+				if (CharaMaker._currentSlotIndex < 0) return;
+				if (CurSlotTriggerInfo == null || _curPartsInfo == null) return;
 
-				Logger.LogMessage($"AutoSaveTrigger for Coordinate {CurrentCoordinateIndex} Slot{CurSlotTriggerInfo.Slot + 1:00}");
-				CharaMaker.btnASSsave.GetComponentInChildren<Button>().onClick.Invoke();
+				string _oldGroup = CurSlotTriggerInfo.Group;
+
+				CurSlotTriggerInfo.Kind = _kind;
+
+				if (MathfEx.RangeEqualOn(-1, _kind, 8))
+					CurSlotTriggerInfo.Group = "";
+				else if (_kind == 9)
+					CurSlotTriggerInfo.Group = _curPartsInfo.parentKey;
+				else
+					CurSlotTriggerInfo.Group = $"custom_{_kind - 9}";
+
+				if (!CharaTriggerInfo[_currentCoordinateIndex].Parts.ContainsKey(CurSlotTriggerInfo.Slot))
+					CharaTriggerInfo[_currentCoordinateIndex].Parts[CurSlotTriggerInfo.Slot] = new AccTriggerInfo(CurSlotTriggerInfo.Slot);
+				CopySlotTriggerInfo(CurSlotTriggerInfo, CharaTriggerInfo[_currentCoordinateIndex].Parts[CurSlotTriggerInfo.Slot]);
+
+				if (CharaVirtualGroupInfo[_currentCoordinateIndex].ContainsKey(_oldGroup))
+				{
+					if (CharaTriggerInfo[_currentCoordinateIndex].Parts.Values.FirstOrDefault(x => x.Group == _oldGroup) == null)
+						CharaVirtualGroupInfo[_currentCoordinateIndex].Remove(_oldGroup);
+				}
 			}
 		}
 	}

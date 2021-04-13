@@ -6,7 +6,6 @@ using UnityEngine.UI;
 using Studio;
 using UniRx;
 
-using KKAPI.Studio;
 using JetPack;
 
 namespace AccStateSync
@@ -15,44 +14,41 @@ namespace AccStateSync
 	{
 		internal static class CharaStudio
 		{
-			internal static bool Inside = false;
-			internal static OCIChar CurOCIChar = null;
-			internal static int CurTreeNodeObjID = -1;
+			internal static OCIChar _curOCIChar = null;
+			internal static int _curTreeNodeObjID = -1;
+			internal static GameObject _original;
 			internal static GameObject ASSPanel;
-			internal static GameObject OriginalCopy;
 			internal static CanvasGroup ASSPanelCanvasGroup;
-			internal static Button StateButton;
 
 			internal static void RegisterControls()
 			{
-				if (!StudioAPI.InsideStudio) return;
+				if (!JetPack.CharaStudio.Running) return;
 
-				Inside = true;
 				CreatePanel();
-				ExtensibleSaveFormat.ExtendedSave.SceneBeingLoaded += (path) => CurTreeNodeObjID = -1;
-				ExtensibleSaveFormat.ExtendedSave.SceneBeingImported += (path) => CurTreeNodeObjID = -1;
 
-				JetPack.Studio.OnSelectNodeChange += (sender, args) =>
+				JetPack.CharaStudio.OnSelectNodeChange += (_sender, _args) =>
 				{
-					CurTreeNodeObjID = JetPack.Studio.CurTreeNodeObjID;
-					CurOCIChar = JetPack.Studio.CurOCIChar;
+					_curTreeNodeObjID = JetPack.CharaStudio.CurTreeNodeObjID;
+					_curOCIChar = JetPack.CharaStudio.CurOCIChar;
 					UpdateUI();
 				};
+
+				HarmonyLib.Harmony.CreateAndPatchAll(typeof(HooksCharaStudio));
 			}
 
-			internal static void SetVisibility(bool visible)
+			internal static void SetVisibility(bool _show)
 			{
 				if (ASSPanelCanvasGroup == null) return;
-				ASSPanelCanvasGroup.alpha = visible ? 1 : 0;
-				ASSPanelCanvasGroup.blocksRaycasts = visible;
+				ASSPanelCanvasGroup.alpha = _show ? 1 : 0;
+				ASSPanelCanvasGroup.blocksRaycasts = _show;
 			}
 
 			internal static void ClearUI()
 			{
-				foreach (Transform child in ASSPanel.transform)
+				foreach (Transform _child in ASSPanel.transform)
 				{
-					if (child.gameObject != null)
-						Destroy(child.gameObject);
+					if (_child.gameObject != null)
+						Destroy(_child.gameObject);
 				}
 				SetVisibility(false);
 			}
@@ -61,25 +57,24 @@ namespace AccStateSync
 			{
 				ClearUI();
 
-				if ((CurOCIChar == null) || (CurOCIChar.charInfo == null))
+				if ((_curOCIChar == null) || (_curOCIChar.charInfo == null))
 					return;
-				AccStateSyncController pluginCtrl = CurOCIChar.charInfo.GetComponent<AccStateSyncController>();
-				if (pluginCtrl == null)
+				AccStateSyncController _pluginCtrl = GetController(_curOCIChar);
+				if (_pluginCtrl == null)
 					return;
-				pluginCtrl.TreeNodeObjID = CurTreeNodeObjID;
-				if (!pluginCtrl.TriggerEnabled)
+				_pluginCtrl._treeNodeObjID = _curTreeNodeObjID;
+				if (!_pluginCtrl.TriggerEnabled)
 					return;
-				if (pluginCtrl.CurOutfitVirtualGroupInfo.Count() == 0)
+				if (_pluginCtrl.CharaVirtualGroupInfo[_curOCIChar.charInfo.fileStatus.coordinateType].Count() == 0)
 					return;
 				int i = 0;
 
-				Dictionary<string, VirtualGroupInfo> VirtualGroupInfo = pluginCtrl.CurOutfitVirtualGroupInfo;
-				foreach (KeyValuePair<string, VirtualGroupInfo> group in VirtualGroupInfo)
+				foreach (KeyValuePair<string, VirtualGroupInfo> _group in _pluginCtrl.CharaVirtualGroupInfo[_curOCIChar.charInfo.fileStatus.coordinateType])
 				{
-					if (pluginCtrl.GetPartsOfGroup(group.Key).Count() > 0)
+					if (_pluginCtrl.GetPartsOfGroup(_group.Key).Count() > 0)
 					{
-						CreateUIText(group.Key, i, group.Value.Label);
-						CreateUIToggle(group.Key, i, group.Value.State);
+						CreateUIText(_group.Key, i, _group.Value.Label);
+						CreateUIToggle(_group.Key, i, _group.Value.State);
 						i++;
 					}
 				}
@@ -88,54 +83,58 @@ namespace AccStateSync
 
 			internal static void CreatePanel()
 			{
-				UI.ContainerOffsetMinY = -45;
+				UI.ContainerOffsetMinY = -20;
 				UI.MenuitemHeightOffsetY = -25;
 
-				OriginalCopy = GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/02_Kinematic/00_FK");
-				GameObject parent = GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State");
+				_original = GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/02_Kinematic/00_FK");
 
-				Transform copy = Instantiate(OriginalCopy.transform, parent.transform, true);
-				copy.transform.name = "AccStateSync";
+				Transform _copy = Instantiate(_original.transform, GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State").transform, true);
+				_copy.transform.name = "AccStateSync";
 
-				int shiftX = 124;
+				Image _image = _copy.GetComponentInChildren<Image>();
+				_image.sprite = null;
+				_image.overrideSprite = null;
+				_image.color = new Color(0, 0, 0, 0.5f);
 
-				RectTransform copyRt = copy.GetComponent<RectTransform>();
-				copyRt.offsetMin = new Vector2(copyRt.offsetMin.x + shiftX, copyRt.offsetMin.y);
-				copyRt.offsetMax = new Vector2(copyRt.offsetMax.x + shiftX, copyRt.offsetMax.y);
+				int _shiftX = 124;
 
-				ASSPanel = copy.gameObject;
+				RectTransform _copyRt = _copy.GetComponent<RectTransform>();
+				_copyRt.offsetMin = new Vector2(_copyRt.offsetMin.x + _shiftX, _copyRt.offsetMin.y);
+				_copyRt.offsetMax = new Vector2(_copyRt.offsetMax.x + _shiftX, _copyRt.offsetMax.y);
+
+				ASSPanel = _copy.gameObject;
 				ASSPanel.SetActiveIfDifferent(true);
 				ASSPanelCanvasGroup = ASSPanel.GetOrAddComponent<CanvasGroup>();
-
-				StateButton = GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/00_Root/Viewport/Content/State").GetComponentInChildren<Button>();
 
 				ClearUI();
 			}
 
-			internal static T GetPanelObject<T>(string name) => OriginalCopy.transform.GetComponentsInChildren<RectTransform>(true).First(x => x.name == name).GetComponent<T>();
+			internal static T GetPanelObject<T>(string _name) => _original.transform.GetComponentsInChildren<RectTransform>(true).First(x => x.name == _name).GetComponent<T>();
 
-			internal static void CreateUIText(string name, int i, string text)
+			internal static void CreateUIText(string _name, int i, string _text)
 			{
-				Text txt = Instantiate(GetPanelObject<Text>("Text Function"), ASSPanel.transform);
-				txt.name = name;
-				txt.text = text;
-				txt.transform.localPosition = new Vector3(txt.transform.localPosition.x + 40, UI.ContainerOffsetMinY + (UI.MenuitemHeightOffsetY * i), txt.transform.localPosition.z);
+				Text _cmp = Instantiate(GetPanelObject<Text>("Text Function"), ASSPanel.transform);
+				_cmp.name = _name;
+				_cmp.text = _text;
+				_cmp.transform.localPosition = new Vector3(_cmp.transform.localPosition.x + 40, UI.ContainerOffsetMinY + (UI.MenuitemHeightOffsetY * i), _cmp.transform.localPosition.z);
 			}
 
-			internal static void CreateUIToggle(string name, int i, bool show)
+			internal static void CreateUIToggle(string _name, int i, bool _show)
 			{
-				Toggle toggle = Instantiate(GetPanelObject<Toggle>("Toggle Function"), ASSPanel.transform);
-				toggle.name = name;
-				toggle.isOn = show;
-				toggle.transform.localPosition = new Vector3(toggle.transform.localPosition.x - 75, UI.ContainerOffsetMinY + (UI.MenuitemHeightOffsetY * i), toggle.transform.localPosition.z);
-				toggle.onValueChanged.RemoveAllListeners();
-				toggle.onValueChanged.AddListener(value =>
+				Toggle _toggle = Instantiate(GetPanelObject<Toggle>("Toggle Function"), ASSPanel.transform);
+				_toggle.name = _name;
+				_toggle.isOn = _show;
+				_toggle.transform.localPosition = new Vector3(_toggle.transform.localPosition.x - 75, UI.ContainerOffsetMinY + (UI.MenuitemHeightOffsetY * i), _toggle.transform.localPosition.z);
+				_toggle.onValueChanged.RemoveAllListeners();
+				_toggle.onValueChanged.AddListener(value =>
 				{
-					AccStateSyncController pluginCtrl = CurOCIChar.charInfo.GetComponent<AccStateSyncController>();
-					if (pluginCtrl == null) return;
-					pluginCtrl.OnVirtualGroupStateChange(name, value);
-					StateButton.onClick.Invoke();
-					MoreAccessories.UpdateUI();
+					AccStateSyncController _pluginCtrl = GetController(_curOCIChar);
+					if (_pluginCtrl == null) return;
+
+					_pluginCtrl.OnVirtualGroupStateChange(_name, value);
+
+					if (JetPack.CharaStudio.RefreshCharaStatePanel())
+						MoreAccessories.UpdateUI();
 				});
 			}
 		}

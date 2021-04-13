@@ -1,18 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 
-using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using UniRx;
-using TMPro;
-using ChaCustom;
-
-using ExtensibleSaveFormat;
 using HarmonyLib;
-using Sideloader.AutoResolver;
 
 namespace JetPack
 {
@@ -20,29 +8,34 @@ namespace JetPack
 	{
 		internal static void Init()
 		{
-			//Core.HarmonyInstance.PatchAll(typeof(Hooks));
+			Core._hookInstance.PatchAll(typeof(Hooks));
+
+			OnChangeCoordinateType += (_sender, _args) =>
+			{
+				Core.DebugLog($"[OnChangeCoordinateType][{_args.CoordinateType}]");
+				CharaStudio.RefreshCharaStatePanel();
+			};
 		}
 
-		public static event EventHandler<CharaCreateEventArgs> OnCharaCreate;
-
-		public class CharaCreateEventArgs : EventArgs
+		public static event EventHandler<ChangeCoordinateTypeEventArgs> OnChangeCoordinateType;
+		public class ChangeCoordinateTypeEventArgs : EventArgs
 		{
-			public CharaCreateEventArgs(ChaControl chaCtrl, ChaFileControl chaFile)
+			public ChangeCoordinateTypeEventArgs(ChaControl _chaCtrl, int _coordinateIndex)
 			{
-				ChaControl = chaCtrl;
-				ChaFileControl = chaFile;
+				ChaControl = _chaCtrl;
+				CoordinateType = _coordinateIndex;
 			}
 
 			public ChaControl ChaControl { get; }
-			public ChaFileControl ChaFileControl { get; }
+			public int CoordinateType { get; }
 		}
 
 		internal class Hooks
 		{
-			[HarmonyPostfix, HarmonyPatch(typeof(Manager.Character), nameof(Manager.Character.CreateChara))]
-			private static void CreateChara(ChaControl __result, ChaFileControl _chaFile)
+			[HarmonyPrefix, HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeCoordinateType), typeof(ChaFileDefine.CoordinateType), typeof(bool))]
+			private static void ChaControl_ChangeCoordinateType_Prefix(ChaControl __instance, ChaFileDefine.CoordinateType type)
 			{
-				OnCharaCreate?.Invoke(null, new CharaCreateEventArgs(__result, _chaFile));
+				OnChangeCoordinateType?.Invoke(null, new ChangeCoordinateTypeEventArgs(__instance, (int) type));
 			}
 		}
 	}

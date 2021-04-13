@@ -1,7 +1,10 @@
-﻿using MessagePack;
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+
+using MessagePack;
+
+using BepInEx.Logging;
 
 namespace AccStateSync
 {
@@ -21,7 +24,7 @@ namespace AccStateSync
 
 		internal static OutfitTriggerInfo UpgradeOutfitTriggerInfoV1(OutfitTriggerInfoV1 OldOutfitTriggerInfo)
 		{
-			Logger.Log(DebugLogLevel, $"[UpgradeOutfitTriggerInfoV1] Fired!!");
+			DebugMsg(LogLevel.Info, $"[UpgradeOutfitTriggerInfoV1] Fired!!");
 			OutfitTriggerInfo OutfitTriggerInfo = new OutfitTriggerInfo(OldOutfitTriggerInfo.Index);
 			if (OldOutfitTriggerInfo.Parts.Count() > 0)
 			{
@@ -40,7 +43,7 @@ namespace AccStateSync
 
 		internal static Dictionary<string, string> UpgradeVirtualGroupNamesV1(Dictionary<string, string> OldVirtualGroupNames)
 		{
-			Logger.Log(DebugLogLevel, $"[UpgradeVirtualGroupNamesV1] Fired!!");
+			DebugMsg(LogLevel.Info, $"[UpgradeVirtualGroupNamesV1] Fired!!");
 			Dictionary<string, string> VirtualGroupNames = new Dictionary<string, string>();
 			if (OldVirtualGroupNames?.Count() > 0)
 			{
@@ -52,7 +55,7 @@ namespace AccStateSync
 
 		internal static Dictionary<string, VirtualGroupInfo> UpgradeVirtualGroupNamesV2(Dictionary<string, string> OldVirtualGroupNames)
 		{
-			Logger.Log(DebugLogLevel, $"[UpgradeVirtualGroupNamesV2] Fired!!");
+			DebugMsg(LogLevel.Info, $"[UpgradeVirtualGroupNamesV2] Fired!!");
 			Dictionary<string, VirtualGroupInfo> OutfitVirtualGroupInfo = new Dictionary<string, VirtualGroupInfo>();
 			if (OldVirtualGroupNames?.Count() > 0)
 			{
