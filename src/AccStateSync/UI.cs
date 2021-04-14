@@ -26,6 +26,7 @@ namespace AccStateSync
 			private Vector2 _windowSize = new Vector2(425, 405);
 			internal Vector2 _windowPos = new Vector2(525, 460);
 			private Texture2D _windowBGtex = null;
+			private bool _hasFocus = false;
 
 			private Vector2 _ScreenRes = Vector2.zero;
 			internal float _cfgScaleFactor = 1f;
@@ -97,13 +98,12 @@ namespace AccStateSync
 				_dragWindowRect = GUILayout.Window(_windowRectID, _windowRect, DrawWindowContents, "", _windowSolid);
 				_windowRect.x = _dragWindowRect.x;
 				_windowRect.y = _dragWindowRect.y;
-				/*
+
 				Event _windowEvent = Event.current;
 				if (EventType.MouseDown == _windowEvent.type || EventType.MouseUp == _windowEvent.type || EventType.MouseDrag == _windowEvent.type || EventType.MouseMove == _windowEvent.type)
-					JetPack.Storage._focusWindowID = -1;
-				*/
+					_hasFocus = false;
 
-				if (GetResizedRect(_windowRect).Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
+				if (_hasFocus && GetResizedRect(_windowRect).Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
 					Input.ResetInputAxes();
 			}
 
@@ -124,7 +124,7 @@ namespace AccStateSync
 			// https://answers.unity.com/questions/840756/how-to-scale-unity-gui-to-fit-different-screen-siz.html
 			internal void ChangeRes()
 			{
-				_cfgScaleFactor = _cfgMakerWinScale.Value;
+				//_cfgScaleFactor = _cfgMakerWinScale.Value;
 				_ScreenRes.x = Screen.width;
 				_ScreenRes.y = Screen.height;
 				_resScaleFactor.x = _ScreenRes.x / 1600;
@@ -161,12 +161,10 @@ namespace AccStateSync
 
 			private void DrawWindowContents(int _windowID)
 			{
-				/*
 				Event _windowEvent = Event.current;
 				if (EventType.MouseDown == _windowEvent.type || EventType.MouseUp == _windowEvent.type || EventType.MouseDrag == _windowEvent.type || EventType.MouseMove == _windowEvent.type)
-					JetPack.Storage._focusWindowID = _windowID;
-				GUI.depth = JetPack.Storage._focusWindowID == _windowID ? 1 : 0;
-				*/
+					_hasFocus = true;
+
 				GUI.Box(new Rect(0, 0, _windowSize.x, _windowSize.y), _windowBGtex);
 				GUI.Box(new Rect(0, 0, _windowSize.x, 30), $"AccStateSync - Slot{CharaMaker._currentSlotIndex + 1:00}", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter });
 
