@@ -19,20 +19,31 @@ namespace AccStateSync
 		{
 			internal static void RegisterEvents()
 			{
-				JetPack.CharaHscene.OnHSceneStartLoading += (_sender, _args) =>
-				{
-					_hooksInstance["HScene"] = Harmony.CreateAndPatchAll(typeof(HooksHScene));
-					_hooksInstance["HScene"].Patch(JetPack.CharaHscene.HSceneProcType.GetMethod("SetClothStateStartMotion", AccessTools.all), postfix: new HarmonyMethod(typeof(HooksHScene), nameof(HooksHScene.HSceneProc_SetClothStateStartMotion_Postfix)));
-				};
 				JetPack.CharaHscene.OnHSceneFinishedLoading += (_sender, _args) =>
 				{
 					ClearUI();
 					UpdateUI();
 				};
-				JetPack.CharaHscene.OnHSceneExiting += (_sender, _args) =>
+				JetPack.CharaHscene.OnHSceneSetClothStateStartMotion += (_sender, _args) =>
 				{
-					_hooksInstance["HScene"].UnpatchAll(_hooksInstance["HScene"].Id);
-					_hooksInstance["HScene"] = null;
+					foreach (ChaControl _chaCtrl in _args.Female)
+					{
+						DebugMsg(LogLevel.Info, $"[OnHSceneSetClothStateStartMotion][{_chaCtrl.GetFullName()}]");
+						AccStateSyncController _pluginCtrl = GetController(_chaCtrl);
+						if (_pluginCtrl != null)
+						{
+							if (_cfgAutoHideSecondary.Value)
+							{
+								for (int i = 0; i < 7; i++)
+								{
+									List<string> _secondary = _pluginCtrl.CharaVirtualGroupInfo[i].Values?.Where(x => x.Secondary)?.Select(x => x.Group)?.ToList();
+									foreach (string _group in _secondary)
+										_pluginCtrl.CharaVirtualGroupInfo[i][_group].State = false;
+								}
+							}
+							_pluginCtrl.SyncAllAccToggle();
+						}
+					}
 				};
 			}
 

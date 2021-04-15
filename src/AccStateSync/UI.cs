@@ -40,7 +40,7 @@ namespace AccStateSync
 			private GUIStyle _labelDisabled;
 			private GUIStyle _buttonActive;
 
-			private List<float> _scaleFactorList = new List<float>() { 0.5f, 0.75f, 1f, 1.25f, 1.75f, 2f };
+			private List<float> _scaleFactorList;
 
 			private readonly GUILayoutOption _buttonElem = GUILayout.Width(50);
 			private readonly GUILayoutOption _toggleElem = GUILayout.Width(15);
@@ -52,6 +52,8 @@ namespace AccStateSync
 			{
 				DontDestroyOnLoad(this);
 				enabled = false;
+
+				_scaleFactorList = (_cfgMakerWinScale.Description.AcceptableValues as BepInEx.Configuration.AcceptableValueList<float>).AcceptableValues.ToList();
 
 				_windowRectID = GUIUtility.GetControlID(FocusType.Passive);
 				_windowPos.x = _cfgMakerWinX.Value;
@@ -116,9 +118,15 @@ namespace AccStateSync
 				return new Rect(_position.x, _position.y, _size.x, _size.y);
 			}
 
+			private void OnEnable()
+			{
+				_hasFocus = true;
+			}
+
 			private void OnDisable()
 			{
 				_initStyle = true;
+				_hasFocus = false;
 			}
 
 			// https://answers.unity.com/questions/840756/how-to-scale-unity-gui-to-fit-different-screen-siz.html

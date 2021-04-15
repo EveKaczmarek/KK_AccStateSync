@@ -78,31 +78,5 @@ namespace AccStateSync
 					CharaStudio.ClearUI();
 			}
 		}
-
-		internal class HooksHScene
-		{
-			internal static void HSceneProc_SetClothStateStartMotion_Postfix(HSceneProc __instance)
-			{
-				foreach (SaveData.Heroine _heroine in __instance.flags.lstHeroine)
-				{
-					ChaControl _chaCtrl = _heroine.chaCtrl;
-					DebugMsg(LogLevel.Info, $"[HSceneProc_SetClothStateStartMotion_Postfix][{_chaCtrl.GetFullName()}]");
-					AccStateSyncController _pluginCtrl = GetController(_chaCtrl);
-					if (_pluginCtrl != null)
-					{
-						if (_cfgAutoHideSecondary.Value)
-						{
-							for (int i = 0; i < 7; i++)
-							{
-								List<string> _secondary = _pluginCtrl.CharaVirtualGroupInfo[i].Values?.Where(x => x.Secondary)?.Select(x => x.Group)?.ToList();
-								foreach (string _group in _secondary)
-									_pluginCtrl.CharaVirtualGroupInfo[i][_group].State = false;
-							}
-						}
-						_pluginCtrl.SyncAllAccToggle();
-					}
-				}
-			}
-		}
 	}
 }

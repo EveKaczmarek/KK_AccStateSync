@@ -453,14 +453,16 @@ namespace AccStateSync
 				else if (JetPack.CharaStudio.Loaded)
 				{
 					DebugMsg(LogLevel.Info, $"[InitCurOutfitTriggerInfo][CurTreeNodeObjID: {CharaStudio._curTreeNodeObjID}][TreeNodeObjID: {_treeNodeObjID}]");
-					if (_caller != "OnReload")
+					//if (_caller != "OnReload")
+					//if (!CharaStudio._duringSceneLoad)
+					if (CharaStudio._curTreeNodeObjID == _treeNodeObjID)
 					{
 						SetAccessoryStateAll(true);
 						SyncAllAccToggle();
-					}
 
-					if (CharaStudio._curTreeNodeObjID == _treeNodeObjID)
 						CharaStudio.UpdateUI();
+						StartCoroutine(CharaStudio.StatusPanelUpdate_Coroutine());
+					}
 				}
 				else if (JetPack.CharaHscene.Loaded)
 				{

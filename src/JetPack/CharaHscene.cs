@@ -19,6 +19,17 @@ namespace JetPack
 		public static event EventHandler OnHSceneStartLoading;
 		public static event EventHandler OnHSceneFinishedLoading;
 		public static event EventHandler OnHSceneExiting;
+		public static event EventHandler<HSceneSetClothStateStartMotionEventArgs> OnHSceneSetClothStateStartMotion;
+		public class HSceneSetClothStateStartMotionEventArgs : EventArgs
+		{
+			public HSceneSetClothStateStartMotionEventArgs(List<ChaControl> _lstFemale)
+			{
+				Female = _lstFemale;
+			}
+
+			public List<ChaControl> Female { get; }
+		}
+
 
 		internal static void InvokeOnHSceneStartLoading(object _sender, EventArgs _args) => OnHSceneStartLoading?.Invoke(_sender, _args);
 
@@ -38,6 +49,11 @@ namespace JetPack
 			{
 				Core.DebugLog($"[OnHSceneExiting]");
 			};
+
+			OnHSceneSetClothStateStartMotion += (_sender, _args) =>
+			{
+				Core.DebugLog($"[OnHSceneSetClothStateStartMotion]");
+			};
 		}
 
 		internal class Hooks
@@ -54,8 +70,9 @@ namespace JetPack
 				{
 					HSceneProcType = Type.GetType("HSceneProc, Assembly-CSharp");
 					_hookInstance.Patch(HSceneProcType.GetMethod("MapSameObjectDisable", AccessTools.all), postfix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.HSceneProc_MapSameObjectDisable_PostFix)));
-					_hookInstance.Patch(HSceneProcType.GetMethod("OnDestroy", AccessTools.all), postfix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.HSceneProc_OnDestroy_Prefix)));
 				}
+				_hookInstance.Patch(HSceneProcType.GetMethod("OnDestroy", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.HSceneProc_OnDestroy_Prefix)));
+				_hookInstance.Patch(HSceneProcType.GetMethod("SetClothStateStartMotion", AccessTools.all), postfix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.HSceneProc_SetClothStateStartMotion_Postfix)));
 			}
 
 			private static void HSceneProc_OnDestroy_Prefix()
@@ -67,6 +84,11 @@ namespace JetPack
 				Sprites.Clear();
 				_hookInstance.UnpatchAll(_hookInstance.Id);
 				_hookInstance = null;
+			}
+
+			private static void HSceneProc_SetClothStateStartMotion_Postfix(List<ChaControl> ___lstFemale)
+			{
+				OnHSceneSetClothStateStartMotion?.Invoke(null, new HSceneSetClothStateStartMotionEventArgs(___lstFemale));
 			}
 
 			private static void HSceneProc_MapSameObjectDisable_PostFix(List<ChaControl> ___lstFemale, HSprite ___sprite)

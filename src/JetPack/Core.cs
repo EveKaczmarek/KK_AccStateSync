@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -22,7 +23,7 @@ namespace JetPack
 	{
 		public const string GUID = "madevil.JetPack";
 		public const string Name = "JetPack";
-		public const string Version = "2.0.0.0";
+		public const string Version = "2.0.1.0";
 
 		internal static ManualLogSource _logger;
 		internal static Harmony _hookInstance;
@@ -60,12 +61,6 @@ namespace JetPack
 				CharaStudio.OnStudioLoaded += CharaStudio.RegisterControls;
 				SceneManager.sceneLoaded += CharaStudio.SceneLoaded;
 			}
-			else if (CharaHscene.VR)
-			{
-				CharaHscene.Init();
-				CharaHscene.Hooks.Init();
-				CharaHscene.InvokeOnHSceneStartLoading(null, null);
-			}
 			else
 			{
 				SceneManager.sceneLoaded += SceneLoaded;
@@ -79,7 +74,7 @@ namespace JetPack
 			DebugLog($"[SceneLoaded][name: {_scene.name}][mode: {_loadSceneMode}]");
 			if (_scene.name == "CustomScene")
 				CharaMaker.InvokeOnMakerStartLoading(null, null);
-			else if (_scene.name == "HProc")
+			else if (_scene.name == "HProc" || _scene.name == "VRHScene")
 			{
 				CharaHscene.Inside = true;
 				CharaHscene.Hooks.Init();
@@ -144,10 +139,31 @@ namespace JetPack
 			_list.Add(_item);
 			return _list.ToArray();
 		}
+
+		public static Texture2D LoadTexture(byte[] _byte)
+		{
+			Texture2D _texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
+			_texture.LoadImage(_byte);
+			return _texture;
+		}
+
+		public static byte[] ReadAllBytes(this Stream _self)
+		{
+			byte[] _byte = new byte[16 * 1024];
+			using (var ms = new MemoryStream())
+			{
+				int _pointer;
+				while ((_pointer = _self.Read(_byte, 0, _byte.Length)) > 0)
+					ms.Write(_byte, 0, _pointer);
+				return ms.ToArray();
+			}
+		}
+
+		public static readonly WaitForEndOfFrame WaitForEndOfFrame = new WaitForEndOfFrame();
 	}
 
 	public partial class Storage
-    {
+	{
 		public static int _focusWindowID = -1;
 	}
 }
