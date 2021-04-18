@@ -337,7 +337,7 @@ namespace AccStateSync
 
 							GUILayout.BeginVertical();
 							{
-								_groupScrollPos = GUILayout.BeginScrollView(_kindScrollPos, GUI.skin.box);
+								_groupScrollPos = GUILayout.BeginScrollView(_groupScrollPos, GUI.skin.box);
 								foreach (var _item in _pluginCtrl.CharaVirtualGroupInfo[_currentCoordinateIndex].Values.ToList())
 								{
 									GUILayout.BeginHorizontal(GUI.skin.box);
