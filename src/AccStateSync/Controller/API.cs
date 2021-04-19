@@ -60,19 +60,7 @@ namespace AccStateSync
 				}
 			}
 
-			internal void ShowAccessory(int _slot, bool _show)
-			{
-				int _count = ChaControl.ListPartsInfo(_currentCoordinateIndex).Count;
-				if (_slot < _count)
-				{
-					if (ChaControl.GetAccessoryVisibility(_slot) != _show)
-						ChaControl.SetAccessoryState(_slot, _show);
-				}
-#if DEBUG
-				else
-					_logger.LogError($"[ShowAccessory][{CharaFullName}][slot: {_slot}] out of range of {_count}");
-#endif
-			}
+			internal void ShowAccessory(int _slot, bool _show) => ChaControl.SetAccessoryState(_slot, _show);
 		}
 	}
 }
