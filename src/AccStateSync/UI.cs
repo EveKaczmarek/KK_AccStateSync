@@ -316,6 +316,7 @@ namespace AccStateSync
 												if (GUILayout.Button("Hide", _buttonElem))
 												{
 													_pluginCtrl.CurSlotTriggerInfo.State[i] = false;
+													_pluginCtrl.SetCurSlotTriggerInfo(_pluginCtrl.CurSlotTriggerInfo.Kind);
 													_pluginCtrl.OnCurSlotTriggerInfoChange();
 												}
 											}
@@ -324,6 +325,7 @@ namespace AccStateSync
 												if (GUILayout.Button("Show", _buttonElem))
 												{
 													_pluginCtrl.CurSlotTriggerInfo.State[i] = true;
+													_pluginCtrl.SetCurSlotTriggerInfo(_pluginCtrl.CurSlotTriggerInfo.Kind);
 													_pluginCtrl.OnCurSlotTriggerInfoChange();
 												}
 												GUILayout.Label("Hide", _buttonActive, _buttonElem);
