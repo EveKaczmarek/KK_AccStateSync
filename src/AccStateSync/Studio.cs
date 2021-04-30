@@ -22,30 +22,13 @@ namespace AccStateSync
 			internal static GameObject _original;
 			internal static GameObject ASSPanel;
 			internal static CanvasGroup ASSPanelCanvasGroup;
-			internal static bool _duringSceneLoad = false;
+			//internal static bool _duringSceneLoad = false;
 
 			internal static void RegisterControls()
 			{
 				if (!JetPack.CharaStudio.Running) return;
 
 				CreatePanel();
-
-				JetPack.CharaStudio.OnSceneLoad += (_sender, _args) =>
-				{
-					if (_args.Mode == JetPack.CharaStudio.SceneLoadMode.Load)
-					{
-						if (_args.State == JetPack.CharaStudio.SceneLoadState.Pre)
-						{
-							_duringSceneLoad = true;
-							DebugMsg(LogLevel.Warning, $"[OnSceneLoad][Pre][_curTreeNodeObjID: {_curTreeNodeObjID}][_duringSceneLoad: {_duringSceneLoad}]");
-						}
-						if (_args.State == JetPack.CharaStudio.SceneLoadState.Post)
-						{
-							_duringSceneLoad = false;
-							DebugMsg(LogLevel.Warning, $"[OnSceneLoad][Post][_curTreeNodeObjID: {_curTreeNodeObjID}][_duringSceneLoad: {_duringSceneLoad}]");
-						}
-					}
-				};
 
 				List<Button> _buttons = GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State/Viewport/Content/Clothing Details").GetComponentsInChildren<Button>().ToList();
 				_buttons.Add(GameObject.Find($"StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State/Viewport/Content/Cos/Button Shoes 1").GetComponent<Button>());
@@ -70,9 +53,9 @@ namespace AccStateSync
 
 			internal static IEnumerator StatusPanelUpdate_Coroutine()
             {
-				yield return new WaitForEndOfFrame();
-				yield return new WaitForEndOfFrame();
-				DebugMsg(LogLevel.Info, $"[StatusPanelUpdate_Coroutine]");
+				yield return JetPack.Toolbox.WaitForEndOfFrame;
+				yield return JetPack.Toolbox.WaitForEndOfFrame;
+				//DebugMsg(LogLevel.Info, $"[StatusPanelUpdate_Coroutine]");
 				if (JetPack.CharaStudio.RefreshCharaStatePanel())
 					MoreAccessories.UpdateUI();
 			}

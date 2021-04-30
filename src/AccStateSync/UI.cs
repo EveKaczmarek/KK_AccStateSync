@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using UnityEngine;
@@ -12,8 +13,8 @@ namespace AccStateSync
 
 		internal class AccStateSyncUI : MonoBehaviour
 		{
-			private List<string> _clothesNames = new List<string>() { "None", "Top", "Bottom", "Bra", "Underwear", "Gloves", "Pantyhose", "Legwear", "Indoors", "Outdoors", "Parent" };
-			private List<string> _statesNames = new List<string>() { "Full", "Half 1", "Half 2", "Undressed" };
+			private readonly List<string> _clothesNames = new List<string>() { "None", "Top", "Bottom", "Bra", "Underwear", "Gloves", "Pantyhose", "Legwear", "Indoors", "Outdoors", "Parent" };
+			private readonly List<string> _statesNames = new List<string>() { "Full", "Half 1", "Half 2", "Undressed" };
 
 			private AccStateSyncController _pluginCtrl => CustomBase.Instance?.chaCtrl?.gameObject?.GetComponent<AccStateSyncController>();
 			private int _currentCoordinateIndex => CustomBase.Instance.chaCtrl.fileStatus.coordinateType;
@@ -27,6 +28,7 @@ namespace AccStateSync
 			internal Vector2 _windowPos = new Vector2(525, 460);
 			private Texture2D _windowBGtex = null;
 			private bool _hasFocus = false;
+			private bool _passThrough = false;
 
 			private Vector2 _ScreenRes = Vector2.zero;
 			internal float _cfgScaleFactor = 1f;
@@ -47,6 +49,7 @@ namespace AccStateSync
 
 			private List<bool> _states = new List<bool>() { true, false, false, false };
 			private string _curRenameGroup = "", _curRenameLabel = "";
+			private const string _renameTextField = "RenameTextField";
 
 			private void Awake()
 			{
@@ -58,6 +61,7 @@ namespace AccStateSync
 				_windowRectID = GUIUtility.GetControlID(FocusType.Passive);
 				_windowPos.x = _cfgMakerWinX.Value;
 				_windowPos.y = _cfgMakerWinY.Value;
+				_passThrough = _cfgDragPass.Value;
 				_windowRect = new Rect(_windowPos.x, _windowPos.y, _windowSize.x, _windowSize.y);
 				_windowBGtex = MakeTex((int) _windowSize.x, (int) _windowSize.y, new Color(0.5f, 0.5f, 0.5f, 1f));
 				ChangeRes();
@@ -69,7 +73,7 @@ namespace AccStateSync
 				if (CustomBase.Instance.customCtrl.hideFrontUI) return;
 				if (!Manager.Scene.Instance.AddSceneName.IsNullOrEmpty() && Manager.Scene.Instance.AddSceneName != "CustomScene") return;
 				if (JetPack.CharaMaker.CvsMainMenu != 4) return;
-				if (_pluginCtrl == null || _pluginCtrl.CurSlotTriggerInfo == null || CharaMaker._currentSlotIndex < 0 || _pluginCtrl._curPartsInfo == null || _pluginCtrl._curPartsInfo.type == 120) return;
+				if (_pluginCtrl == null || _pluginCtrl.CurSlotTriggerInfo == null || _pluginCtrl._curPartsInfo == null || _pluginCtrl._curPartsInfo.type == 120) return;
 
 				if (_ScreenRes.x != Screen.width || _ScreenRes.y != Screen.height)
 					ChangeRes();
@@ -105,7 +109,8 @@ namespace AccStateSync
 				if (EventType.MouseDown == _windowEvent.type || EventType.MouseUp == _windowEvent.type || EventType.MouseDrag == _windowEvent.type || EventType.MouseMove == _windowEvent.type)
 					_hasFocus = false;
 
-				if (_hasFocus && GetResizedRect(_windowRect).Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
+				//if (_hasFocus && GetResizedRect(_windowRect).Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
+				if ((!_passThrough || _hasFocus) && GetResizedRect(_windowRect).Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
 					Input.ResetInputAxes();
 			}
 
@@ -176,9 +181,15 @@ namespace AccStateSync
 				GUI.Box(new Rect(0, 0, _windowSize.x, _windowSize.y), _windowBGtex);
 				GUI.Box(new Rect(0, 0, _windowSize.x, 30), $"AccStateSync - Slot{CharaMaker._currentSlotIndex + 1:00}", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter });
 
-				if (GUI.Button(new Rect(_windowSize.x - 27, 4, 23, 23), new GUIContent("X", "Clothes this window")))
+				if (GUI.Button(new Rect(_windowSize.x - 27, 4, 23, 23), new GUIContent("X", "Close this window")))
 				{
 					CloseWindow();
+				}
+
+				if (GUI.Button(new Rect(_windowSize.x - 50, 4, 23, 23), new GUIContent("0", "Config window will not block mouse drag from outside (experemental)"), (_passThrough ? _buttonActive : new GUIStyle(GUI.skin.button))))
+				{
+					_passThrough = !_passThrough;
+					_logger.LogMessage($"Pass through mode: {(_passThrough? "ON" : "OFF")}");
 				}
 
 				if (GUI.Button(new Rect(4, 4, 23, 23), new GUIContent("<", "Reset window position")))
@@ -239,7 +250,7 @@ namespace AccStateSync
 									{
 										if (GUILayout.Button(new GUIContent(_label, $"Bind this accessory to {_label}")))
 										{
-											_pluginCtrl.SetCurSlotTriggerInfo(_kind);
+											_pluginCtrl.SetKindCurSlotTriggerInfo(_kind);
 											_pluginCtrl.OnCurSlotTriggerInfoChange();
 										}
 									}
@@ -251,7 +262,7 @@ namespace AccStateSync
 									{
 										if (_item.Kind == 9) continue;
 
-										string _label = $"{_item.Label} ({_pluginCtrl.CharaVirtualGroupInfo[_currentCoordinateIndex][$"custom_{_item.Kind - 9}"].Group})";
+										string _label = $"{_item.Label} ({_item.Group})";
 
 										if (_item.Kind == _pluginCtrl.CurSlotTriggerInfo.Kind)
 											GUILayout.Label(_label, _buttonActive);
@@ -259,7 +270,7 @@ namespace AccStateSync
 										{
 											if (GUILayout.Button(new GUIContent(_label, $"Bind this accessory to {_label}")))
 											{
-												_pluginCtrl.SetCurSlotTriggerInfo(_item.Kind);
+												_pluginCtrl.SetKindCurSlotTriggerInfo(_item.Kind);
 												_pluginCtrl.OnCurSlotTriggerInfoChange();
 											}
 										}
@@ -295,6 +306,7 @@ namespace AccStateSync
 						{
 							GUILayout.BeginVertical();
 							{
+								int _kind = _pluginCtrl.CurSlotTriggerInfo.Kind;
 								for (int i = 0; i < 4; i++)
 								{
 									GUILayout.BeginHorizontal(GUI.skin.box);
@@ -316,7 +328,9 @@ namespace AccStateSync
 												if (GUILayout.Button("Hide", _buttonElem))
 												{
 													_pluginCtrl.CurSlotTriggerInfo.State[i] = false;
-													_pluginCtrl.SetCurSlotTriggerInfo(_pluginCtrl.CurSlotTriggerInfo.Kind);
+													if (_kind >= 9)
+														_pluginCtrl.CurSlotTriggerInfo.State[i == 0 ? 3 : 0] = true;
+													_pluginCtrl.SetKindCurSlotTriggerInfo(_kind);
 													_pluginCtrl.OnCurSlotTriggerInfoChange();
 												}
 											}
@@ -325,7 +339,9 @@ namespace AccStateSync
 												if (GUILayout.Button("Show", _buttonElem))
 												{
 													_pluginCtrl.CurSlotTriggerInfo.State[i] = true;
-													_pluginCtrl.SetCurSlotTriggerInfo(_pluginCtrl.CurSlotTriggerInfo.Kind);
+													if (_kind >= 9)
+														_pluginCtrl.CurSlotTriggerInfo.State[i == 0 ? 3 : 0] = false;
+													_pluginCtrl.SetKindCurSlotTriggerInfo(_kind);
 													_pluginCtrl.OnCurSlotTriggerInfoChange();
 												}
 												GUILayout.Label("Hide", _buttonActive, _buttonElem);
@@ -339,34 +355,22 @@ namespace AccStateSync
 
 							GUILayout.BeginVertical();
 							{
-								_groupScrollPos = GUILayout.BeginScrollView(_groupScrollPos, GUI.skin.box);
+								_groupScrollPos = GUILayout.BeginScrollView(_groupScrollPos, false, false, GUIStyle.none, GUI.skin.verticalScrollbar, GUI.skin.box);
 								foreach (var _item in _pluginCtrl.CharaVirtualGroupInfo[_currentCoordinateIndex].Values.ToList())
 								{
 									GUILayout.BeginHorizontal(GUI.skin.box);
 									{
 										if (_curRenameGroup == _item.Group)
-											_curRenameLabel = GUILayout.TextField(_curRenameLabel, new GUIStyle(GUI.skin.textField) { fixedWidth = 90 });
-										else
 										{
-											if (_item.Kind == 9)
-												GUILayout.Label(_item.Label);
-											else
+											GUI.SetNextControlName(_renameTextField);
+											_curRenameLabel = GUILayout.TextField(_curRenameLabel, GUILayout.Width(100), GUILayout.ExpandWidth(false));
+											//if (_renameTextField.Equals(GUI.GetNameOfFocusedControl(), StringComparison.Ordinal))
+											GUI.FocusControl(_renameTextField);
 											{
-												if (GUILayout.Button(new GUIContent(_item.Label, "Rename group label"), new GUIStyle(GUI.skin.label)))
+												//Event _curEvent = Event.current;
+												if (_hasFocus && _windowEvent.isKey && (_windowEvent.keyCode == KeyCode.Return || _windowEvent.keyCode == KeyCode.KeypadEnter))
 												{
-													_curRenameGroup = _item.Group;
-													_curRenameLabel = _item.Label;
-												}
-											}
-										}
-										GUILayout.FlexibleSpace();
-
-										if (_item.Kind > 9)
-										{
-											if (_curRenameGroup == _item.Group)
-											{
-												if (GUILayout.Button(new GUIContent("Save", "Save renamed label, leave empty will reset to default"), _buttonElem))
-												{
+													_windowEvent.Use();
 													if (_curRenameLabel.IsNullOrEmpty())
 														_curRenameLabel = "Custom " + _curRenameGroup.Replace("custom_", "");
 													if (_curRenameLabel != _item.Label)
@@ -376,6 +380,20 @@ namespace AccStateSync
 												}
 											}
 										}
+										else
+										{
+											if (_item.Kind == 9)
+												GUILayout.Label(_item.Label);
+											else
+											{
+												if (GUILayout.Button(new GUIContent(_item.Label, "Rename group label, hit <enter> to save the change"), new GUIStyle(GUI.skin.label), GUILayout.Width(100), GUILayout.ExpandWidth(false)))
+												{
+													_curRenameGroup = _item.Group;
+													_curRenameLabel = _item.Label;
+												}
+											}
+										}
+										GUILayout.FlexibleSpace();
 
 										// https://answers.unity.com/questions/360635/strange-guitoggle-behavior.html
 										if (GUILayout.Toggle(_item.State, new GUIContent("", "Toggle grouped accessories visibility"), _toggleElem) != _item.State)

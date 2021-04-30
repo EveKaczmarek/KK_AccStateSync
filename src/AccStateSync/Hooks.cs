@@ -1,14 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 using ChaCustom;
 using Studio;
 
-using BepInEx.Logging;
 using HarmonyLib;
-
-using JetPack;
 
 namespace AccStateSync
 {
@@ -25,11 +21,10 @@ namespace AccStateSync
 				AccStateSyncController _pluginCtrl = GetController(__instance);
 				if (_pluginCtrl == null) return;
 
-				int _state = __instance.fileStatus.clothesState[clothesKind];
 				if (MathfEx.RangeEqualOn(0, clothesKind, 6))
-					_pluginCtrl.ToggleByClothesState(clothesKind, _state);
+					_pluginCtrl.ToggleByClothesState(clothesKind);
 				else
-					_pluginCtrl.ToggleByShoesType(clothesKind, _state);
+					_pluginCtrl.ToggleByShoesType(clothesKind);
 			}
 
 			[HarmonyPriority(Priority.Last)]
@@ -42,8 +37,7 @@ namespace AccStateSync
 				if (_pluginCtrl == null) return;
 
 				int _slotIndex = __instance.shoesType == 0 ? 7 : 8;
-				int _state = __instance.clothesState[_slotIndex];
-				_pluginCtrl.ToggleByShoesType(_slotIndex, _state);
+				_pluginCtrl.ToggleByShoesType(_slotIndex);
 			}
 		}
 
@@ -54,8 +48,7 @@ namespace AccStateSync
 			private static void CvsAccessory_UpdateSelectAccessoryType_Postfix(CvsAccessory __instance, int index)
 			{
 				if (CharaMaker._pluginCtrl == null) return;
-				if (index == 0)
-					CharaMaker._pluginCtrl.CvsAccessory_UpdateSelectAccessoryType_Postfix((int) __instance.slotNo);
+				CharaMaker._pluginCtrl.CvsAccessory_UpdateSelectAccessoryType_Postfix((int) __instance.slotNo);
 			}
 
 			[HarmonyPriority(Priority.Last)]

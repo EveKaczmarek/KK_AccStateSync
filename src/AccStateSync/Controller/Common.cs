@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using UnityEngine;
 using UniRx;
 
 using BepInEx.Logging;
@@ -64,7 +63,7 @@ namespace AccStateSync
 
 			internal void RestoreOutfitVirtualGroupStates(int _coordinateIndex)
 			{
-				if (CharaVirtualGroupStates[_coordinateIndex].Count() > 0)
+				if (CharaVirtualGroupStates[_coordinateIndex].Count > 0)
 				{
 					foreach (KeyValuePair<string, bool> _group in CharaVirtualGroupStates[_coordinateIndex])
 					{
@@ -84,7 +83,7 @@ namespace AccStateSync
 			internal void StoreOutfitVirtualGroupStates(int _coordinateIndex)
 			{
 				CharaVirtualGroupStates[_coordinateIndex].Clear();
-				if (CharaVirtualGroupInfo[_coordinateIndex].Count() > 0)
+				if (CharaVirtualGroupInfo[_coordinateIndex].Count > 0)
 				{
 					foreach (KeyValuePair<string, VirtualGroupInfo> _group in CharaVirtualGroupInfo[_coordinateIndex])
 						CharaVirtualGroupStates[_coordinateIndex][_group.Key] = _group.Value.State;
@@ -115,7 +114,7 @@ namespace AccStateSync
 				OutfitTriggerInfo OutfitTriggerInfo = CharaTriggerInfo[_coordinateIndex];
 				List<ChaFileAccessory.PartsInfo> _partsInfo = ChaControl.ListPartsInfo(_coordinateIndex);
 
-				DebugMsg(LogLevel.Info, $"[SyncCharaTriggerInfo][{CharaFullName}] OutfitTriggerInfo.Parts.Count: {OutfitTriggerInfo.Parts.Count()} before sync");
+				DebugMsg(LogLevel.Info, $"[SyncCharaTriggerInfo][{CharaFullName}] Count: {OutfitTriggerInfo.Parts.Count} before sync");
 				List<int> _keys = OutfitTriggerInfo.Parts.Keys.ToList();
 				foreach (int _slotIndex in _keys)
 				{
@@ -143,7 +142,7 @@ namespace AccStateSync
 					else if (_trigger.Kind > 9)
 						CharaTriggerInfo[_coordinateIndex].Parts[_slotIndex].Group = "custom_" + (_trigger.Kind - 9).ToString();
 				}
-				DebugMsg(LogLevel.Info, $"[SyncCharaTriggerInfo][{CharaFullName}] OutfitTriggerInfo.Parts.Count: {OutfitTriggerInfo.Parts.Count()} after sync");
+				DebugMsg(LogLevel.Info, $"[SyncCharaTriggerInfo][{CharaFullName}] Count: {OutfitTriggerInfo.Parts.Count} after sync");
 
 				SyncOutfitVirtualGroupInfo(_coordinateIndex);
 				TrimOutfitVirtualGroupInfo(_coordinateIndex);
@@ -156,29 +155,21 @@ namespace AccStateSync
 				{
 					_max = CharaTriggerInfo[_coordinateIndex].Parts.Values.Max(x => x.Kind);
 					for (int i = 10; i <= _max; i++)
-					{
-						string _group = $"custom_{i - 9}";
-						if (CharaVirtualGroupInfo[_coordinateIndex].ContainsKey(_group))
-							continue;
-						CharaVirtualGroupInfo[_coordinateIndex][_group] = new VirtualGroupInfo(_group, i);
-#if DEBUG
-						_logger.LogError($"[PadOutfitVirtualGroupInfo][{CharaFullName}][CoordinateIndex: {_coordinateIndex}] \"{_group}\" added missing");
-#endif
-					}
+						CreateGroup(_coordinateIndex, i, $"custom_{i - 9}");
 				}
 			}
 
 			internal void TrimOutfitVirtualGroupInfo(int _coordinateIndex)
 			{
 				int _max = -1;
-				if (CharaTriggerInfo[_coordinateIndex]?.Parts?.Count() > 0)
+				if (CharaTriggerInfo[_coordinateIndex]?.Parts?.Count > 0)
 					_max = CharaTriggerInfo[_coordinateIndex].Parts.Values.Max(x => x.Kind);
 
 				int _check = -1;
-				if (CharaVirtualGroupInfo[_coordinateIndex].Count() > 0)
+				if (CharaVirtualGroupInfo[_coordinateIndex].Count > 0)
 					_check = CharaVirtualGroupInfo[_coordinateIndex].Values.Max(x => x.Kind);
 
-				if ((_check > -1) && (_check > _max) && (_max >= 9))
+				if (_check > _max && _max >= 9)
 				{
 					for (int i = _max + 1; i <= _check; i++)
 					{
@@ -193,10 +184,10 @@ namespace AccStateSync
 
 			internal void ResetOutfitVirtualGroupState(int _coordinateIndex)
 			{
-				if (CharaVirtualGroupInfo[_coordinateIndex].Count() > 0)
+				if (CharaVirtualGroupInfo[_coordinateIndex].Count > 0)
 				{
-					foreach (KeyValuePair<string, VirtualGroupInfo> _group in CharaVirtualGroupInfo[_coordinateIndex])
-						CharaVirtualGroupInfo[_coordinateIndex][_group.Key].State = true;
+					foreach (string _group in CharaVirtualGroupInfo[_coordinateIndex].Keys)
+						CharaVirtualGroupInfo[_coordinateIndex][_group].State = true;
 				}
 			}
 
@@ -208,7 +199,7 @@ namespace AccStateSync
 
 			internal void SortOutfitVirtualGroupInfo(int _coordinateIndex)
 			{
-				if (CharaTriggerInfo[_coordinateIndex]?.Parts?.Count() > 0)
+				if (CharaTriggerInfo[_coordinateIndex]?.Parts?.Count > 0)
 					CharaVirtualGroupInfo[_coordinateIndex] = CharaVirtualGroupInfo[_coordinateIndex].Values.OrderBy(x => x.Kind).ThenBy(x => x.Group).ToDictionary(x => x.Group, x => x);
 			}
 
@@ -218,30 +209,23 @@ namespace AccStateSync
 					return;
 
 				OutfitTriggerInfo OutfitTriggerInfo = CharaTriggerInfo[_coordinateIndex];
+				HashSet<string> _groups = new HashSet<string>();
 				foreach (AccTriggerInfo _trigger in OutfitTriggerInfo.Parts.Values)
 				{
-					if (_trigger.Kind >= 9)
+					if (_trigger.Kind >= 9 && !_trigger.Group.IsNullOrEmpty())
 					{
-						if (CharaVirtualGroupInfo[_coordinateIndex].ContainsKey(_trigger.Group)) continue;
-
-						string _group = _trigger.Group;
-						int Kind = _trigger.Kind;
-						CharaVirtualGroupInfo[_coordinateIndex][_group] = new VirtualGroupInfo(_group, Kind);
-						_logger.LogError($"[SyncOutfitVirtualGroupInfo][{CharaFullName}][CoordinateIndex: {_coordinateIndex}] \"{_group}\" added missing");
+						CreateGroup(_coordinateIndex, _trigger.Kind, _trigger.Group);
+						_groups.Add(_trigger.Group);
 					}
 				}
 
-				List<string> _filtered = CharaVirtualGroupInfo[_coordinateIndex]?.Values?.Where(x => x.Kind == 9)?.GroupBy(x => x.Group)?.Select(x => x.First().Group)?.ToList();
-
+				List<string> _filtered = CharaVirtualGroupInfo[_coordinateIndex].Values.Where(x => x.Kind == 9 && !x.Group.IsNullOrEmpty())?.GroupBy(x => x.Group)?.Select(x => x.First().Group)?.ToList();
 				if (_filtered?.Count() > 0)
 				{
 					foreach (string _group in _filtered)
 					{
-						if (CharaTriggerInfo[_coordinateIndex]?.Parts?.Values?.FirstOrDefault(x => x.Group == _group) == null)
-						{
-							CharaVirtualGroupInfo[_coordinateIndex].Remove(_group);
-							_logger.LogError($"[SyncOutfitVirtualGroupNames][{CharaFullName}][CoordinateIndex: {_coordinateIndex}] \"{_group}\" unused and removed");
-						}
+						if (!_groups.Contains(_group))
+							RemoveGroup(_coordinateIndex, _group);
 					}
 				}
 
@@ -249,14 +233,20 @@ namespace AccStateSync
 				SortOutfitVirtualGroupInfo(_coordinateIndex);
 			}
 
-			internal void ToggleByClothesState(int _kind, int _state)
+			internal void OnVirtualGroupStateChange(string _group, bool _state)
+			{
+				CharaVirtualGroupInfo[_currentCoordinateIndex][_group].State = _state;
+				ToggleByVirtualGroup(_group, _state);
+			}
+
+			internal void ToggleByClothesState(int _kind)
 			{
 				if (!TriggerEnabled)
 					return;
-				if (CharaTriggerInfo[_currentCoordinateIndex]?.Parts?.Count() == 0)
+				if (CharaTriggerInfo[_currentCoordinateIndex]?.Parts?.Count == 0)
 					return;
 
-				DebugMsg(LogLevel.Info, $"[ToggleByClothesState][{CharaFullName}] Fired!!");
+				DebugMsg(LogLevel.Info, $"[ToggleByClothesState][{CharaFullName}][Kind: {_kind}][notBot: {ChaControl.notBot}][notShorts: {ChaControl.notShorts}]");
 
 				if (!MathfEx.RangeEqualOn(0, _kind, 6))
 					return;
@@ -264,56 +254,41 @@ namespace AccStateSync
 				if (_triggers.Count() > 0)
 				{
 					foreach (AccTriggerInfo _trigger in _triggers)
-						ShowAccessory(_trigger.Slot, _trigger.State[_state]);
+						ToggleByAccTriggerInfo(_trigger);
 				}
 
 				int _relKind = -1;
-				int _relState = -1;
 
-				DebugMsg(LogLevel.Info, $"[ToggleByClothesState][{CharaFullName}][kind: {_kind}][notBot: {ChaControl.notBot}][notShorts: {ChaControl.notShorts}]");
-
-				if ((_kind == 0) && (ChaControl.notBot))
-				{
+				if (_kind == 0 && ChaControl.notBot)
 					_relKind = 1;
-					_relState = (_state == 3) ? 3 : ChaControl.fileStatus.clothesState[_relKind];
-				}
-				else if ((_kind == 1) && (ChaControl.notBot))
-				{
+				else if (_kind == 1 && ChaControl.notBot)
 					_relKind = 0;
-					_relState = (_state == 3) ? 3 : ChaControl.fileStatus.clothesState[_relKind];
-				}
-				else if ((_kind == 2) && (ChaControl.notShorts))
-				{
+				else if (_kind == 2 && ChaControl.notShorts)
 					_relKind = 3;
-					_relState = (_state == 3) ? 3 : ChaControl.fileStatus.clothesState[_relKind];
-				}
-				else if ((_kind == 3) && (ChaControl.notShorts))
-				{
+				else if (_kind == 3 && ChaControl.notShorts)
 					_relKind = 2;
-					_relState = (_state == 3) ? 3 : ChaControl.fileStatus.clothesState[_relKind];
-				}
 
-				if ((_relKind > -1) && (_relState > -1))
+				if (_relKind > -1)
 				{
 					_triggers = GetPartsOfKind(_relKind);
 					if (_triggers.Count() > 0)
 					{
 						foreach (AccTriggerInfo _trigger in _triggers)
-							ShowAccessory(_trigger.Slot, _trigger.State[_relState]);
+							ToggleByAccTriggerInfo(_trigger);
 					}
 				}
 			}
 
-			internal void ToggleByShoesType(int _kind, int _state)
+			internal void ToggleByShoesType(int _kind)
 			{
 				if (!TriggerEnabled)
 					return;
-				if (CharaTriggerInfo[_currentCoordinateIndex]?.Parts?.Count() == 0)
+				if (CharaTriggerInfo[_currentCoordinateIndex]?.Parts?.Count == 0)
 					return;
 
-				DebugMsg(LogLevel.Info, $"[ToggleByShoesType][{CharaFullName}] Fired!!");
+				DebugMsg(LogLevel.Info, $"[ToggleByShoesType][{CharaFullName}][Kind: {_kind}]");
 
-				if ((_kind != 7) && (_kind != 8))
+				if (_kind != 7 && _kind != 8)
 					return;
 				int _cur = (ChaControl.fileStatus.shoesType == 0) ? 7 : 8;
 				int _off = (_cur == 7) ? 8 : 7;
@@ -321,20 +296,20 @@ namespace AccStateSync
 				if (_triggers.Count() > 0)
 				{
 					foreach (AccTriggerInfo _trigger in _triggers)
-						ShowAccessory(_trigger.Slot, _trigger.State[_state]);
+						ToggleByAccTriggerInfo(_trigger);
 				}
 				_triggers = GetPartsOfKind(_off);
 				if (_triggers.Count() > 0)
 				{
 					foreach (AccTriggerInfo _trigger in _triggers)
-						ShowAccessory(_trigger.Slot, false);
+						ToggleByAccTriggerInfo(_trigger);
 				}
 			}
 
 			internal IEnumerator SyncAllAccToggleCoroutine()
 			{
-				yield return new WaitForEndOfFrame();
-				yield return new WaitForEndOfFrame();
+				yield return JetPack.Toolbox.WaitForEndOfFrame;
+				yield return JetPack.Toolbox.WaitForEndOfFrame;
 
 				SyncAllAccToggle();
 			}
@@ -343,7 +318,7 @@ namespace AccStateSync
 			{
 				if (!TriggerEnabled)
 					return;
-				if (CharaTriggerInfo[_currentCoordinateIndex]?.Parts?.Count() == 0)
+				if (CharaTriggerInfo[_currentCoordinateIndex]?.Parts?.Count == 0)
 					return;
 
 				DebugMsg(LogLevel.Info, $"[SyncAllAccToggle][{CharaFullName}] Fired!!");
@@ -353,39 +328,18 @@ namespace AccStateSync
 					DebugMsg(LogLevel.Info, $"[SyncAllAccToggle][{CharaFullName}] Disabled by config");
 					return;
 				}
-				// https://stackoverflow.com/questions/19406242/select-distinct-using-linq
-				List<int> _kinds = CharaTriggerInfo[_currentCoordinateIndex].Parts.Values.OrderBy(x => x.Kind)?.GroupBy(x => x.Kind)?.Select(x => x.First().Kind)?.ToList();
-				if (_kinds?.Count() == 0)
-				{
-					DebugMsg(LogLevel.Info, $"[SyncAllAccToggle][{CharaFullName}] Nothing to trigger");
-					return;
-				}
-				// https://stackoverflow.com/questions/1528724/converting-a-listint-to-a-comma-separated-string
-				DebugMsg(LogLevel.Info, $"[SyncAllAccToggle][{CharaFullName}][Kinds: {string.Join(",", _kinds.Select(x => x.ToString()).ToArray())}]");
 
 				foreach (AccTriggerInfo _trigger in CharaTriggerInfo[_currentCoordinateIndex].Parts.Values)
 				{
-					if (MathfEx.RangeEqualOn(0, _trigger.Kind, 6))
+					if (_trigger.Kind < 0)
 					{
-						int _state = ChaControl.fileStatus.clothesState[_trigger.Kind];
-						bool _show = _trigger.State[_state];
-						DebugMsg(LogLevel.Info, $"[SyncAllAccToggle][{CharaFullName}][slot: {_trigger.Slot}][kind: {_trigger.Kind}][state: {_state}][vis: {_show}]");
-						ShowAccessory(_trigger.Slot, _show);
+#if DEBUG
+						_logger.Log(LogLevel.Error | LogLevel.Message, $"[SyncAllAccToggle][{CharaFullName}][Slot: {_trigger.Slot}][Kind: {_trigger.Kind}]");
+#endif
 					}
-					else if ((_trigger.Kind == 7) || (_trigger.Kind == 8))
+					else
 					{
-						int _kind = (ChaControl.fileStatus.shoesType == 0) ? 7 : 8;
-						bool _show = false;
-						if (_kind == _trigger.Kind)
-							_show = _trigger.State[ChaControl.fileStatus.clothesState[_trigger.Kind]];
-						ShowAccessory(_trigger.Slot, _show);
-					}
-					else if ((_trigger.Kind >= 9) && (!_trigger.Group.IsNullOrEmpty()))
-					{
-						bool _show = true;
-						if (CharaVirtualGroupInfo[_currentCoordinateIndex].ContainsKey(_trigger.Group))
-							_show = CharaVirtualGroupInfo[_currentCoordinateIndex][_trigger.Group].State ? _trigger.State[0] : _trigger.State[3];
-						ShowAccessory(_trigger.Slot, _show);
+						ToggleByAccTriggerInfo(_trigger);
 					}
 				}
 			}
@@ -393,19 +347,15 @@ namespace AccStateSync
 			internal void ToggleByVirtualGroup(string _group, bool _state)
 			{
 				List<AccTriggerInfo> _filtered = GetPartsOfGroup(_group);
-				DebugMsg(LogLevel.Info, $"[ToggleByVirtualGroup][{CharaFullName}][group: {_group}][show: {_state}][count: {_filtered.Count}]");
+				DebugMsg(LogLevel.Info, $"[ToggleByVirtualGroup][{CharaFullName}][Group: {_group}][State: {_state}]");
 				foreach (AccTriggerInfo _trigger in _filtered)
-				{
-					bool _show = _state ? _trigger.State[0] : _trigger.State[3];
-					ShowAccessory(_trigger.Slot, _show);
-					DebugMsg(LogLevel.Info, $"[ToggleByVirtualGroup][{CharaFullName}][Part.Slot: {_trigger.Slot}][show: {_state}]");
-				}
+					ToggleByAccTriggerInfo(_trigger);
 			}
 
 			internal IEnumerator InitCurOutfitTriggerInfoCoroutine(string _caller)
 			{
-				yield return new WaitForEndOfFrame();
-				yield return new WaitForEndOfFrame();
+				yield return JetPack.Toolbox.WaitForEndOfFrame;
+				yield return JetPack.Toolbox.WaitForEndOfFrame;
 
 				InitCurOutfitTriggerInfo(_caller);
 			}
@@ -417,16 +367,19 @@ namespace AccStateSync
 				TriggerEnabled = false;
 
 				NullCheckOutfitTriggerInfo(_currentCoordinateIndex);
-				DebugMsg(LogLevel.Info, $"[InitCurOutfitTriggerInfo] CurOutfitTriggerInfo.Parts.Count() {CharaTriggerInfo[_currentCoordinateIndex].Parts.Count()}");
+				DebugMsg(LogLevel.Info, $"[InitCurOutfitTriggerInfo][Count: {CharaTriggerInfo[_currentCoordinateIndex].Parts.Count}]");
 
-				if ((!JetPack.CharaMaker.Inside) && (CharaTriggerInfo[_currentCoordinateIndex].Parts.Count() == 0))
+				if (!JetPack.CharaMaker.Inside && CharaTriggerInfo[_currentCoordinateIndex].Parts.Count == 0)
 				{
 					DebugMsg(LogLevel.Info, $"[InitOutfitTriggerInfo][{CharaFullName}] TriggerEnabled false");
 					if (JetPack.CharaStudio.Loaded)
 					{
 						DebugMsg(LogLevel.Info, $"[InitCurOutfitTriggerInfo][CurTreeNodeObjID: {CharaStudio._curTreeNodeObjID}][TreeNodeObjID: {_treeNodeObjID}]");
 						if (CharaStudio._curTreeNodeObjID == _treeNodeObjID)
+						{
 							CharaStudio.ClearUI();
+							StartCoroutine(CharaStudio.StatusPanelUpdate_Coroutine());
+						}
 					}
 					else if (JetPack.CharaHscene.Loaded)
 					{

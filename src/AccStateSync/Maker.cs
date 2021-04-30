@@ -92,17 +92,6 @@ namespace AccStateSync
 					_imgTglCol01 = null;
 					_imgTglCol02 = null;
 				};
-
-				JetPack.CharaMaker.OnCvsNavMenuClick += (_sender, _args) =>
-				{
-					if (_args.TopIndex == 3)
-					{
-						if (!_args.Changed)
-							return;
-						if (_cfgCharaMakerPreview.Value)
-							_instance.StartCoroutine(_pluginCtrl.SyncAllAccToggleCoroutine());
-					}
-				};
 			}
 
 			internal static void PatchMakerToggles()

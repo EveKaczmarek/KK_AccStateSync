@@ -109,9 +109,11 @@ namespace AccStateSync
 
 					PluginData _pluginData = GetCoordinateExtendedData(coordinate);
 					if (_pluginData?.version > Constants._pluginDataVersion)
-						_logger.Log(LogLevel.Error | LogLevel.Message, $"[OnReload][{CharaFullName}] ExtendedData.version: {_pluginData.version} is newer than your plugin");
+						_logger.Log(LogLevel.Error | LogLevel.Message, $"[OnCoordinateBeingLoaded][{CharaFullName}] ExtendedData.version: {_pluginData.version} is newer than your plugin");
 					if (_pluginData != null && _pluginData.data.TryGetValue("OutfitTriggerInfo", out object _loadedOutfitTriggerInfo) && _loadedOutfitTriggerInfo != null)
 					{
+						DebugMsg(LogLevel.Info, $"[OnCoordinateBeingLoaded][{CharaFullName}][Version: {_pluginData.version}]");
+
 						if (_pluginData.version < 2)
 						{
 							OutfitTriggerInfoV1 OldCharaTriggerInfo = MessagePackSerializer.Deserialize<OutfitTriggerInfoV1>((byte[]) _loadedOutfitTriggerInfo);
@@ -120,7 +122,7 @@ namespace AccStateSync
 						else
 							CharaTriggerInfo[_currentCoordinateIndex] = MessagePackSerializer.Deserialize<OutfitTriggerInfo>((byte[]) _loadedOutfitTriggerInfo);
 						CharaTriggerInfo[_currentCoordinateIndex].Index = _currentCoordinateIndex;
-						DebugMsg(LogLevel.Info, $"[OnCoordinateBeingLoaded][{CharaFullName}] CharaTriggerInfo[{_currentCoordinateIndex}] loaded from extdata");
+						DebugMsg(LogLevel.Info, $"[OnCoordinateBeingLoaded][{CharaFullName}][CharaTriggerInfo][Coordinate: {_currentCoordinateIndex}][Count: {CharaTriggerInfo[_currentCoordinateIndex].Parts.Count}]");
 
 						if (_pluginData.version < 5)
 						{
@@ -135,7 +137,7 @@ namespace AccStateSync
 							if (_pluginData.data.TryGetValue("OutfitVirtualGroupInfo", out object _loadedOutfitVirtualGroupInfo) && _loadedOutfitVirtualGroupInfo != null)
 								CharaVirtualGroupInfo[_currentCoordinateIndex] = MessagePackSerializer.Deserialize<Dictionary<string, VirtualGroupInfo>>((byte[]) _loadedOutfitVirtualGroupInfo);
 						}
-						DebugMsg(LogLevel.Info, $"[OnCoordinateBeingLoaded][{CharaFullName}] CharaVirtualGroupInfo[{_currentCoordinateIndex}] loaded from extdata");
+						DebugMsg(LogLevel.Info, $"[OnCoordinateBeingLoaded][{CharaFullName}][CharaVirtualGroupInfo][Coordinate: {_currentCoordinateIndex}][Count: {CharaVirtualGroupInfo[_currentCoordinateIndex].Count}]");
 					}
 
 					if (JetPack.CharaStudio.Loaded)
@@ -180,7 +182,7 @@ namespace AccStateSync
 						_logger.Log(LogLevel.Error | LogLevel.Message, $"[OnReload][{CharaFullName}] ExtendedData.version: {_pluginData.version} is newer than your plugin");
 					if (_pluginData != null && _pluginData.data.TryGetValue("CharaTriggerInfo", out object _loadedCharaTriggerInfo) && _loadedCharaTriggerInfo != null)
 					{
-						DebugMsg(LogLevel.Info, $"[OnReload][{CharaFullName}] ExtendedData.version: {_pluginData.version}");
+						DebugMsg(LogLevel.Info, $"[OnReload][{CharaFullName}][Version: {_pluginData.version}]");
 
 						if (_pluginData.version < 2)
 						{
@@ -190,7 +192,9 @@ namespace AccStateSync
 						}
 						else
 							CharaTriggerInfo = MessagePackSerializer.Deserialize<Dictionary<int, OutfitTriggerInfo>>((byte[]) _loadedCharaTriggerInfo);
-						DebugMsg(LogLevel.Info, $"[OnReload][{CharaFullName}] CharaTriggerInfo loaded from extdata");
+
+						for (int i = 0; i < 7; i++)
+							DebugMsg(LogLevel.Info, $"[OnReload][{CharaFullName}][CharaTriggerInfo][Coordinate: {i}][Count: {CharaTriggerInfo[i].Parts.Count}]");
 
 						if (_pluginData.version < 5)
 						{
@@ -200,7 +204,7 @@ namespace AccStateSync
 								{
 									List<Dictionary<string, string>> OldCharaVirtualGroupNames = MessagePackSerializer.Deserialize<List<Dictionary<string, string>>>((byte[]) _loadedCharaVirtualGroupNames);
 									if (OldCharaVirtualGroupNames?.Count != 7)
-										_logger.LogError($"[OnReload][{CharaFullName}] OldCharaVirtualGroupNames.Count(): {OldCharaVirtualGroupNames?.Count}");
+										_logger.LogError($"[OnReload][{CharaFullName}][OldCharaVirtualGroupNames][Count: {OldCharaVirtualGroupNames?.Count}]");
 									else
 									{
 										for (int i = 0; i < 7; i++)
@@ -224,7 +228,8 @@ namespace AccStateSync
 								CharaVirtualGroupInfo = MessagePackSerializer.Deserialize<Dictionary<int, Dictionary<string, VirtualGroupInfo>>>((byte[]) _loadedCharaVirtualGroupInfo);
 						}
 
-						DebugMsg(LogLevel.Info, $"[OnReload][{CharaFullName}] CharaVirtualGroupNames loaded from extdata");
+						for (int i = 0; i < 7; i++)
+							DebugMsg(LogLevel.Info, $"[OnReload][{CharaFullName}][CharaVirtualGroupInfo][Coordinate: {i}][Count: {CharaVirtualGroupInfo[i].Count}]");
 
 						if (JetPack.CharaStudio.Loaded)
 							RestoreCharaVirtualGroupStates();

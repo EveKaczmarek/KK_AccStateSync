@@ -19,13 +19,14 @@ namespace AccStateSync
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync (JetPack)";
-		public const string Version = "3.4.3.0";
+		public const string Version = "3.5.0.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
 
 		internal static ConfigEntry<bool> _cfgCharaMakerPreview;
 		internal static ConfigEntry<bool> _cfgDebugMode;
+		internal static ConfigEntry<bool> _cfgDragPass;
 		internal static ConfigEntry<bool> _cfgPreserveVirtualGroupState;
 		internal static ConfigEntry<bool> _cfgAutoHideSecondary;
 		internal static ConfigEntry<bool> _cfgLegacySaveFormat;
@@ -45,6 +46,8 @@ namespace AccStateSync
 			MoreAccessories.Init();
 
 			_cfgMakerWinEnable = Config.Bind("Maker", "Config Window Startup Enable", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 20 }));
+			_cfgDragPass = Config.Bind("Maker", "Drag Pass Mode", false, new ConfigDescription("Setting window will not block mouse dragging", null, new ConfigurationManagerAttributes { Order = 15 }));
+
 			_cfgMakerWinX = Config.Bind("Maker", "Config Window Startup X", 525f, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 19 }));
 			_cfgMakerWinX.SettingChanged += (_sender, _args) =>
 			{
@@ -103,6 +106,11 @@ namespace AccStateSync
 					BaseUnityPlugin _instance = JetPack.Toolbox.GetPluginInstance("madevil.kk.MovUrAcc");
 					if (_instance != null && !JetPack.Toolbox.PluginVersionCompare(_instance, "1.6.0.0"))
 						_logger.LogError($"MovUrAcc 1.6+ is required to work properly, version {_instance.Info.Metadata.Version} detected");
+				}
+				{
+					BaseUnityPlugin _instance = JetPack.Toolbox.GetPluginInstance("madevil.kk.ca");
+					if (_instance != null && !JetPack.Toolbox.PluginVersionCompare(_instance, "1.1.3.0"))
+						_logger.LogError($"Character Accessory 1.1.3+ is required to work properly, version {_instance.Info.Metadata.Version} detected");
 				}
 				CharaHscene.RegisterEvents();
 				CharaMaker.RegisterControls();

@@ -64,6 +64,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controller\Group.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="Hooks.cs" />
     <Compile Include="H.cs" />
@@ -72,7 +73,6 @@
     <Compile Include="Controller\API.cs" />
     <Compile Include="Controller\Maker.cs" />
     <Compile Include="Controller\Common.cs" />
-    <Compile Include="Controller\Event.cs" />
     <Compile Include="Maker.cs" />
     <Compile Include="Extdata.cs" />
     <Compile Include="Studio.cs" />
