@@ -19,7 +19,7 @@ namespace AccStateSync
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync (JetPack)";
-		public const string Version = "3.5.0.0";
+		public const string Version = "3.5.1.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
@@ -30,7 +30,6 @@ namespace AccStateSync
 		internal static ConfigEntry<bool> _cfgPreserveVirtualGroupState;
 		internal static ConfigEntry<bool> _cfgAutoHideSecondary;
 		internal static ConfigEntry<bool> _cfgLegacySaveFormat;
-		internal static ConfigEntry<bool> _cfgVirtualGroupShowName;
 
 		internal static ConfigEntry<bool> _cfgMakerWinEnable;
 		internal static ConfigEntry<float> _cfgMakerWinX;
@@ -86,13 +85,6 @@ namespace AccStateSync
 			_cfgDebugMode = Config.Bind("Debug", "Debug Mode", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { IsAdvanced = true, Order = 10 }));
 			_cfgLegacySaveFormat = Config.Bind("Debug", "Legacy Save Format", true, new ConfigDescription("", null, new ConfigurationManagerAttributes { IsAdvanced = true, Order = 5 }));
 			_cfgAutoHideSecondary = Config.Bind("Debug", "Auto Hide Secondary", true, new ConfigDescription("", null, new ConfigurationManagerAttributes { IsAdvanced = true, Order = 0 }));
-			_cfgVirtualGroupShowName = Config.Bind("Debug", "Virtual Group Show Variable Name", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { IsAdvanced = true, Order = 0 }));
-
-			_cfgVirtualGroupShowName.SettingChanged += (_sender, _args) =>
-			{
-				if (JetPack.CharaMaker.Inside)
-					GetController(CharaMaker._chaCtrl).AccSlotChangedHandler(CharaMaker._currentSlotIndex);
-			};
 
 			CharacterApi.RegisterExtraBehaviour<AccStateSyncController>(GUID);
 

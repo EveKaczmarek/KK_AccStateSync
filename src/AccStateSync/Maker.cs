@@ -49,7 +49,6 @@ namespace AccStateSync
 
 				AccessoriesApi.AccessoryTransferred += (object _sender, AccessoryTransferEventArgs _args) => _pluginCtrl.AccessoryTransferredHandler(_args.SourceSlotIndex, _args.DestinationSlotIndex);
 				AccessoriesApi.AccessoriesCopied += (object _sender, AccessoryCopyEventArgs _args) => _pluginCtrl.AccessoriesCopiedHandler((int) _args.CopySource, (int) _args.CopyDestination, _args.CopiedSlotIndexes.ToList());
-				AccessoriesApi.SelectedMakerAccSlotChanged += (object _sender, AccessorySlotEventArgs _args) => _chaCtrl.StartCoroutine(_pluginCtrl.AccSlotChangedHandlerCoroutine(_args.SlotIndex));
 
 				MakerAPI.MakerBaseLoaded += (_sender, _args) =>
 				{
@@ -91,6 +90,21 @@ namespace AccStateSync
 					_makerCoordinateLoadToggle = null;
 					_imgTglCol01 = null;
 					_imgTglCol02 = null;
+				};
+
+				JetPack.CharaMaker.OnCvsNavMenuClick += (_sender, _args) =>
+				{
+					if (_args.TopIndex == 4)
+					{
+						if (_args.SideToggle?.GetComponentInChildren<CvsAccessory>(true) == null)
+                        {
+							_pluginCtrl._curPartsInfo = null;
+							return;
+						}
+
+						int _slotIndex = (int) _args.SideToggle.GetComponentInChildren<CvsAccessory>(true)?.slotNo;
+						_chaCtrl.StartCoroutine(_pluginCtrl.AccSlotChangedHandlerCoroutine(_slotIndex));
+					}
 				};
 			}
 
