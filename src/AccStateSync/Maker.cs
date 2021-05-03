@@ -99,11 +99,18 @@ namespace AccStateSync
 						if (_args.SideToggle?.GetComponentInChildren<CvsAccessory>(true) == null)
                         {
 							_pluginCtrl._curPartsInfo = null;
+							_pluginCtrl.CurSlotTriggerInfo = null;
+							_makerConfigWindow._onAccTab = false;
 							return;
 						}
 
+						_makerConfigWindow._onAccTab = true;
 						int _slotIndex = (int) _args.SideToggle.GetComponentInChildren<CvsAccessory>(true)?.slotNo;
 						_chaCtrl.StartCoroutine(_pluginCtrl.AccSlotChangedHandlerCoroutine(_slotIndex));
+					}
+					else
+                    {
+						_makerConfigWindow._onAccTab = false;
 					}
 				};
 			}

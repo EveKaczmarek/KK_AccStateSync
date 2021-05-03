@@ -19,7 +19,7 @@ namespace AccStateSync
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync (JetPack)";
-		public const string Version = "3.5.1.0";
+		public const string Version = "3.5.2.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;

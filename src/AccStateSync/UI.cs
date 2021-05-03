@@ -29,6 +29,7 @@ namespace AccStateSync
 			private Texture2D _windowBGtex = null;
 			private bool _hasFocus = false;
 			private bool _passThrough = false;
+			internal bool _onAccTab = false;
 
 			private Vector2 _ScreenRes = Vector2.zero;
 			internal float _cfgScaleFactor = 1f;
@@ -69,10 +70,12 @@ namespace AccStateSync
 
 			private void OnGUI()
 			{
+				if (!_onAccTab) return;
 				if (CustomBase.Instance?.chaCtrl == null) return;
 				if (CustomBase.Instance.customCtrl.hideFrontUI) return;
 				if (!Manager.Scene.Instance.AddSceneName.IsNullOrEmpty() && Manager.Scene.Instance.AddSceneName != "CustomScene") return;
-				if (JetPack.CharaMaker.CvsMainMenu != 4) return;
+				//if (JetPack.CharaMaker.CvsMainMenu != 4) return;
+				//if (JetPack.CharaMaker.CvsMainMenu == 4 && JetPack.CharaMaker.CvsMenuTree[4].GetComponentInChildren<CvsAccessory>(true) == null) return;
 				if (_pluginCtrl == null || _pluginCtrl.CurSlotTriggerInfo == null || _pluginCtrl._curPartsInfo == null || _pluginCtrl._curPartsInfo.type == 120) return;
 
 				if (_ScreenRes.x != Screen.width || _ScreenRes.y != Screen.height)
