@@ -6,7 +6,6 @@ using UniRx;
 
 using BepInEx.Logging;
 
-using KKAPI.Maker;
 using JetPack;
 
 namespace AccStateSync
@@ -104,8 +103,6 @@ namespace AccStateSync
 
 			internal void SyncOutfitTriggerInfo(int _coordinateIndex)
 			{
-				//if (!MakerAPI.InsideAndLoaded) return;
-				//if (!TriggerEnabled) return;
 				DebugMsg(LogLevel.Info, $"[SyncOutfitTriggerInfo][{CharaFullName}] Process OutfitTriggerInfo for Coordinate {_coordinateIndex}");
 
 				NullCheckOutfitTriggerInfo(_coordinateIndex);
@@ -401,7 +398,7 @@ namespace AccStateSync
 					CharaMaker._imgTglCol01.isOn = true;
 					CharaMaker._imgTglCol02.isOn = true;
 					SkipSlotChangePartTypeCheck = true;
-					StartCoroutine(AccSlotChangedHandlerCoroutine(AccessoriesApi.SelectedMakerAccSlot));
+					StartCoroutine(AccSlotChangedHandlerCoroutine(CharaMaker._currentSlotIndex));
 				}
 				else if (JetPack.CharaStudio.Loaded)
 				{

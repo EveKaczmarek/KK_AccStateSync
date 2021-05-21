@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using ChaCustom;
 using Studio;
 
 using HarmonyLib;
@@ -38,25 +37,6 @@ namespace AccStateSync
 
 				int _slotIndex = __instance.shoesType == 0 ? 7 : 8;
 				_pluginCtrl.ToggleByShoesType(_slotIndex);
-			}
-		}
-
-		internal class HooksCharaMaker
-		{
-			[HarmonyPriority(Priority.Last)]
-			[HarmonyPostfix, HarmonyPatch(typeof(CvsAccessory), nameof(CvsAccessory.UpdateSelectAccessoryType), new[] { typeof(int) })]
-			private static void CvsAccessory_UpdateSelectAccessoryType_Postfix(CvsAccessory __instance, int index)
-			{
-				if (CharaMaker._pluginCtrl == null) return;
-				CharaMaker._pluginCtrl.CvsAccessory_UpdateSelectAccessoryType_Postfix((int) __instance.slotNo);
-			}
-
-			[HarmonyPriority(Priority.Last)]
-			[HarmonyPostfix, HarmonyPatch(typeof(CvsAccessory), nameof(CvsAccessory.UpdateSelectAccessoryParent), new[] { typeof(int) })]
-			private static void CvsAccessory_UpdateSelectAccessoryParent_Postfix(CvsAccessory __instance)
-			{
-				if (CharaMaker._pluginCtrl == null) return;
-				CharaMaker._pluginCtrl.CvsAccessory_UpdateSelectAccessoryParent_Postfix((int) __instance.slotNo);
 			}
 		}
 

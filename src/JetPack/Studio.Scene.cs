@@ -57,8 +57,8 @@ namespace JetPack
 
 			internal static IEnumerator Studio_SaveScene_Postfix_Coroutine(string _path, SceneLoadMode _mode)
 			{
-				yield return new WaitForEndOfFrame();
-				yield return new WaitForEndOfFrame();
+				yield return Toolbox.WaitForEndOfFrame;
+				yield return Toolbox.WaitForEndOfFrame;
 				Core.DebugLog($"Studio_SaveScene_Postfix_Coroutine [mode: {_mode}]");
 				OnSceneLoad?.Invoke(null, new SceneLoadEventArgs(_path, SceneLoadMode.Save, SceneLoadState.Coroutine));
 			}
@@ -82,8 +82,8 @@ namespace JetPack
 
 			internal static IEnumerator Studio_ImportScene_Postfix_Coroutine(string _path, SceneLoadMode _mode)
 			{
-				yield return new WaitForEndOfFrame();
-				yield return new WaitForEndOfFrame();
+				yield return Toolbox.WaitForEndOfFrame;
+				yield return Toolbox.WaitForEndOfFrame;
 				Core.DebugLog($"Studio_ImportScene_Postfix_Coroutine [mode: {_mode}]");
 				OnSceneLoad?.Invoke(null, new SceneLoadEventArgs(_path, SceneLoadMode.Import, SceneLoadState.Coroutine));
 			}

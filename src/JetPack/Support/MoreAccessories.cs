@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+using UnityEngine;
+
 using BepInEx;
 using HarmonyLib;
 
@@ -41,7 +43,7 @@ namespace JetPack
 
 		public static List<ChaFileAccessory.PartsInfo> ListMorePartsInfo(ChaControl _chaCtrl, int _coordinateIndex)
 		{
-			List<ChaFileAccessory.PartsInfo> _parts = null; // ?? new List<ChaFileAccessory.PartsInfo>();
+			List<ChaFileAccessory.PartsInfo> _parts = new List<ChaFileAccessory.PartsInfo>();
 
 			object _charAdditionalData = GetCharAdditionalData(_chaCtrl);
 			if (_charAdditionalData == null) return _parts;
@@ -51,14 +53,18 @@ namespace JetPack
 				(_rawAccessoriesInfos as Dictionary<int, List<ChaFileAccessory.PartsInfo>>).TryGetValue(_coordinateIndex, out _parts);
 			else
 				(_rawAccessoriesInfos as Dictionary<ChaFileDefine.CoordinateType, List<ChaFileAccessory.PartsInfo>>).TryGetValue((ChaFileDefine.CoordinateType) _coordinateIndex, out _parts);
-			return _parts;
+			return _parts ?? new List<ChaFileAccessory.PartsInfo>();
 		}
-		/*
-		public static MoreAccessoriesKOI.MoreAccessories.CharAdditionalData GetCharAdditionalData(ChaControl _chaCtrl)
+
+		public static List<GameObject> ListMoreObjAccessory(ChaControl _chaCtrl)
 		{
-			return _accessoriesByChar.RefTryGetValue(_chaCtrl.chaFile) as MoreAccessoriesKOI.MoreAccessories.CharAdditionalData;
+			List<GameObject> _parts = new List<GameObject>();
+			object _charAdditionalData = GetCharAdditionalData(_chaCtrl);
+			if (_charAdditionalData == null) return _parts;
+			_parts = Traverse.Create(_charAdditionalData).Field("objAccessory").GetValue<List<GameObject>>();
+			return _parts ?? new List<GameObject>();
 		}
-		*/
+
 		public static object GetCharAdditionalData(ChaControl _chaCtrl)
 		{
 			return _accessoriesByChar.RefTryGetValue(_chaCtrl.chaFile);

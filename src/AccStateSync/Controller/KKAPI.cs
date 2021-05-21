@@ -45,7 +45,6 @@ namespace AccStateSync
 			{
 				DebugMsg(LogLevel.Info, $"[OnCoordinateChanged][{CharaFullName}] _currentCoordinateIndex: {_currentCoordinateIndex}");
 				SkipAutoSave = true;
-				//InitCurOutfitTriggerInfo("OnCoordinateChanged");
 				StartCoroutine(InitCurOutfitTriggerInfoCoroutine("OnCoordinateChanged"));
 			}
 
@@ -159,7 +158,6 @@ namespace AccStateSync
 					}
 				}
 
-				//InitCurOutfitTriggerInfo("OnCoordinateBeingLoaded");
 				StartCoroutine(InitCurOutfitTriggerInfoCoroutine("OnCoordinateBeingLoaded"));
 
 				base.OnCoordinateBeingLoaded(coordinate);

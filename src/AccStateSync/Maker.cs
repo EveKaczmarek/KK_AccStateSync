@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using UnityEngine;
 using UnityEngine.UI;
 using UniRx;
 using ChaCustom;
@@ -19,6 +20,7 @@ namespace AccStateSync
 		internal static SidebarToggle _sidebarToggleEnable;
 		internal static MakerLoadToggle _makerLoadToggle;
 		internal static MakerCoordinateLoadToggle _makerCoordinateLoadToggle;
+		internal static MakerButton _accWinCtrlEnable;
 		internal static bool _loadCharaExtdata => _makerLoadToggle == null || _makerLoadToggle.Value;
 		internal static bool _loadCoordinateExtdata => _makerCoordinateLoadToggle == null || _makerCoordinateLoadToggle.Value;
 
@@ -27,7 +29,8 @@ namespace AccStateSync
 			internal static ChaControl _chaCtrl => CustomBase.Instance?.chaCtrl;
 			internal static AccStateSyncController _pluginCtrl => GetController(CustomBase.Instance?.chaCtrl);
 			internal static Toggle _imgTglCol01, _imgTglCol02;
-			internal static int _currentSlotIndex => AccessoriesApi.SelectedMakerAccSlot;
+			internal static Transform _accMenuTree;
+			internal static int _currentSlotIndex => GetCurrentAccSlot();
 
 			internal static void RegisterControls()
 			{
@@ -52,7 +55,6 @@ namespace AccStateSync
 
 				MakerAPI.MakerBaseLoaded += (_sender, _args) =>
 				{
-					_hooksInstance["CharaMaker"] = Harmony.CreateAndPatchAll(typeof(HooksCharaMaker));
 					MoreAccessories.HarmonyPatch();
 
 					_makerLoadToggle = _args.AddLoadToggle(new MakerLoadToggle("AccStateSync"));
@@ -75,19 +77,24 @@ namespace AccStateSync
 						if (_cfgCharaMakerPreview.Value != _value)
 							_cfgCharaMakerPreview.Value = _value;
 					});
+					_accWinCtrlEnable = MakerAPI.AddAccessoryWindowControl(new MakerButton("AccStateSync", null, _instance));
+					_accWinCtrlEnable.OnClick.AddListener(() => _sidebarToggleEnable.SetValue(true));
 				};
-				MakerAPI.MakerExiting += (sender, args) =>
+				MakerAPI.MakerFinishedLoading += (_sender, _args) =>
+				{
+					_accMenuTree = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/04_AccessoryTop/Slots/Viewport/Content").transform;
+				};
+				MakerAPI.MakerExiting += (_sender, _args) =>
 				{
 					Destroy(_makerConfigWindow);
 
-					_hooksInstance["CharaMaker"].UnpatchAll(_hooksInstance["CharaMaker"].Id);
-					_hooksInstance["CharaMaker"] = null;
 					MoreAccessories.HarmonyUnpatch();
 
 					_sidebarTogglePreview = null;
 					_sidebarToggleEnable = null;
 					_makerLoadToggle = null;
 					_makerCoordinateLoadToggle = null;
+					_accWinCtrlEnable = null;
 					_imgTglCol01 = null;
 					_imgTglCol02 = null;
 				};
@@ -97,21 +104,29 @@ namespace AccStateSync
 					if (_args.TopIndex == 4)
 					{
 						if (_args.SideToggle?.GetComponentInChildren<CvsAccessory>(true) == null)
-                        {
+						{
+							_makerConfigWindow._onAccTab = false;
 							_pluginCtrl._curPartsInfo = null;
 							_pluginCtrl.CurSlotTriggerInfo = null;
-							_makerConfigWindow._onAccTab = false;
 							return;
 						}
 
-						_makerConfigWindow._onAccTab = true;
 						int _slotIndex = (int) _args.SideToggle.GetComponentInChildren<CvsAccessory>(true)?.slotNo;
 						_chaCtrl.StartCoroutine(_pluginCtrl.AccSlotChangedHandlerCoroutine(_slotIndex));
+						_makerConfigWindow._onAccTab = true;
 					}
 					else
-                    {
+					{
 						_makerConfigWindow._onAccTab = false;
 					}
+				};
+				JetPack.CharaMaker.OnAccessoryTypeChanged += (_sender, _args) =>
+				{
+					_pluginCtrl.AccessoryTypeChanged(_args);
+				};
+				JetPack.CharaMaker.OnAccessoryParentChanged += (_sender, _args) =>
+				{
+					_pluginCtrl.AccessoryParentChanged(_args.SlotIndex);
 				};
 			}
 
@@ -133,6 +148,29 @@ namespace AccStateSync
 				{
 					_pluginCtrl.SetAccessoryStateCategory(1, _value);
 				});
+			}
+
+			internal static int GetCurrentAccSlot()
+			{
+				int _slotIndex = -1;
+				foreach (Transform _child in _accMenuTree)
+				{
+					if (!_child.gameObject.activeSelf)
+						break;
+
+					Toggle _toggle = _child.GetComponent<Toggle>();
+					if (_toggle == null)
+						break;
+
+					if (_toggle.isOn)
+					{
+						CvsAccessory _cmp = _toggle.GetComponentInChildren<CvsAccessory>(true);
+						if (_cmp != null)
+							_slotIndex = (int) _cmp.slotNo;
+						break;
+					}
+				}
+				return _slotIndex;
 			}
 		}
 	}

@@ -12,14 +12,14 @@ using KKAPI.Utilities;
 namespace AccStateSync
 {
 	[BepInPlugin(GUID, Name, Version)]
-	[BepInDependency("marco.kkapi")]
+	[BepInDependency("marco.kkapi", "1.17")]
 	[BepInDependency("madevil.JetPack")]
-	[BepInDependency("com.joan6694.illusionplugins.moreaccessories")]
+	[BepInDependency("com.joan6694.illusionplugins.moreaccessories", "1.0.9")]
 	public partial class AccStateSync : BaseUnityPlugin
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync (JetPack)";
-		public const string Version = "3.5.2.0";
+		public const string Version = "3.5.3.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;

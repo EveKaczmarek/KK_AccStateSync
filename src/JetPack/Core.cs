@@ -23,7 +23,7 @@ namespace JetPack
 	{
 		public const string GUID = "madevil.JetPack";
 		public const string Name = "JetPack";
-		public const string Version = "2.0.1.0";
+		public const string Version = "2.0.5.0";
 
 		internal static ManualLogSource _logger;
 		internal static Harmony _hookInstance;

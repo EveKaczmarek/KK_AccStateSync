@@ -15,44 +15,6 @@ namespace JetPack
 {
 	public partial class CharaMaker
 	{
-		public static event EventHandler<SelectedMakerSlotChangedEventArgs> OnSelectedMakerSlotChanged;
-		public class SelectedMakerSlotChangedEventArgs : EventArgs
-		{
-			public SelectedMakerSlotChangedEventArgs(int _oldSlotIndex, int _newSlotIndex)
-			{
-				CurrentAccssoryIndex = _newSlotIndex;
-				OldSlotIndex = _oldSlotIndex;
-				NewSlotIndex = _newSlotIndex;
-			}
-
-			public int OldSlotIndex { get; }
-			public int NewSlotIndex { get; }
-		}
-
-		public static event EventHandler<AccessoryKindChangedEventArgs> OnAccessoryKindChanged;
-		public class AccessoryKindChangedEventArgs : EventArgs
-		{
-			public AccessoryKindChangedEventArgs(int _slotIndex)
-			{
-				SlotIndex = _slotIndex;
-			}
-
-			public int SlotIndex { get; }
-		}
-
-		public static event EventHandler<SlotAddedEventArgs> OnSlotAdded;
-		public class SlotAddedEventArgs : EventArgs
-		{
-			public SlotAddedEventArgs(int _slotIndex, Transform _transform)
-			{
-				SlotIndex = _slotIndex;
-				SlotTemplate = _transform;
-			}
-
-			public int SlotIndex { get; }
-			public Transform SlotTemplate { get; }
-		}
-
 		public static Toggle CopyToggle(int _slotIndex)
 		{
 			if (_slotIndex < 0)
@@ -107,7 +69,7 @@ namespace JetPack
 			if (_slotIndex < 0)
 				return null;
 			if (_slotIndex < 20)
-            {
+			{
 				if (_chaCtrl.chaFile.coordinate.ElementAtOrDefault(_coordinateIndex) == null)
 					return null;
 				return _chaCtrl.chaFile.coordinate[_coordinateIndex].accessory.parts.ElementAtOrDefault(_slotIndex);
@@ -127,6 +89,7 @@ namespace JetPack
 			}
 		}
 
+		public static List<ChaFileAccessory.PartsInfo> ListPartsInfo(ChaControl _chaCtrl) => ListPartsInfo(_chaCtrl, _chaCtrl.fileStatus.coordinateType);
 		public static List<ChaFileAccessory.PartsInfo> ListPartsInfo(ChaControl _chaCtrl, int _coordinateIndex)
 		{
 			List<ChaFileAccessory.PartsInfo> _partInfo = _chaCtrl.chaFile.coordinate[_coordinateIndex].accessory.parts.ToList();
@@ -139,6 +102,22 @@ namespace JetPack
 			if (_slotIndex < 0)
 				return null;
 			return Traverse.Create(MoreAccessories.Instance).Method("GetChaAccessoryComponent", new object[] { _chaCtrl, _slotIndex }).GetValue<ChaAccessoryComponent>();
+		}
+
+		public static GameObject GetObjAccessory(ChaControl _chaCtrl, int _slotIndex)
+		{
+			if (_slotIndex < 20)
+				return _chaCtrl.objAccessory.ElementAtOrDefault(_slotIndex);
+			else
+				return GetChaAccessoryComponent(_chaCtrl, _slotIndex)?.gameObject;
+				//return MoreAccessories.ListMoreObjAccessory(_chaCtrl).ElementAtOrDefault(_slotIndex);
+		}
+
+		public static List<GameObject> ListObjAccessory(ChaControl _chaCtrl)
+		{
+			List<GameObject> _parts = _chaCtrl.objAccessory.ToList();
+			_parts.AddRange(MoreAccessories.ListMoreObjAccessory(_chaCtrl));
+			return _parts;
 		}
 
 		public static bool IsHairAccessory(ChaControl _chaCtrl, int _slotIndex)

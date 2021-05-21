@@ -105,6 +105,8 @@ namespace JetPack
 			OnSlotAdded += (_sender, _args) =>
 			{
 				Core.DebugLog($"[OnSlotAdded][{_args.SlotIndex}][{_args.SlotTemplate.name}]");
+				_args.SlotTemplate.GetComponent<CvsNavSideMenuEventHandler>().SlotIndex = _args.SlotIndex;
+
 			};
 
 			OnCvsNavMenuClick += (_sender, _args) =>
@@ -144,7 +146,7 @@ namespace JetPack
 
 			[HarmonyPostfix]
 			[HarmonyPatch(typeof(CustomAcsSelectKind), nameof(CustomAcsSelectKind.ChangeSlot), new[] { typeof(int), typeof(bool) })]
-			private static void ChangeSlotPostfix(CustomAcsSelectKind __instance, int _no)
+			private static void CustomAcsSelectKind_ChangeSlot_Postfix(CustomAcsSelectKind __instance, int _no)
 			{
 				if (CurrentAccssoryIndex != _no)
 					OnSelectedMakerSlotChanged?.Invoke(__instance, new SelectedMakerSlotChangedEventArgs(CurrentAccssoryIndex, _no));
@@ -153,7 +155,7 @@ namespace JetPack
 			[HarmonyBefore(new string[] { "com.joan6694.kkplugins.moreaccessories" })]
 			[HarmonyPrefix]
 			[HarmonyPatch(typeof(CvsAccessory), nameof(CvsAccessory.UpdateSelectAccessoryKind))]
-			private static void UpdateSelectAccessoryKindPrefix(CvsAccessory __instance, ref int __state)
+			private static void CvsAccessory_UpdateSelectAccessoryKind_Prefix(CvsAccessory __instance, ref int __state)
 			{
 				// Used to see if the kind actually changed
 				__state = Accessory.GetPartsInfo(ChaControl, (int) __instance.slotNo).id;
@@ -161,11 +163,43 @@ namespace JetPack
 
 			[HarmonyPostfix]
 			[HarmonyPatch(typeof(CvsAccessory), nameof(CvsAccessory.UpdateSelectAccessoryKind))]
-			private static void UpdateSelectAccessoryKindPostfix(CvsAccessory __instance, ref int __state)
+			private static void CvsAccessory_UpdateSelectAccessoryKind_Postfix(CvsAccessory __instance, ref int __state)
 			{
 				// Only send the event if the kind actually changed
 				if (__state != Accessory.GetPartsInfo(ChaControl, (int) __instance.slotNo).id)
 					OnAccessoryKindChanged?.Invoke(__instance, new AccessoryKindChangedEventArgs((int) __instance.slotNo));
+			}
+
+			[HarmonyBefore(new string[] { "com.joan6694.kkplugins.moreaccessories" })]
+			[HarmonyPrefix]
+			[HarmonyPatch(typeof(CvsAccessory), nameof(CvsAccessory.UpdateSelectAccessoryType), new[] { typeof(int) })]
+			private static void CvsAccessory_UpdateSelectAccessoryType_Prefix(CvsAccessory __instance, ref int __state)
+			{
+				__state = Accessory.GetPartsInfo(ChaControl, (int) __instance.slotNo).type;
+			}
+
+			[HarmonyPostfix]
+			[HarmonyPatch(typeof(CvsAccessory), nameof(CvsAccessory.UpdateSelectAccessoryType), new[] { typeof(int) })]
+			private static void CvsAccessory_UpdateSelectAccessoryType_Postfix(CvsAccessory __instance, ref int __state)
+			{
+				ChaFileAccessory.PartsInfo _part = Accessory.GetPartsInfo(ChaControl, (int) __instance.slotNo);
+				OnAccessoryTypeChanged?.Invoke(__instance, new AccessoryTypeChangedEventArgs((int) __instance.slotNo, __state, _part.type, _part));
+			}
+
+			[HarmonyBefore(new string[] { "com.joan6694.kkplugins.moreaccessories" })]
+			[HarmonyPrefix]
+			[HarmonyPatch(typeof(CvsAccessory), nameof(CvsAccessory.UpdateSelectAccessoryParent), new[] { typeof(int) })]
+			private static void CvsAccessory_UpdateSelectAccessoryParent_Prefix(CvsAccessory __instance, ref string __state)
+			{
+				__state = Accessory.GetPartsInfo(ChaControl, (int) __instance.slotNo).parentKey;
+			}
+
+			[HarmonyPostfix]
+			[HarmonyPatch(typeof(CvsAccessory), nameof(CvsAccessory.UpdateSelectAccessoryParent), new[] { typeof(int) })]
+			private static void CvsAccessory_UpdateSelectAccessoryParent_Postfix(CvsAccessory __instance, ref string __state)
+			{
+				ChaFileAccessory.PartsInfo _part = Accessory.GetPartsInfo(ChaControl, (int) __instance.slotNo);
+				OnAccessoryParentChanged?.Invoke(__instance, new AccessoryParentChangedEventArgs((int) __instance.slotNo, __state, _part.parentKey, _part));
 			}
 
 			[HarmonyPrefix]
@@ -245,6 +279,8 @@ namespace JetPack
 					CvsAccessory _cvsAccessory = gameObject.GetComponentInChildren<CvsAccessory>(true);
 					if (_cvsAccessory != null)
 						SlotIndex = (int) _cvsAccessory.slotNo;
+					else
+						SlotIndex = -1;
 				}
 			}
 		}

@@ -70,12 +70,11 @@ namespace AccStateSync
 
 			private void OnGUI()
 			{
-				if (!_onAccTab) return;
 				if (CustomBase.Instance?.chaCtrl == null) return;
 				if (CustomBase.Instance.customCtrl.hideFrontUI) return;
 				if (!Manager.Scene.Instance.AddSceneName.IsNullOrEmpty() && Manager.Scene.Instance.AddSceneName != "CustomScene") return;
-				//if (JetPack.CharaMaker.CvsMainMenu != 4) return;
-				//if (JetPack.CharaMaker.CvsMainMenu == 4 && JetPack.CharaMaker.CvsMenuTree[4].GetComponentInChildren<CvsAccessory>(true) == null) return;
+				if (JetPack.CharaMaker.CvsMainMenu != 4) return;
+				if (CharaMaker._currentSlotIndex < 0) return;
 				if (_pluginCtrl == null || _pluginCtrl.CurSlotTriggerInfo == null || _pluginCtrl._curPartsInfo == null || _pluginCtrl._curPartsInfo.type == 120) return;
 
 				if (_ScreenRes.x != Screen.width || _ScreenRes.y != Screen.height)
@@ -397,7 +396,16 @@ namespace AccStateSync
 											}
 										}
 										GUILayout.FlexibleSpace();
-
+/*
+#if DEBUG
+										if (GUILayout.Button(new GUIContent("Purge", "Remove the group and assigned accessories"), _buttonElem))
+										{
+											_pluginCtrl.PurgeGroup(_item.Group);
+											CustomBase.Instance.chaCtrl.ChangeCoordinateTypeAndReload(false);
+											CustomBase.Instance.updateCustomUI = true;
+										}
+#endif
+*/
 										// https://answers.unity.com/questions/360635/strange-guitoggle-behavior.html
 										if (GUILayout.Toggle(_item.State, new GUIContent("", "Toggle grouped accessories visibility"), _toggleElem) != _item.State)
 										{

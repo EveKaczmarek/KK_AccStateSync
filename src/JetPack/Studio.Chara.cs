@@ -82,11 +82,20 @@ namespace JetPack
 		public static bool RefreshCharaStatePanel()
 		{
 			if (!Loaded) return false;
-			if (CurOCIChar == null) return false;
-			MPCharCtrl _chara = GetMPCharCtrl(CurOCIChar);
+
+			MPCharCtrl _chara = GameObject.FindObjectsOfType<MPCharCtrl>().FirstOrDefault();
 			if (_chara == null) return false;
-			int _select = Traverse.Create(_chara).Field<int>("select").Value;
-			if (_select != 0) return false;
+
+			if (CurOCIChar != _chara.ociChar)
+			{
+				//CurOCIChar = _chara.ociChar;
+				TreeNodeObject _selected = Instance.dicInfo.Where(x => (x.Value as OCIChar) == _chara.ociChar).Select(x => x.Key).FirstOrDefault();
+				OnSelectSingle?.Invoke(Instance.treeNodeCtrl, new TreeNodeEventArgs(_selected));
+			}
+
+			if (Traverse.Create(_chara).Field<int>("select").Value != 0)
+				return false;
+
 			_chara.OnClickRoot(0);
 			return true;
 		}
@@ -238,6 +247,18 @@ namespace JetPack
 
 				OnCharaLoad?.Invoke(null, new CharaLoadEventArgs(_chara, _mode, CharaLoadState.Coroutine));
 				Core.DebugLog($"AddObjectChara_Coroutine [mode: {_mode}]");
+			}
+
+			[HarmonyPostfix]
+			[HarmonyPatch(typeof(RootButtonCtrl), nameof(RootButtonCtrl.OnClick))]
+			private static void RootButtonCtrl_OnClick_Postfix(int _kind)
+			{
+				MPCharCtrl _mpc = GameObject.FindObjectOfType<MPCharCtrl>();
+				if (_mpc != null && Studio.Studio.Instance.treeNodeCtrl.selectNodes?.Length == 0)
+				{
+					TreeNodeObject _selected = Studio.Studio.Instance.dicInfo.Where(x => (x.Value as OCIChar) == _mpc.ociChar).Select(x => x.Key).FirstOrDefault();
+					Studio.Studio.Instance.treeNodeCtrl.SelectSingle(_selected, false);
+				}
 			}
 		}
 	}

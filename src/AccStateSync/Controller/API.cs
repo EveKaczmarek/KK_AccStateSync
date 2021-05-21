@@ -37,8 +37,7 @@ namespace AccStateSync
 			public void CloneSlotTriggerInfo(int _srcSlotIndex, int _dstSlotIndex, int _coordinateIndex) => CloneSlotTriggerInfo(_srcSlotIndex, _dstSlotIndex, _coordinateIndex, _coordinateIndex);
 			public void CloneSlotTriggerInfo(int _srcSlotIndex, int _dstSlotIndex, int _srcCoordinateIndex, int _dstCoordinateIndex)
 			{
-				//if (CharaTriggerInfo[_dstCoordinateIndex].Parts.ContainsKey(_dstSlotIndex))
-					CharaTriggerInfo[_dstCoordinateIndex].Parts.Remove(_dstSlotIndex);
+				CharaTriggerInfo[_dstCoordinateIndex].Parts.Remove(_dstSlotIndex);
 				if (CharaTriggerInfo[_srcCoordinateIndex].Parts.ContainsKey(_srcSlotIndex))
 				{
 					CharaTriggerInfo[_dstCoordinateIndex].Parts[_dstSlotIndex] = new AccTriggerInfo(_dstSlotIndex);
@@ -67,18 +66,6 @@ namespace AccStateSync
 			internal void ShowAccessory(int _slot, bool _show)
 			{
 				ChaControl.SetAccessoryState(_slot, _show);
-				/*
-				int _count = ChaControl.ListPartsInfo(_currentCoordinateIndex).Count;
-				if (_slot < _count)
-				{
-					if (ChaControl.GetAccessoryVisibility(_slot) != _show)
-						ChaControl.SetAccessoryState(_slot, _show);
-				}
-#if DEBUG
-				else
-					_logger.LogError($"[ShowAccessory][{CharaFullName}][slot: {_slot}] out of range of {_count}");
-#endif
-				*/
 			}
 
 			internal void ToggleByAccTriggerInfo(int _slotIndex)

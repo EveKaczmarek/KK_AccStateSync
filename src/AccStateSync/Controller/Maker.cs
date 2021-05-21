@@ -33,21 +33,24 @@ namespace AccStateSync
 				DebugMsg(LogLevel.Info, $"[AccSlotChangedHandler][{CharaFullName}] Fired!!");
 
 				DebugMsg(LogLevel.Info, $"[AccSlotChangedHandler][{CharaFullName}][SlotIndex]: {_slotIndex}");
-#if DEBUG
 				if (_slotIndex < 0)
 				{
+#if DEBUG
 					_logger.LogError($"[AccSlotChangedHandler][{CharaFullName}] calling when SlotIndex = -1");
+#endif
 					CurSlotTriggerInfo = null;
 					return;
 				}
-#endif
 				_curPartsInfo = ChaControl.GetPartsInfo(_slotIndex);
 				if (_curPartsInfo == null)
 				{
 					DebugMsg(LogLevel.Warning, $"[AccSlotChangedHandler][{CharaFullName}] Cannot retrive info for Slot{_slotIndex + 1:00}");
 					CurSlotTriggerInfo = null;
+					_accWinCtrlEnable.Visible.OnNext(false);
 					return;
 				}
+
+				_accWinCtrlEnable.Visible.OnNext(_curPartsInfo.type > 120);
 
 				CurSlotTriggerInfo = new AccTriggerInfo(_slotIndex);
 				if (CharaTriggerInfo[_currentCoordinateIndex].Parts.ContainsKey(_slotIndex))
@@ -67,8 +70,6 @@ namespace AccStateSync
 					}
 				}
 				SkipSlotChangePartTypeCheck = false;
-
-				//SyncOutfitVirtualGroupInfo(_currentCoordinateIndex);
 
 				DebugMsg(LogLevel.Info, $"[AccSlotChangedHandler][{CharaFullName}][Slot: {CurSlotTriggerInfo.Slot}][Kind: {CurSlotTriggerInfo.Kind}][State: {CurSlotTriggerInfo.State[0]}|{CurSlotTriggerInfo.State[1]}|{CurSlotTriggerInfo.State[2]}|{CurSlotTriggerInfo.State[3]}]");
 
@@ -160,38 +161,29 @@ namespace AccStateSync
 				ToggleByAccTriggerInfo(CurSlotTriggerInfo);
 			}
 
-			internal void CvsAccessory_UpdateSelectAccessoryType_Postfix(int _slotIndex)
+			internal void AccessoryTypeChanged(JetPack.CharaMaker.AccessoryTypeChangedEventArgs _args)
 			{
 				if (SkipSlotChangePartTypeCheck)
-				{
-#if DEBUG
-					_logger.LogError($"[CvsAccessory_UpdateSelectAccessoryType_Postfix][SkipAutoSave: {SkipAutoSave}][SkipSlotChangePartTypeCheck: {SkipSlotChangePartTypeCheck}]");
-#endif
-					return;
-				}
-
-				if (CharaMaker._currentSlotIndex != _slotIndex)
 					return;
 
-				_curPartsInfo = ChaControl.GetPartsInfo(_slotIndex);
+				if (CharaMaker._currentSlotIndex != _args.SlotIndex)
+					return;
+
+				_curPartsInfo = _args.PartsInfo;
+				_accWinCtrlEnable.Visible.OnNext(_curPartsInfo.type > 120);
 
 				if (_curPartsInfo.type == 120)
 				{
-					if (!CharaTriggerInfo.ContainsKey(_currentCoordinateIndex) || !CharaTriggerInfo[_currentCoordinateIndex].Parts.ContainsKey(_slotIndex))
+					if (!CharaTriggerInfo.ContainsKey(_currentCoordinateIndex) || !CharaTriggerInfo[_currentCoordinateIndex].Parts.ContainsKey(_args.SlotIndex))
 						return;
 					SetKindCurSlotTriggerInfo(-1);
 				}
 			}
 
-			internal void CvsAccessory_UpdateSelectAccessoryParent_Postfix(int _slotIndex)
+			internal void AccessoryParentChanged(int _slotIndex)
 			{
 				if (SkipSlotChangePartTypeCheck)
-				{
-#if DEBUG
-					_logger.LogError($"[CvsAccessory_UpdateSelectAccessoryParent_Postfix][SkipAutoSave: {SkipAutoSave}][SkipSlotChangePartTypeCheck: {SkipSlotChangePartTypeCheck}]");
-#endif
 					return;
-				}
 
 				if (CharaMaker._currentSlotIndex != _slotIndex || !CharaTriggerInfo.ContainsKey(_currentCoordinateIndex) || !CharaTriggerInfo[_currentCoordinateIndex].Parts.ContainsKey(_slotIndex))
 					return;

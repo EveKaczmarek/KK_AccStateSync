@@ -13,10 +13,12 @@ namespace JetPack
 {
 	public static partial class Extensions
 	{
+		public static List<ChaFileAccessory.PartsInfo> ListPartsInfo(this ChaControl _self) => Accessory.ListPartsInfo(_self);
 		public static List<ChaFileAccessory.PartsInfo> ListPartsInfo(this ChaControl _self, int _coordinateIndex) => Accessory.ListPartsInfo(_self, _coordinateIndex);
 		public static ChaFileAccessory.PartsInfo GetPartsInfo(this ChaControl _self, int _slotIndex) => Accessory.GetPartsInfo(_self, _slotIndex);
 		public static ChaFileAccessory.PartsInfo GetPartsInfo(this ChaControl _self, int _coordinateIndex, int _slotIndex) => Accessory.GetPartsInfo(_self, _coordinateIndex, _slotIndex);
 		public static bool GetAccessoryVisibility(this ChaControl _self, int _slotIndex) => Accessory.GetAccessoryVisibility(_self, _slotIndex);
+		public static GameObject GetObjAccessory(this ChaControl _self, int _slotIndex) => Accessory.GetObjAccessory(_self, _slotIndex);
 
 		public static bool SetActiveIfDifferent(this GameObject _self, bool _active)
 		{
@@ -27,7 +29,7 @@ namespace JetPack
 			return true;
 		}
 
-		public static string GetFullName(this ChaControl _self) => _self.chaFile.parameter?.fullname.Trim();
+		public static string GetFullName(this ChaControl _self) => _self.chaFile.parameter?.fullname?.Trim();
 
 		public static List<bool> GetClothesStates(this ChaControl _self, int _slotIndex) => Chara.Clothes.GetClothesStates(_self, _slotIndex);
 
@@ -39,6 +41,18 @@ namespace JetPack
 			object[] _parameters = new object[] { _key, null };
 			_tryMethod.Invoke(_self, _parameters);
 			return _parameters[1];
+		}
+
+		public static T RefTryGetValue<T>(this object _self, object _key)
+		{
+			if (_self == null)
+				return default(T);
+			MethodInfo _tryMethod = AccessTools.Method(_self.GetType(), "TryGetValue");
+			object[] _parameters = new object[] { _key, null };
+			_tryMethod.Invoke(_self, _parameters);
+			if (_parameters[1] == null)
+				return default(T);
+			return (T) _parameters[1];
 		}
 
 		public static object RefElementAt(this object _self, int _key)
