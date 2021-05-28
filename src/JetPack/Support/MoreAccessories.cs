@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 
 using UnityEngine;
+using TMPro;
+using ChaCustom;
 
 using BepInEx;
 using HarmonyLib;
@@ -17,6 +19,7 @@ namespace JetPack
 
 		private static Type _type = null;
 		private static object _accessoriesByChar;
+		private static Harmony _hooksInstance = null;
 
 		internal static void Init()
 		{
@@ -25,6 +28,23 @@ namespace JetPack
 			Core.DebugLog($"MoreAccessories {Instance.Info.Metadata.Version} found, NewVer: {NewVer}");
 			_type = Instance.GetType();
 			_accessoriesByChar = Traverse.Create(Instance).Field("_accessoriesByChar").GetValue();
+		}
+
+		internal static void OnMakerBaseLoaded()
+		{
+			_hooksInstance = Harmony.CreateAndPatchAll(typeof(Hooks));
+		}
+
+		internal static void OnMakerFinishedLoading()
+		{
+			_hooksInstance.Patch(typeof(CvsAccessory).GetMethod("UpdateCustomUI", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CvsAccessory_UpdateCustomUI_Prefix)));
+			_hooksInstance.Patch(GetCvsPatchType("UpdateCustomUI").GetMethod("Prefix", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.ReturnFalse)));
+		}
+
+		internal static void OnMakerExiting()
+		{
+			_hooksInstance.UnpatchAll(_hooksInstance.Id);
+			_hooksInstance = null;
 		}
 
 		public static Type GetCvsPatchType(string _methodName) => _type.Assembly.GetType($"MoreAccessoriesKOI.CvsAccessory_Patches+CvsAccessory_{_methodName}_Patches");
@@ -68,6 +88,41 @@ namespace JetPack
 		public static object GetCharAdditionalData(ChaControl _chaCtrl)
 		{
 			return _accessoriesByChar.RefTryGetValue(_chaCtrl.chaFile);
+		}
+
+		internal static class Hooks
+		{
+			internal static bool ReturnFalse() => false;
+
+			internal static bool CvsAccessory_UpdateCustomUI_Prefix(CvsAccessory __instance)
+			{
+				int _slotIndex = (int) __instance.slotNo;
+				if (_slotIndex < 0)
+					return false;
+
+				ChaFileAccessory.PartsInfo _part = CustomBase.Instance.chaCtrl.GetPartsInfo(_slotIndex);
+
+				__instance.CalculateUI();
+				//__instance.Field<CvsDrawCtrl>("cmpDrawCtrl").UpdateAccessoryDraw();
+				int _value = 0;
+				if (_part != null)
+					_value = _part.type - 120;
+				Traverse _traverse = Traverse.Create(__instance);
+				_traverse.Field("ddAcsType").GetValue<TMP_Dropdown>().value = _value;
+
+				__instance.UpdateAccessoryKindInfo();
+				__instance.UpdateAccessoryParentInfo();
+				__instance.UpdateAccessoryMoveInfo();
+				__instance.ChangeSettingVisible(_value != 0);
+
+				_traverse.Field("separateColor").GetValue<GameObject>().SetActiveIfDifferent(false);
+				_traverse.Field("separateCorrect").GetValue<GameObject>().SetActiveIfDifferent(false);
+				Transform _parent = CharaMaker.CvsScrollable ? __instance.transform.GetChild(0).GetChild(0).GetChild(0) : __instance.transform;
+				_parent.Find("objController01/Controller/imgSeparete").gameObject.SetActiveIfDifferent(_traverse.Field("objControllerTop02").GetValue<GameObject>().activeSelf);
+
+				return false;
+			}
+
 		}
 	}
 }

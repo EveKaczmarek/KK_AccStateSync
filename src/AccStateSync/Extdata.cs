@@ -1,80 +1,148 @@
-﻿using MessagePack;
-using System;
-using System.Linq;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+
+using MessagePack;
 
 namespace AccStateSync
 {
 	public partial class AccStateSync
 	{
+		public const int _pluginDataVersion = 6;
+
 		[Serializable]
 		[MessagePackObject]
-		public class AccTriggerInfo
+		public class TriggerProperty
 		{
+			[Key("Coordinate")]
+			public int Coordinate { get; set; } = -1;
+
 			[Key("Slot")]
-			public int Slot { get; set; }
-			[Key("Kind")]
-			public int Kind { get; set; } = -1;
-			[Key("Group")]
-			public string Group { get; set; } = "";
-			[Key("State")]
-			public List<bool> State { get; set; } = new List<bool>() { true, false, false, false };
+			public int Slot { get; set; } = -1;
 
-			public AccTriggerInfo(int slot) { Slot = slot; }
-		}
+			[Key("RefKind")]
+			public int RefKind { get; set; } = -1;
 
-		[Serializable]
-		[MessagePackObject]
-		public class OutfitTriggerInfo
-		{
-			[Key("Index")]
-			public int Index { get; set; }
-			[Key("Parts")]
-			public Dictionary<int, AccTriggerInfo> Parts { get; set; } = new Dictionary<int, AccTriggerInfo>();
+			[Key("RefState")]
+			public int RefState { get; set; } = -1;
 
-			public OutfitTriggerInfo(int index) { Index = index; }
-		}
+			[Key("Visible")]
+			public bool Visible { get; set; } = true;
 
-		[Serializable]
-		[MessagePackObject]
-		public class VirtualGroupInfo
-		{
-			[Key("Kind")]
-			public int Kind { get; set; }
-			[Key("Group")]
-			public string Group { get; set; }
-			[Key("Label")]
-			public string Label { get; set; }
-			[Key("Secondary")]
-			public bool Secondary { get; set; } = false;
-			[Key("State")]
-			public bool State { get; set; } = true;
+			[Key("Priority")]
+			public int Priority { get; set; } = 0;
 
-			public VirtualGroupInfo(string group, int kind, string label = "")
+			[SerializationConstructor]
+			public TriggerProperty(int coordinate, int slot, int refkind, int refstate, bool visible, int priority) // this shit is here to avoid msgpack fucking error
 			{
-				Group = group;
-				Kind = kind;
-				if (label.IsNullOrEmpty())
-				{
-					if (kind > 9)
-						label = group.Replace("custom_", "Custom ");
-					else if (kind == 9)
-					{
-						label = Group;
-						if (Constants.AccessoryParentNames.ContainsKey(Group))
-							label = Constants.AccessoryParentNames[Group];
-					}
-				}
-				Label = label;
+				Coordinate = coordinate;
+				Slot = slot;
+				RefKind = refkind;
+				RefState = refstate;
+				Visible = visible;
+				Priority = priority;
+			}
+
+			public TriggerProperty(int coordinate, int slot, int refkind, int refstate)
+			{
+				Coordinate = coordinate;
+				Slot = slot;
+				RefKind = refkind;
+				RefState = refstate;
 			}
 		}
 
-		public static void CopySlotTriggerInfo(AccTriggerInfo CopySource, AccTriggerInfo CopyDestination)
+		[Serializable]
+		[MessagePackObject]
+		public class TriggerGroup
 		{
-			CopyDestination.Slot = CopySource.Slot;
-			CopyDestination.Kind = CopySource.Kind;
-			CopyDestination.Group = CopySource.Group;
-			CopyDestination.State = CopySource.State.ToList();
+			[Key("Coordinate")]
+			public int Coordinate { get; set; } = -1;
+
+			[Key("Kind")]
+			public int Kind { get; set; } // TriggerProperty RefGroup
+
+			[Key("State")]
+			public int State { get; set; } // Current RefState
+
+			[Key("States")]
+			public Dictionary<int, string> States { get; set; }
+
+			[Key("Label")]
+			public string Label { get; set; } = "";
+
+			[Key("Startup")]
+			public int Startup { get; set; } = 0;
+
+			[Key("Secondary")]
+			public int Secondary { get; set; } = -1;
+
+			[Key("GUID")]
+			public string GUID { get; set; } = JetPack.Toolbox.GUID("D");
+
+			[SerializationConstructor]
+			public TriggerGroup(int coordinate, int kind, string label, int state, int startup, int secondary)
+			{
+				Coordinate = coordinate;
+				Kind = kind;
+				State = state;
+				if (label.Trim().IsNullOrEmpty())
+					label = $"Custom {kind - 8}";
+				Label = label;
+				Startup = startup;
+				Secondary = secondary;
+
+				States = new Dictionary<int, string>() { [0] = "State 1", [1] = "State 2" };
+			}
+			public TriggerGroup(int coordinate, int kind, string label, int startup, int secondary) : this(coordinate, kind, label, 0, startup, secondary) { }
+			public TriggerGroup(int coordinate, int kind, string label = "") : this(coordinate, kind, label, 0, 0, -1) { }
+
+			public void Rename(string label)
+			{
+				if (label.Trim().IsNullOrEmpty())
+					label = $"Custom {Kind - 8}";
+				Label = label;
+			}
+
+			public void RenameState(int state, string label)
+			{
+				if (!States.ContainsKey(state))
+					return;
+				if (label.Trim().IsNullOrEmpty())
+					label = $"State {state + 1}";
+				States[state] = label;
+			}
+
+			public int GetNewStateID()
+			{
+				return States.OrderByDescending(x => x.Key).FirstOrDefault().Key + 1;
+			}
+
+			public int AddNewState()
+			{
+				int state = States.OrderByDescending(x => x.Key).FirstOrDefault().Key + 1;
+				return AddNewState(state);
+			}
+			public int AddNewState(int state)
+			{
+				string label = $"State {state + 1}";
+				States[state] = label;
+				return state;
+			}
 		}
+
+		internal static List<string> _cordNames = new List<string>();
+		internal static List<string> _clothesNames = new List<string>() { "Top", "Bottom", "Bra", "Underwear", "Gloves", "Pantyhose", "Legwear", "Indoors", "Outdoors" };
+		internal static List<string> _statesNames = new List<string>() { "Full", "Half 1", "Half 2", "Undressed" };
+		internal static Dictionary<string, string> _accessoryParentNames = new Dictionary<string, string>();
+
+		internal static void InitConstants()
+		{
+			_cordNames = Enum.GetNames(typeof(ChaFileDefine.CoordinateType)).ToList();
+
+			foreach (object _key in Enum.GetValues(typeof(ChaAccessoryDefine.AccessoryParentKey)))
+				_accessoryParentNames[_key.ToString()] = ChaAccessoryDefine.dictAccessoryParent[(int)_key];
+		}
+
 	}
 }

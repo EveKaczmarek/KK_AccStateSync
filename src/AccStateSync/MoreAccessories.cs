@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 using BepInEx;
 using HarmonyLib;
+
+using JetPack;
 
 namespace AccStateSync
 {
@@ -26,11 +31,11 @@ namespace AccStateSync
 			{
 				_hooksInstance["MoreAccessories"] = Harmony.CreateAndPatchAll(typeof(Hooks));
 
-				_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateAll_Patches").GetMethod("Postfix", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
-				_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateCategory_Patches").GetMethod("Postfix", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
+				_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateAll_Patches").GetMethod("Postfix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
+				_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateCategory_Patches").GetMethod("Postfix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(int), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
 
-				_hooksInstance["MoreAccessories"].Patch(typeof(ChaControl).GetMethod("SetAccessoryStateAll", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
-				_hooksInstance["MoreAccessories"].Patch(typeof(ChaControl).GetMethod("SetAccessoryStateCategory", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerPreview_Block_Prefix)));
+				_hooksInstance["MoreAccessories"].Patch(typeof(ChaControl).GetMethod("SetAccessoryStateAll", AccessTools.all, null, new[] { typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.ChaControl_SetAccessoryStateAll_Prefix)));
+				_hooksInstance["MoreAccessories"].Patch(typeof(ChaControl).GetMethod("SetAccessoryStateCategory", AccessTools.all, null, new[] { typeof(int), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.ChaControl_SetAccessoryStateCategory_Prefix)));
 			}
 
 			internal static void HarmonyUnpatch()
@@ -46,9 +51,75 @@ namespace AccStateSync
 				AccessTools.Method(_type, "UpdateUI").Invoke(_instance, null);
 			}
 
-			internal class Hooks
+			internal static class Hooks
 			{
-				internal static bool CharaMakerPreview_Block_Prefix()
+				internal static bool ChaControl_SetAccessoryStateAll_Prefix(ChaControl __instance, bool show)
+				{
+					if (JetPack.CharaMaker.Inside && _cfgCharaMakerPreview.Value)
+					{
+						SetAccessoryStateAll(__instance, show);
+						return false;
+					}
+					return true;
+				}
+
+				internal static bool ChaControl_SetAccessoryStateCategory_Prefix(ChaControl __instance, int cateNo, bool show)
+				{
+					if (JetPack.CharaMaker.Inside && _cfgCharaMakerPreview.Value)
+					{
+						SetAccessoryStateCategory(__instance, cateNo, show);
+						return false;
+					}
+					return true;
+				}
+
+				internal static void SetAccessoryStateAll(ChaControl _chaCtrl, bool _show)
+				{
+					int _currentCoordinateIndex = _chaCtrl.fileStatus.coordinateType;
+					List<ChaFileAccessory.PartsInfo> _partsInfo = _chaCtrl.ListPartsInfo(_currentCoordinateIndex);
+
+					AccStateSyncController _pluginCtrl = GetController(_chaCtrl);
+					if (_pluginCtrl == null)
+					{
+						for (int _slotIndex = 0; _slotIndex < _partsInfo.Count; _slotIndex++)
+							_chaCtrl.SetAccessoryState(_slotIndex, _show);
+						return;
+					}
+
+					HashSet<int>  _triggers = new HashSet<int>(_pluginCtrl.TriggerPropertyList.Where(x => x.Coordinate == _currentCoordinateIndex).Select(x => x.Slot));
+					for (int _slotIndex = 0; _slotIndex < _partsInfo.Count; _slotIndex++)
+					{
+						if (_triggers.Contains(_slotIndex)) continue;
+						_chaCtrl.SetAccessoryState(_slotIndex, _show);
+					}
+				}
+
+				internal static void SetAccessoryStateCategory(ChaControl _chaCtrl, int _cateNo, bool _show)
+				{
+					int _currentCoordinateIndex = _chaCtrl.fileStatus.coordinateType;
+					List<ChaFileAccessory.PartsInfo> _partsInfo = _chaCtrl.ListPartsInfo(_currentCoordinateIndex);
+
+					AccStateSyncController _pluginCtrl = GetController(_chaCtrl);
+					if (_pluginCtrl == null)
+					{
+						for (int _slotIndex = 0; _slotIndex < _partsInfo.Count; _slotIndex++)
+						{
+							if (_partsInfo[_slotIndex].hideCategory == _cateNo)
+								_chaCtrl.SetAccessoryState(_slotIndex, _show);
+						}
+						return;
+					}
+
+					HashSet<int> _triggers = new HashSet<int>(_pluginCtrl.TriggerPropertyList.Where(x => x.Coordinate == _currentCoordinateIndex).Select(x => x.Slot));
+					for (int _slotIndex = 0; _slotIndex < _partsInfo.Count; _slotIndex++)
+					{
+						if (_triggers.Contains(_slotIndex)) continue;
+						if (_partsInfo[_slotIndex].hideCategory == _cateNo)
+							_chaCtrl.SetAccessoryState(_slotIndex, _show);
+					}
+				}
+
+				internal static bool CharaMakerForcePreview()
 				{
 					return !(JetPack.CharaMaker.Inside && _cfgCharaMakerPreview.Value);
 				}

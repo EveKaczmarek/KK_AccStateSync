@@ -23,7 +23,7 @@ namespace JetPack
 	{
 		public const string GUID = "madevil.JetPack";
 		public const string Name = "JetPack";
-		public const string Version = "2.0.5.0";
+		public const string Version = "2.0.6.0";
 
 		internal static ManualLogSource _logger;
 		internal static Harmony _hookInstance;
@@ -157,6 +157,13 @@ namespace JetPack
 					ms.Write(_byte, 0, _pointer);
 				return ms.ToArray();
 			}
+		}
+
+		// https://stackoverflow.com/questions/8477664/how-can-i-generate-uuid-in-c-sharp
+		// https://stackoverflow.com/questions/1700361/how-to-convert-a-guid-to-a-string-in-c
+		public static string GUID(string _format = "D")
+		{
+			return Guid.NewGuid().ToString(_format).ToUpper();
 		}
 
 		public static readonly WaitForEndOfFrame WaitForEndOfFrame = new WaitForEndOfFrame();

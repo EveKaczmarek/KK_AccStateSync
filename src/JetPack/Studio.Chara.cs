@@ -70,12 +70,9 @@ namespace JetPack
 
 		public static MPCharCtrl GetMPCharCtrl(OCIChar _chara)
 		{
-			MPCharCtrl[] _charas = GameObject.FindObjectsOfType<MPCharCtrl>();
-			foreach (MPCharCtrl _charCtrl in _charas)
-			{
-				if (_charCtrl.ociChar == _chara)
-					return _charCtrl;
-			}
+			MPCharCtrl _charCtrl = GameObject.FindObjectOfType<MPCharCtrl>();
+			if (_charCtrl.ociChar == _chara)
+				return _charCtrl;
 			return null;
 		}
 

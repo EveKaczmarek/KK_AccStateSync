@@ -57,10 +57,17 @@ namespace JetPack
 				return false;
 			if (_slotIndex < 20)
 				return _chaCtrl.fileStatus.showAccessory[_slotIndex];
-			//return (bool) MoreAccessories.GetCharAdditionalData(_chaCtrl)?.showAccessories?.ElementAtOrDefault(_slotIndex - 20);
 			object _charAdditionalData = MoreAccessories.GetCharAdditionalData(_chaCtrl);
 			List<bool> _showAccessories = Traverse.Create(_charAdditionalData).Field("showAccessories").GetValue<List<bool>>();
 			return _showAccessories.RefElementAt<bool>(_slotIndex - 20);
+		}
+
+		public static List<bool> ListAccessoryVisibility(ChaControl _chaCtrl)
+		{
+			List<bool> _parts = _chaCtrl.fileStatus.showAccessory.ToList();
+			object _charAdditionalData = MoreAccessories.GetCharAdditionalData(_chaCtrl);
+			_parts.AddRange(Traverse.Create(_charAdditionalData).Field("showAccessories").GetValue<List<bool>>() ?? new List<bool>());
+			return _parts;
 		}
 
 		public static ChaFileAccessory.PartsInfo GetPartsInfo(ChaControl _chaCtrl, int _slotIndex) => GetPartsInfo(_chaCtrl, _chaCtrl.fileStatus.coordinateType, _slotIndex);

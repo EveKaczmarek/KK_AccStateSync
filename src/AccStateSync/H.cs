@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using TMPro;
+using ParadoxNotion.Serialization;
 
 using BepInEx.Logging;
 
@@ -16,6 +17,10 @@ namespace AccStateSync
 	{
 		internal static class CharaHscene
 		{
+			internal static int MenuitemHeightOffsetY = 0;
+			internal static int AnchorOffsetMinY = 0;
+			internal static int ContainerOffsetMinY = 0;
+
 			internal static void RegisterEvents()
 			{
 				JetPack.CharaHscene.OnHSceneFinishedLoading += (_sender, _args) =>
@@ -31,16 +36,14 @@ namespace AccStateSync
 						AccStateSyncController _pluginCtrl = GetController(_chaCtrl);
 						if (_pluginCtrl != null)
 						{
-							if (_cfgAutoHideSecondary.Value)
-							{
-								for (int i = 0; i < 7; i++)
-								{
-									List<string> _secondary = _pluginCtrl.CharaVirtualGroupInfo[i].Values?.Where(x => x.Secondary)?.Select(x => x.Group)?.ToList();
-									foreach (string _group in _secondary)
-										_pluginCtrl.CharaVirtualGroupInfo[i][_group].State = false;
-								}
-							}
-							_pluginCtrl.SyncAllAccToggle();
+							foreach (TriggerGroup _group in _pluginCtrl.TriggerGroupList)
+								_group.State = (_group.Secondary > -1) ? _group.Secondary : _group.Startup;
+							_pluginCtrl.RefreshCache();
+							_pluginCtrl.SyncAllAccToggle("OnHSceneSetClothStateStartMotion");
+
+							var data = _pluginCtrl.TriggerGroupList.ToList();
+							string json = JSONSerializer.Serialize(data.GetType(), data, true);
+							_logger.LogWarning("\n" + json);
 						}
 					}
 				};
@@ -51,24 +54,28 @@ namespace AccStateSync
 				if (!JetPack.CharaHscene.Loaded) return;
 				DebugMsg(LogLevel.Info, $"[UpdateUI] Fired!!");
 
-				UI.ContainerOffsetMinY = -144;
-				UI.MenuitemHeightOffsetY = -24;
+				ContainerOffsetMinY = -144;
+				MenuitemHeightOffsetY = -24;
 
 				int i = 0, _counter = 0;
 				foreach (ChaControl _chaCtrl in JetPack.CharaHscene.Heroine)
 				{
 					AccStateSyncController _pluginCtrl = GetController(_chaCtrl);
-					if (_pluginCtrl.TriggerEnabled && _pluginCtrl.CharaVirtualGroupInfo[_chaCtrl.fileStatus.coordinateType].Count() > 0)
+					if (_pluginCtrl != null)
 					{
-						foreach (KeyValuePair<string, VirtualGroupInfo> _group in _pluginCtrl.CharaVirtualGroupInfo[_chaCtrl.fileStatus.coordinateType])
+						_pluginCtrl.RefreshCache();
+						if (_pluginCtrl._cachedCoordinateGroupList.Count > 0)
 						{
-							if (_pluginCtrl.GetPartsOfKind(_group.Value.Kind).Count() > 0)
+							foreach (TriggerGroup _group in _pluginCtrl._cachedCoordinateGroupList)
 							{
-								CreateButton(_chaCtrl, _counter, _group.Key, i);
-								i++;
+								if (_pluginCtrl._cachedCoordinateGroupPropertyList.Where(x => x.RefKind == _group.Kind).Count() > 0)
+								{
+									CreateButton(_chaCtrl, _counter, i, _group);
+									i++;
+								}
 							}
+							i = 0;
 						}
-						i = 0;
 					}
 					_counter++;
 				}
@@ -99,9 +106,8 @@ namespace AccStateSync
 				}
 			}
 
-			internal static void CreateButton(ChaControl _chaCtrl, int _counter, string _group, int i)
+			internal static void CreateButton(ChaControl _chaCtrl, int _counter, int i, TriggerGroup _group)
 			{
-				int _currentCoordinateIndex = _chaCtrl.fileStatus.coordinateType;
 				foreach (HSprite _sprite in JetPack.CharaHscene.Sprites)
 				{
 					Transform _parent;
@@ -112,15 +118,14 @@ namespace AccStateSync
 
 					Transform _origin = _sprite.categoryAccessory.lstButton[0].transform;
 					Transform _copy = Instantiate(_origin.transform, _parent, false);
-					_copy.name = $"btnASS_{_counter}_{_group}";
+					_copy.name = $"btnASS_{_counter}_{_group.Kind}";
 
 					AccStateSyncController _pluginCtrl = GetController(_chaCtrl);
-					string _label = _pluginCtrl.CharaVirtualGroupInfo[_currentCoordinateIndex][_group].Label;
-					_copy.GetComponentInChildren<TextMeshProUGUI>().text = _label;
+					_copy.GetComponentInChildren<TextMeshProUGUI>().text = _group.Label;
 
 					RectTransform _copyRt = _copy.GetComponent<RectTransform>();
-					_copyRt.offsetMin = new Vector2(0, UI.ContainerOffsetMinY + (UI.MenuitemHeightOffsetY * (i + 1))); // -168 
-					_copyRt.offsetMax = new Vector2(112, UI.ContainerOffsetMinY + (UI.MenuitemHeightOffsetY * i)); // -144 
+					_copyRt.offsetMin = new Vector2(0, ContainerOffsetMinY + (MenuitemHeightOffsetY * (i + 1))); // -168 
+					_copyRt.offsetMax = new Vector2(112, ContainerOffsetMinY + (MenuitemHeightOffsetY * i)); // -144 
 
 					Button _button = _copy.GetComponentInChildren<Button>();
 					for (int n = 0; n < _button.onClick.GetPersistentEventCount(); n++)
@@ -131,8 +136,7 @@ namespace AccStateSync
 
 					_button.onClick.AddListener(delegate ()
 					{
-						bool _show = !_pluginCtrl.CharaVirtualGroupInfo[_currentCoordinateIndex][_group].State;
-						_pluginCtrl.OnVirtualGroupStateChange(_group, _show);
+						_pluginCtrl.SetGroupStateNext(_group.Kind);
 						Illusion.Game.Utils.Sound.Play(Illusion.Game.SystemSE.sel);
 					});
 

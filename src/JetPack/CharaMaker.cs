@@ -29,6 +29,7 @@ namespace JetPack
 
 		public static int CvsMainMenu = 0;
 		public static Dictionary<int, Toggle> CvsMenuTree = new Dictionary<int, Toggle>();
+		public static bool CvsScrollable = false;
 
 		public static event EventHandler OnMakerStartLoading;
 		public static event EventHandler OnMakerBaseLoaded;
@@ -60,12 +61,15 @@ namespace JetPack
 			OnMakerBaseLoaded += (_sender, _args) =>
 			{
 				Core.DebugLog($"[OnMakerBaseLoaded]");
+				MoreAccessories.OnMakerBaseLoaded();
 			};
 
 			OnMakerFinishedLoading += (_sender, _args) =>
 			{
 				Core.DebugLog($"[OnMakerFinishedLoading]");
 				Loaded = true;
+
+				CvsScrollable = GameObject.Find("tglSlot01/Slot01Top/tglSlot01ScrollView") != null;
 
 				int _onCustomSelectListClickCount = OnCustomSelectListClick?.GetInvocationList()?.Length ?? 0;
 				if (_onCustomSelectListClickCount > 0)
@@ -83,6 +87,7 @@ namespace JetPack
 				}
 
 				CvsNavMenuInit(Singleton<CustomChangeMainMenu>.Instance);
+				MoreAccessories.OnMakerFinishedLoading();
 			};
 
 			OnMakerExiting += (_sender, _args) =>

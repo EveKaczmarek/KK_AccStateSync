@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,7 +16,6 @@ namespace AccStateSync
 	public partial class AccStateSync
 	{
 		internal static SidebarToggle _sidebarTogglePreview;
-		internal static SidebarToggle _sidebarToggleEnable;
 		internal static MakerLoadToggle _makerLoadToggle;
 		internal static MakerCoordinateLoadToggle _makerCoordinateLoadToggle;
 		internal static MakerButton _accWinCtrlEnable;
@@ -41,57 +39,50 @@ namespace AccStateSync
 						if (_sidebarTogglePreview.Value != _cfgCharaMakerPreview.Value)
 							_sidebarTogglePreview.Value = _cfgCharaMakerPreview.Value;
 						if (_sidebarTogglePreview.Value)
-							_pluginCtrl.SyncAllAccToggle();
+						{
+							_pluginCtrl.SetAccessoryStateAll(true);
+							_pluginCtrl.SyncAllAccToggle("ToggleForcePreview");
+						}
+						/*
 						else
 						{
 							_pluginCtrl.SetAccessoryStateCategory(0, _imgTglCol01.isOn);
 							_pluginCtrl.SetAccessoryStateCategory(1, _imgTglCol02.isOn);
 						}
+						*/
 					}
 				};
 
-				AccessoriesApi.AccessoryTransferred += (object _sender, AccessoryTransferEventArgs _args) => _pluginCtrl.AccessoryTransferredHandler(_args.SourceSlotIndex, _args.DestinationSlotIndex);
-				AccessoriesApi.AccessoriesCopied += (object _sender, AccessoryCopyEventArgs _args) => _pluginCtrl.AccessoriesCopiedHandler((int) _args.CopySource, (int) _args.CopyDestination, _args.CopiedSlotIndexes.ToList());
+				AccessoriesApi.AccessoryTransferred += (_sender, _args) => _pluginCtrl.AccessoryTransferredHandler(_args.SourceSlotIndex, _args.DestinationSlotIndex);
+				AccessoriesApi.AccessoriesCopied += (_sender, _args) => _pluginCtrl.AccessoriesCopiedHandler((int) _args.CopySource, (int) _args.CopyDestination, _args.CopiedSlotIndexes.ToList());
 
-				MakerAPI.MakerBaseLoaded += (_sender, _args) =>
+				MakerAPI.RegisterCustomSubCategories += (_sender, _args) =>
 				{
-					MoreAccessories.HarmonyPatch();
-
 					_makerLoadToggle = _args.AddLoadToggle(new MakerLoadToggle("AccStateSync"));
 					_makerCoordinateLoadToggle = _args.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("AccStateSync"));
 					PatchMakerToggles();
-				};
-				MakerAPI.RegisterCustomSubCategories += (_sender, _args) =>
-				{
-					_makerConfigWindow = _instance.gameObject.AddComponent<AccStateSyncUI>();
-
-					_sidebarToggleEnable = _args.AddSidebarControl(new SidebarToggle("AccStateSync", _cfgMakerWinEnable.Value, _instance));
-					_sidebarToggleEnable.ValueChanged.Subscribe(_value =>
-					{
-						if (_makerConfigWindow.enabled != _value)
-							_makerConfigWindow.enabled = _value;
-					});
-					_sidebarTogglePreview = _args.AddSidebarControl(new SidebarToggle("Force Preview", _cfgCharaMakerPreview.Value, _instance));
+					_charaConfigWindow = _instance.gameObject.AddComponent<AccStateSyncUI>();
+					_sidebarTogglePreview = _args.AddSidebarControl(new SidebarToggle("A.S.S. Preview", _cfgCharaMakerPreview.Value, _instance));
 					_sidebarTogglePreview.ValueChanged.Subscribe(_value =>
 					{
 						if (_cfgCharaMakerPreview.Value != _value)
 							_cfgCharaMakerPreview.Value = _value;
 					});
 					_accWinCtrlEnable = MakerAPI.AddAccessoryWindowControl(new MakerButton("AccStateSync", null, _instance));
-					_accWinCtrlEnable.OnClick.AddListener(() => _sidebarToggleEnable.SetValue(true));
+					_accWinCtrlEnable.OnClick.AddListener(() => _charaConfigWindow.enabled = true);
 				};
 				MakerAPI.MakerFinishedLoading += (_sender, _args) =>
 				{
 					_accMenuTree = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/04_AccessoryTop/Slots/Viewport/Content").transform;
+					MoreAccessories.HarmonyPatch();
 				};
 				MakerAPI.MakerExiting += (_sender, _args) =>
 				{
-					Destroy(_makerConfigWindow);
+					Destroy(_charaConfigWindow);
 
 					MoreAccessories.HarmonyUnpatch();
 
 					_sidebarTogglePreview = null;
-					_sidebarToggleEnable = null;
 					_makerLoadToggle = null;
 					_makerCoordinateLoadToggle = null;
 					_accWinCtrlEnable = null;
@@ -105,28 +96,24 @@ namespace AccStateSync
 					{
 						if (_args.SideToggle?.GetComponentInChildren<CvsAccessory>(true) == null)
 						{
-							_makerConfigWindow._onAccTab = false;
+							_charaConfigWindow._onAccTab = false;
 							_pluginCtrl._curPartsInfo = null;
-							_pluginCtrl.CurSlotTriggerInfo = null;
+							_pluginCtrl._cachedSlotPropertyList.Clear();
 							return;
 						}
 
 						int _slotIndex = (int) _args.SideToggle.GetComponentInChildren<CvsAccessory>(true)?.slotNo;
-						_chaCtrl.StartCoroutine(_pluginCtrl.AccSlotChangedHandlerCoroutine(_slotIndex));
-						_makerConfigWindow._onAccTab = true;
+						_chaCtrl.StartCoroutine(_pluginCtrl.AccSlotChangedHandlerCoroutine());
+						_charaConfigWindow._onAccTab = true;
 					}
 					else
 					{
-						_makerConfigWindow._onAccTab = false;
+						_charaConfigWindow._onAccTab = false;
 					}
 				};
 				JetPack.CharaMaker.OnAccessoryTypeChanged += (_sender, _args) =>
 				{
 					_pluginCtrl.AccessoryTypeChanged(_args);
-				};
-				JetPack.CharaMaker.OnAccessoryParentChanged += (_sender, _args) =>
-				{
-					_pluginCtrl.AccessoryParentChanged(_args.SlotIndex);
 				};
 			}
 
@@ -166,7 +153,7 @@ namespace AccStateSync
 					{
 						CvsAccessory _cmp = _toggle.GetComponentInChildren<CvsAccessory>(true);
 						if (_cmp != null)
-							_slotIndex = (int) _cmp.slotNo;
+							_slotIndex = (int)_cmp.slotNo;
 						break;
 					}
 				}
