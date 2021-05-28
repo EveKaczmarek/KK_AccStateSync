@@ -40,10 +40,6 @@ namespace AccStateSync
 								_group.State = (_group.Secondary > -1) ? _group.Secondary : _group.Startup;
 							_pluginCtrl.RefreshCache();
 							_pluginCtrl.SyncAllAccToggle("OnHSceneSetClothStateStartMotion");
-
-							var data = _pluginCtrl.TriggerGroupList.ToList();
-							string json = JSONSerializer.Serialize(data.GetType(), data, true);
-							_logger.LogWarning("\n" + json);
 						}
 					}
 				};
