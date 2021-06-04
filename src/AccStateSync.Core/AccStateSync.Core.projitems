@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>5a8fdb27-ffca-4a77-ab0f-afdef9a034ed</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>AccStateSync.Core</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Config.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)H.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Hooks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MoreAccessories.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extdata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Maker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Studio.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controller\Controller.KKAPI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controller\Controller.Common.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controller\Controller.Group.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controller\Controller.Maker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\UI.Maker.Edit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\UI.Maker.Main.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\UI.Maker.Preview.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\UI.Style.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\UI.Common.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\UI.Studio.Main.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\UI.Studio.Preview.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extdata.Migration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resource\toolbar_icon.png" />
+  </ItemGroup>
+</Project>
