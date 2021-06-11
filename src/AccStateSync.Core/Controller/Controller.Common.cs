@@ -171,6 +171,15 @@ namespace AccStateSync
 					ChaControl.SetAccessoryState(_trigger.Slot, _trigger.Visible);
 			}
 
+			internal void RefreshPreview(string _caller)
+			{
+				if (JetPack.CharaMaker.Inside && !_cfgCharaMakerPreview.Value) return;
+				if (JetPack.CharaStudio.Loaded && !TriggerEnabled) return;
+
+				SetAccessoryStateAll(true);
+				SyncAllAccToggle(_caller);
+			}
+
 			internal TriggerProperty GetTriggerProperty(int _coordinate, int _slot, int _refKind, int _refState)
 			{
 				return TriggerPropertyList.Where(x => x.Coordinate == _coordinate && x.Slot == _slot && x.RefKind == _refKind && x.RefState == _refState).FirstOrDefault();

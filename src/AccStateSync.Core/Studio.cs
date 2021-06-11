@@ -36,7 +36,7 @@ namespace AccStateSync
 				_buttons.Add(GameObject.Find($"StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State/Viewport/Content/Cos/Button Shoes 2").GetComponent<Button>());
 				foreach (Button _button in _buttons)
 				{
-					_button.onClick.AddListener(delegate()
+					_button.onClick.AddListener(delegate ()
 					{
 						_instance.StartCoroutine(StatusPanelUpdateCoroutine());
 					});

@@ -247,9 +247,9 @@ namespace AccStateSync
 				else if (JetPack.CharaStudio.Loaded)
 				{
 					DebugMsg(LogLevel.Info, $"[InitCurOutfitTriggerInfo][CurTreeNodeObjID: {CharaStudio._curTreeNodeObjID}][TreeNodeObjID: {_treeNodeObjID}]");
+					RefreshPreview(_caller);
 					if (CharaStudio._curTreeNodeObjID == _treeNodeObjID)
 					{
-						RefreshPreview(_caller);
 						CharaStudio.UpdateUI();
 						StartCoroutine(CharaStudio.StatusPanelUpdateCoroutine());
 					}

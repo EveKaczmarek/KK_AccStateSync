@@ -57,15 +57,6 @@ namespace AccStateSync
 				RefreshPreview("AccSlotChangedHandler");
 			}
 
-			internal void RefreshPreview(string _caller)
-			{
-				if (JetPack.CharaMaker.Inside && _cfgCharaMakerPreview.Value)
-				{
-					SetAccessoryStateAll(true);
-					SyncAllAccToggle(_caller);
-				}
-			}
-
 			internal void AccessoriesCopiedHandler(int _srcCoordinateIndex, int _dstCoordinateIndex, List<int> _copiedSlotIndexes)
 			{
 				DebugMsg(LogLevel.Info, $"[AccessoriesCopiedHandler][{CharaFullName}][Soruce: {_srcCoordinateIndex}][Destination: {_dstCoordinateIndex}][CopiedSlotIndexes: {string.Join(",", _copiedSlotIndexes.Select(x => x.ToString()).ToArray())}]");
