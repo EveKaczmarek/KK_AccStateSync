@@ -65,6 +65,14 @@ namespace AccStateSync
 				if (_idx == 0)
 					CharaStudio.UpdateUI();
 			}
+
+			[HarmonyPrefix, HarmonyPatch(typeof(OCIChar), nameof(OCIChar.ChangeChara), new[] { typeof(string) })]
+			private static void OCIChar_ChangeChara_Prefix(OCIChar __instance, string _path)
+			{
+				AccStateSyncController _pluginCtrl = GetController(__instance?.charInfo);
+				if (_pluginCtrl != null)
+					_pluginCtrl.TriggerEnabled = false;
+			}
 		}
 	}
 }

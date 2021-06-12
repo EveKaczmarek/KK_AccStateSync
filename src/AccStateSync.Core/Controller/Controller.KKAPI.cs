@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
-using UniRx;
 using MessagePack;
 
 using BepInEx.Logging;
@@ -129,15 +127,10 @@ namespace AccStateSync
 							}
 						}
 
-						/*
-						MissingKindCheck(_currentCoordinateIndex);
-						MissingPartCheck(_currentCoordinateIndex);
-						*/
 						MissingGroupCheck(_currentCoordinateIndex);
 						MissingPropertyCheck(_currentCoordinateIndex);
 					}
 
-					//StartCoroutine(InitCurOutfitTriggerInfoCoroutine("OnCoordinateBeingLoaded"));
 					InitCurOutfitTriggerInfo("OnCoordinateBeingLoaded");
 				}
 				base.OnCoordinateBeingLoaded(coordinate);
@@ -191,7 +184,9 @@ namespace AccStateSync
 						}
 					}
 
-					//ChaControl.StartCoroutine(InitCurOutfitTriggerInfoCoroutine("OnReload"));
+					if (JetPack.CharaStudio.Running && _cfgStudioAutoEnable.Value)
+						StartCoroutine(StudioAutoEnableCoroutine());
+
 					InitCurOutfitTriggerInfo("OnReload");
 				}
 				base.OnReload(currentGameMode);
@@ -203,6 +198,15 @@ namespace AccStateSync
 				yield return JetPack.Toolbox.WaitForEndOfFrame;
 
 				_duringLoadChange = false;
+			}
+
+			internal IEnumerator StudioAutoEnableCoroutine()
+			{
+				yield return JetPack.Toolbox.WaitForEndOfFrame;
+				yield return JetPack.Toolbox.WaitForEndOfFrame;
+
+				TriggerEnabled = true;
+				DebugMsg(LogLevel.Info, $"[StudioAutoEnableCoroutine][{CharaFullName}][CoordinatePropertyList.Count: {_cachedCoordinatePropertyList?.Count}]");
 			}
 
 			internal IEnumerator InitCurOutfitTriggerInfoCoroutine(string _caller)
@@ -223,21 +227,6 @@ namespace AccStateSync
 				int _count = _cachedCoordinatePropertyList.Count;
 				DebugMsg(LogLevel.Info, $"[InitCurOutfitTriggerInfo][{CharaFullName}][{_caller}][CoordinatePropertyList.Count: {_count}]");
 
-				if (!JetPack.CharaMaker.Inside && _count == 0)
-				{
-					if (JetPack.CharaStudio.Loaded)
-					{
-						DebugMsg(LogLevel.Info, $"[InitCurOutfitTriggerInfo][CurTreeNodeObjID: {CharaStudio._curTreeNodeObjID}][TreeNodeObjID: {_treeNodeObjID}]");
-						if (CharaStudio._curTreeNodeObjID == _treeNodeObjID)
-							StartCoroutine(CharaStudio.StatusPanelUpdateCoroutine());
-					}
-					else if (JetPack.CharaHscene.Loaded)
-					{
-						CharaHscene.ClearUI();
-					}
-					return;
-				}
-
 				if (JetPack.CharaMaker.Loaded)
 				{
 					if (_duringLoadChange)
@@ -247,7 +236,8 @@ namespace AccStateSync
 				else if (JetPack.CharaStudio.Loaded)
 				{
 					DebugMsg(LogLevel.Info, $"[InitCurOutfitTriggerInfo][CurTreeNodeObjID: {CharaStudio._curTreeNodeObjID}][TreeNodeObjID: {_treeNodeObjID}]");
-					RefreshPreview(_caller);
+					if (CharaStudio.IsCharaSelected(ChaControl))
+						RefreshPreview(_caller);
 					if (CharaStudio._curTreeNodeObjID == _treeNodeObjID)
 					{
 						CharaStudio.UpdateUI();

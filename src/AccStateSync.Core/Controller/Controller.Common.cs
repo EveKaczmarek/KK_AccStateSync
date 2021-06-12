@@ -66,6 +66,12 @@ namespace AccStateSync
 					if (i == 8 && _shoesType != 1)
 						_clothesStates[i] = 3;
 				}
+
+				if (_shoesType == 0 && ChaControl.GetClothesStateKind(7) == null)
+					_clothesStates[7] = 3;
+				if (_shoesType == 1 && ChaControl.GetClothesStateKind(8) == null)
+					_clothesStates[8] = 3;
+
 				return _clothesStates;
 			}
 
@@ -98,6 +104,8 @@ namespace AccStateSync
 						if (MathfEx.RangeEqualOn(0, x.RefKind, 8))
 						{
 							if (!_clothesStates.ContainsKey(x.RefKind)) continue;
+							if (_shoesType == 0 && x.RefKind == 8 && ChaControl.GetClothesStateKind(7) != null) continue;
+							if (_shoesType == 1 && x.RefKind == 7 && ChaControl.GetClothesStateKind(8) != null) continue;
 
 							if (_clothesStates[x.RefKind] == x.RefState)
 							{
@@ -145,6 +153,8 @@ namespace AccStateSync
 						if (MathfEx.RangeEqualOn(0, x.RefKind, 8))
 						{
 							if (!_clothesStates.ContainsKey(x.RefKind)) continue;
+							if (_shoesType == 0 && x.RefKind == 8 && ChaControl.GetClothesStateKind(7) != null) continue;
+							if (_shoesType == 1 && x.RefKind == 7 && ChaControl.GetClothesStateKind(8) != null) continue;
 
 							if (_clothesStates[x.RefKind] == x.RefState)
 							{

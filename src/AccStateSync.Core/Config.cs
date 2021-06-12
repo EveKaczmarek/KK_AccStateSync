@@ -22,6 +22,7 @@ namespace AccStateSync
 		internal static ConfigEntry<float> _cfgStudioWinY;
 		internal static ConfigEntry<float> _cfgStudioWinScale;
 		internal static ConfigEntry<bool> _cfgStudioWinResScale;
+		internal static ConfigEntry<bool> _cfgStudioAutoEnable;
 
 		internal void InitConfig()
 		{
@@ -97,6 +98,8 @@ namespace AccStateSync
 				_charaConfigWindow._cfgScaleFactor = _cfgStudioWinScale.Value;
 				_charaConfigWindow.ChangeRes();
 			};
+
+			_cfgStudioAutoEnable = Config.Bind("Studio", "Auto Enable After Load", false, new ConfigDescription("Automatically enable after scene or character load", null, new ConfigurationManagerAttributes { Order = 1 }));
 		}
 	}
 }

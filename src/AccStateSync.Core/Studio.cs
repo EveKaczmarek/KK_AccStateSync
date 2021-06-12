@@ -65,6 +65,26 @@ namespace AccStateSync
 				}
 			}
 
+			internal static bool IsCharaSelected(ChaControl _chaCtrl)
+			{
+				List<TreeNodeObject> _selectNodes = JetPack.CharaStudio.ListSelectNodes;
+				if (_selectNodes?.Count == 0)
+					return false;
+				for (int i = 0; i < _selectNodes.Count; i++)
+				{
+					if (Studio.Studio.Instance.dicInfo.TryGetValue(_selectNodes[i], out ObjectCtrlInfo _info))
+					{
+						OCIChar _selected = _info as OCIChar;
+						if (_selected?.GetType() != null)
+						{
+							if (_selected?.charInfo == _chaCtrl)
+								return true;
+						}
+					}
+				}
+				return false;
+			}
+
 			internal static void UpdateUI()
 			{
 				if ((_curOCIChar == null) || (_curOCIChar.charInfo == null))

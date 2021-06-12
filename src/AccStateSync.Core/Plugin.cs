@@ -3,6 +3,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 
 using UnityEngine;
+using ParadoxNotion.Serialization;
 
 using KKAPI.Chara;
 using KKAPI.Studio;
@@ -21,7 +22,7 @@ namespace AccStateSync
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync (JetPack)";
-		public const string Version = "4.0.4.0";
+		public const string Version = "4.1.0.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
@@ -68,6 +69,11 @@ namespace AccStateSync
 				_logger.Log(_level, _meg);
 			else
 				_logger.Log(LogLevel.Debug, _meg);
+		}
+
+		internal static string JsonEncode(object _obj, bool _format = false)
+		{
+			return JSONSerializer.Serialize(_obj.GetType(), _obj, _format);
 		}
 	}
 }
