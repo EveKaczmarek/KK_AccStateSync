@@ -17,7 +17,16 @@ namespace JetPack
 		public static Type HSceneProcType;
 
 		public static event EventHandler OnHSceneStartLoading;
-		public static event EventHandler OnHSceneFinishedLoading;
+		public static event EventHandler<HSceneFinishedLoadingEventArgs> OnHSceneFinishedLoading;
+		public class HSceneFinishedLoadingEventArgs : EventArgs
+		{
+			public HSceneFinishedLoadingEventArgs(List<ChaControl> _lstFemale)
+			{
+				Female = _lstFemale;
+			}
+
+			public List<ChaControl> Female { get; }
+		}
 		public static event EventHandler OnHSceneExiting;
 		public static event EventHandler<HSceneSetClothStateStartMotionEventArgs> OnHSceneSetClothStateStartMotion;
 		public class HSceneSetClothStateStartMotionEventArgs : EventArgs
@@ -29,7 +38,6 @@ namespace JetPack
 
 			public List<ChaControl> Female { get; }
 		}
-
 
 		internal static void InvokeOnHSceneStartLoading(object _sender, EventArgs _args) => OnHSceneStartLoading?.Invoke(_sender, _args);
 
@@ -98,7 +106,7 @@ namespace JetPack
 				Loaded = true;
 				Heroine = ___lstFemale;
 				Sprites.Add(___sprite);
-				OnHSceneFinishedLoading?.Invoke(null, null);
+				OnHSceneFinishedLoading?.Invoke(null, new HSceneFinishedLoadingEventArgs(___lstFemale));
 			}
 
 			private static void VRHScene_MapSameObjectDisable_PostFix(List<ChaControl> ___lstFemale, HSprite[] ___sprites)
@@ -109,7 +117,7 @@ namespace JetPack
 				Heroine = ___lstFemale;
 				foreach (HSprite _sprite in ___sprites)
 					Sprites.Add(_sprite);
-				OnHSceneFinishedLoading?.Invoke(null, null);
+				OnHSceneFinishedLoading?.Invoke(null, new HSceneFinishedLoadingEventArgs(___lstFemale));
 			}
 		}
 	}

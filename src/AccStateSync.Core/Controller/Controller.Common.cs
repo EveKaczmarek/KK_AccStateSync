@@ -250,6 +250,7 @@ namespace AccStateSync
 									int _kind = GetNextGroupID(_dstCoordinateIndex);
 									_clone.Kind = _kind;
 									_copy.RefKind = _kind;
+									_clone.State = _clone.Startup;
 									TriggerPropertyList.RemoveAll(x => x.Coordinate == _dstCoordinateIndex && x.RefKind == _kind);
 								}
 

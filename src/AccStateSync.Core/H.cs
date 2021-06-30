@@ -27,19 +27,17 @@ namespace AccStateSync
 				{
 					ClearUI();
 					UpdateUI();
-				};
-				JetPack.CharaHscene.OnHSceneSetClothStateStartMotion += (_sender, _args) =>
-				{
+
 					foreach (ChaControl _chaCtrl in _args.Female)
 					{
-						DebugMsg(LogLevel.Info, $"[OnHSceneSetClothStateStartMotion][{_chaCtrl.GetFullName()}]");
+						DebugMsg(LogLevel.Info, $"[OnHSceneFinishedLoading][{_chaCtrl.GetFullName()}]");
 						AccStateSyncController _pluginCtrl = GetController(_chaCtrl);
 						if (_pluginCtrl != null)
 						{
 							foreach (TriggerGroup _group in _pluginCtrl.TriggerGroupList)
 								_group.State = (_group.Secondary > -1) ? _group.Secondary : _group.Startup;
 							_pluginCtrl.RefreshCache();
-							_pluginCtrl.SyncAllAccToggle("OnHSceneSetClothStateStartMotion");
+							_pluginCtrl.SyncAllAccToggle("OnHSceneFinishedLoading");
 						}
 					}
 				};
