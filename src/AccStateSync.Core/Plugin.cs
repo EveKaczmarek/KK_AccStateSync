@@ -18,6 +18,7 @@ namespace AccStateSync
 	[BepInDependency("com.deathweasel.bepinex.materialeditor", "3.0.4")]
 	[BepInDependency("com.joan6694.illusionplugins.moreaccessories", "1.0.9")]
 #endif
+	[BepInDependency("madevil.JetPack")]
 	public partial class AccStateSync : BaseUnityPlugin
 	{
 		public const string GUID = "madevil.kk.ass";

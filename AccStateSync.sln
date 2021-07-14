@@ -3,18 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31129.286
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JetPack.KKS", "src\JetPack.KKS\JetPack.KKS.csproj", "{AC0D512F-F352-44CE-9D33-D8E5E440336B}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "JetPack.Core", "src\JetPack.Core\JetPack.Core.shproj", "{5A8FDB27-FFCA-4A77-AB0F-AFDEF9A034ED}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{310EC8E9-05A1-463D-9C40-FAB13FF2AF31}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JetPack.KK", "src\JetPack.KK\JetPack.KK.csproj", "{86EE4136-3917-4C5C-A36B-20D41D8763E2}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Project", "Project", "{2B5C7C60-8728-4756-BB27-A505D51F0914}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AccStateSync", "AccStateSync", "{CA264933-0F1F-499B-B4DB-5B2B6E8B8D62}"
-EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "AccStateSync.Core", "src\AccStateSync.Core\AccStateSync.Core.shproj", "{C29FACFB-84C6-4947-9045-9D7ECFFEDEA7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccStateSync.KK", "src\AccStateSync.KK\AccStateSync.KK.csproj", "{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}"
@@ -24,9 +12,6 @@ EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\AccStateSync.Core\AccStateSync.Core.projitems*{013e81e6-1b18-4cac-ae2f-b146a8d5c16b}*SharedItemsImports = 4
-		src\JetPack.Core\JetPack.Core.projitems*{5a8fdb27-ffca-4a77-ab0f-afdef9a034ed}*SharedItemsImports = 13
-		src\JetPack.Core\JetPack.Core.projitems*{86ee4136-3917-4c5c-a36b-20d41d8763e2}*SharedItemsImports = 4
-		src\JetPack.Core\JetPack.Core.projitems*{ac0d512f-f352-44ce-9d33-d8e5e440336b}*SharedItemsImports = 4
 		src\AccStateSync.Core\AccStateSync.Core.projitems*{b9edb713-2f55-4631-98d5-4d8123d27641}*SharedItemsImports = 4
 		src\AccStateSync.Core\AccStateSync.Core.projitems*{c29facfb-84c6-4947-9045-9d7ecffedea7}*SharedItemsImports = 13
 	EndGlobalSection
@@ -35,14 +20,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AC0D512F-F352-44CE-9D33-D8E5E440336B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AC0D512F-F352-44CE-9D33-D8E5E440336B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AC0D512F-F352-44CE-9D33-D8E5E440336B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AC0D512F-F352-44CE-9D33-D8E5E440336B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{86EE4136-3917-4C5C-A36B-20D41D8763E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{86EE4136-3917-4C5C-A36B-20D41D8763E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{86EE4136-3917-4C5C-A36B-20D41D8763E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{86EE4136-3917-4C5C-A36B-20D41D8763E2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -54,15 +31,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{AC0D512F-F352-44CE-9D33-D8E5E440336B} = {310EC8E9-05A1-463D-9C40-FAB13FF2AF31}
-		{5A8FDB27-FFCA-4A77-AB0F-AFDEF9A034ED} = {310EC8E9-05A1-463D-9C40-FAB13FF2AF31}
-		{86EE4136-3917-4C5C-A36B-20D41D8763E2} = {310EC8E9-05A1-463D-9C40-FAB13FF2AF31}
-		{CA264933-0F1F-499B-B4DB-5B2B6E8B8D62} = {2B5C7C60-8728-4756-BB27-A505D51F0914}
-		{C29FACFB-84C6-4947-9045-9D7ECFFEDEA7} = {CA264933-0F1F-499B-B4DB-5B2B6E8B8D62}
-		{013E81E6-1B18-4CAC-AE2F-B146A8D5C16B} = {CA264933-0F1F-499B-B4DB-5B2B6E8B8D62}
-		{B9EDB713-2F55-4631-98D5-4D8123D27641} = {CA264933-0F1F-499B-B4DB-5B2B6E8B8D62}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {239BBEA4-4562-4A50-8FA7-37FDC80B6643}
