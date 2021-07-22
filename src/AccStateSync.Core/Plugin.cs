@@ -16,14 +16,14 @@ namespace AccStateSync
 #elif KK
 	[BepInDependency("marco.kkapi", "1.17")]
 	[BepInDependency("com.deathweasel.bepinex.materialeditor", "3.0.4")]
-	[BepInDependency("com.joan6694.illusionplugins.moreaccessories", "1.0.9")]
+	[BepInDependency("com.joan6694.illusionplugins.moreaccessories", "1.1.0")]
 #endif
-	[BepInDependency("madevil.JetPack")]
+	[BepInDependency("madevil.JetPack", JetPack.Core.Version)]
 	public partial class AccStateSync : BaseUnityPlugin
 	{
 		public const string GUID = "madevil.kk.ass";
-		public const string Name = "AccStateSync (JetPack)";
-		public const string Version = "4.1.1.0";
+		public const string Name = "AccStateSync";
+		public const string Version = "4.2.0.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
