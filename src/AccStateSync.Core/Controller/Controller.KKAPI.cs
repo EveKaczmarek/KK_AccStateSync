@@ -27,6 +27,7 @@ namespace AccStateSync
 			public List<TriggerGroup> TriggerGroupList = new List<TriggerGroup>();
 			public bool TriggerEnabled = true;
 			internal bool _duringLoadChange = false;
+			internal bool _studioAutoEnable = false;
 			internal int _treeNodeObjID = -1000;
 
 			protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
@@ -45,8 +46,8 @@ namespace AccStateSync
 					return;
 				}
 
-				List<TriggerProperty> _tempTriggerProperty = _cachedCoordinatePropertyList.JsonClone() as List<TriggerProperty>;
-				List<TriggerGroup> _tempTriggerGroup = _cachedCoordinateGroupList.JsonClone() as List<TriggerGroup>;
+				List<TriggerProperty> _tempTriggerProperty = _cachedCoordinatePropertyList.JsonClone<List<TriggerProperty>>();
+				List<TriggerGroup> _tempTriggerGroup = _cachedCoordinateGroupList.JsonClone<List<TriggerGroup>>();
 				_tempTriggerProperty.ForEach(x => x.Coordinate = -1);
 				_tempTriggerGroup.ForEach(x => x.Coordinate = -1);
 				_tempTriggerGroup.ForEach(x => x.State = 0);
@@ -67,7 +68,7 @@ namespace AccStateSync
 
 				PluginData _pluginData = new PluginData() { version = _pluginDataVersion };
 				_pluginData.data.Add("TriggerPropertyList", MessagePackSerializer.Serialize(TriggerPropertyList));
-				List<TriggerGroup> _tempTriggerGroup = TriggerGroupList.JsonClone() as List<TriggerGroup>;
+				List<TriggerGroup> _tempTriggerGroup = TriggerGroupList.JsonClone<List<TriggerGroup>>();
 				if (JetPack.CharaMaker.Inside)
 					_tempTriggerGroup.ForEach(x => x.State = x.Startup);
 				_pluginData.data.Add("TriggerGroupList", MessagePackSerializer.Serialize(_tempTriggerGroup));
@@ -76,10 +77,6 @@ namespace AccStateSync
 
 			protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
 			{
-				/*
-				if (JetPack.CharaStudio.Running)
-					TriggerEnabled = false;
-				*/
 				if (!JetPack.CharaMaker.Inside || (JetPack.CharaMaker.Inside && _loadCoordinateExtdata))
 				{
 					TriggerPropertyList.RemoveAll(x => x.Coordinate == _currentCoordinateIndex);
@@ -89,7 +86,10 @@ namespace AccStateSync
 					if (_pluginData != null)
 					{
 						if (_pluginData.version > _pluginDataVersion)
-							_logger.Log(LogLevel.Error | LogLevel.Message, $"[OnCoordinateBeingLoaded][{CharaFullName}] ExtendedData.version: {_pluginData.version} is newer than your plugin");
+						{
+							_logger.LogMessage($"[AccStateSync][{CharaFullName}] a newer version of the plugin is required to load the card data");
+							_logger.LogDebug($"[OnCoordinateBeingLoaded] cannot read ExtendedData.version: {_pluginData.version}");
+						}
 						else if (_pluginData.version < _pluginDataVersion)
 						{
 							_logger.Log(LogLevel.Info, $"[OnCoordinateBeingLoaded][{CharaFullName}][Migrating from ver. {_pluginData.version}]");
@@ -130,15 +130,13 @@ namespace AccStateSync
 						MissingGroupCheck(_currentCoordinateIndex);
 						MissingPropertyCheck(_currentCoordinateIndex);
 					}
-
-					InitCurOutfitTriggerInfo("OnCoordinateBeingLoaded");
 				}
 				base.OnCoordinateBeingLoaded(coordinate);
 			}
 
 			protected override void OnReload(GameMode currentGameMode)
 			{
-				if (JetPack.CharaStudio.Running)
+				if (JetPack.CharaStudio.Running && _cfgStudioAutoEnable.Value)
 					TriggerEnabled = false;
 
 				if (!JetPack.CharaMaker.Inside || (JetPack.CharaMaker.Inside && _loadCharaExtdata))
@@ -150,7 +148,10 @@ namespace AccStateSync
 					if (_pluginData != null)
 					{
 						if (_pluginData.version > _pluginDataVersion)
-							_logger.Log(LogLevel.Error | LogLevel.Message, $"[OnReload][{CharaFullName}] ExtendedData.version: {_pluginData.version} is newer than your plugin");
+						{
+							_logger.LogMessage($"[AccStateSync][{CharaFullName}] a newer version of the plugin is required to load the card data");
+							_logger.LogDebug($"[OnReload] cannot read ExtendedData.version: {_pluginData.version}");
+						}
 						else if (_pluginData.version < _pluginDataVersion)
 						{
 							_logger.Log(LogLevel.Info, $"[OnReload][{CharaFullName}][Migrating from ver. {_pluginData.version}]");
@@ -185,19 +186,9 @@ namespace AccStateSync
 					}
 
 					if (JetPack.CharaStudio.Running && _cfgStudioAutoEnable.Value)
-						StartCoroutine(StudioAutoEnableCoroutine());
-
-					InitCurOutfitTriggerInfo("OnReload");
+						_studioAutoEnable = true;
 				}
 				base.OnReload(currentGameMode);
-			}
-
-			internal IEnumerator LoadChangeCoroutine()
-			{
-				yield return JetPack.Toolbox.WaitForEndOfFrame;
-				yield return JetPack.Toolbox.WaitForEndOfFrame;
-
-				_duringLoadChange = false;
 			}
 
 			internal IEnumerator StudioAutoEnableCoroutine()
@@ -229,8 +220,6 @@ namespace AccStateSync
 
 				if (JetPack.CharaMaker.Loaded)
 				{
-					if (_duringLoadChange)
-						StartCoroutine(LoadChangeCoroutine());
 					StartCoroutine(AccSlotChangedHandlerCoroutine());
 				}
 				else if (JetPack.CharaStudio.Loaded)

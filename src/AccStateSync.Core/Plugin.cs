@@ -23,7 +23,7 @@ namespace AccStateSync
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync";
-		public const string Version = "4.2.0.0";
+		public const string Version = "4.3.0.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
@@ -62,6 +62,31 @@ namespace AccStateSync
 #elif KKS
 			CharaMaker.RegisterControls();
 #endif
+			JetPack.Chara.OnChangeCoordinateType += (_sender, _args) =>
+			{
+				AccStateSyncController _pluginCtrl = GetController(_args.ChaControl);
+				if (_pluginCtrl == null) return;
+
+				if (_args.State == "Coroutine")
+					_pluginCtrl._duringLoadChange = false;
+				else
+					_pluginCtrl._duringLoadChange = true;
+			};
+
+			JetPack.MaterialEditor.OnDataApply += (_sender, _args) =>
+			{
+				if (_args.State != "Postfix") return;
+
+				AccStateSyncController _pluginCtrl = GetController((_args.Controller as CharaCustomFunctionController).ChaControl);
+				if (_pluginCtrl == null) return;
+
+				_pluginCtrl.InitCurOutfitTriggerInfo("OnDataApply");
+				if (_pluginCtrl._studioAutoEnable)
+				{
+					_pluginCtrl._studioAutoEnable = false;
+					_pluginCtrl.TriggerEnabled = true;
+				}
+			};
 		}
 
 		internal static void DebugMsg(LogLevel _level, string _meg)

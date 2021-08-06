@@ -10,6 +10,7 @@ namespace AccStateSync
 		internal partial class AccStateSyncUI
 		{
 			private readonly GUILayoutOption _previewLabelStudio = GUILayout.Width(110);
+			private Vector2 _cordScrollPos = Vector2.zero;
 
 			private void DrawStudioPreviewBlock()
 			{
@@ -19,36 +20,86 @@ namespace AccStateSync
 				}
 				GUILayout.EndHorizontal();
 
-				GUILayout.BeginHorizontal(GUI.skin.box);
+				if (_chaCtrl.chaFile.coordinate.Length < 8)
 				{
-					for (int i = 0; i < _cordNames.Count; i++)
+					GUILayout.BeginHorizontal(GUI.skin.box);
 					{
-						if (GUILayout.Button(new GUIContent($"{i + 1}", $"Switch to {_cordNames[i]}"), (i == _currentCoordinateIndex ? _buttonActive : GUI.skin.button), _priorityElem))
+						for (int i = 0; i < _chaCtrl.chaFile.coordinate.Length; i++)
 						{
-							if (i == _currentCoordinateIndex)
-								_chaCtrl.ChangeCoordinateTypeAndReload(false);
-							else
-								_chaCtrl.ChangeCoordinateTypeAndReload((ChaFileDefine.CoordinateType) i);
+							if (GUILayout.Button(new GUIContent($"{i + 1}", $"Switch to {GetCordName(_chaCtrl, i)}"), (i == _currentCoordinateIndex ? _buttonActive : GUI.skin.button), _priorityElem))
+							{
+								if (i == _currentCoordinateIndex)
+									_chaCtrl.ChangeCoordinateTypeAndReload(false);
+								else
+									_chaCtrl.ChangeCoordinateTypeAndReload((ChaFileDefine.CoordinateType)i);
+								StartCoroutine(CharaStudio.StatusPanelUpdateCoroutine());
+							}
+						}
+
+						GUILayout.FlexibleSpace();
+
+						int _shoesType = _chaCtrl.fileStatus.shoesType;
+
+						if (GUILayout.Button(new GUIContent("I", "Switch to indoors"), (_shoesType == 0 ? _buttonActive : GUI.skin.button), _priorityElem))
+						{
+							_chaCtrl.fileStatus.shoesType = 0;
+							StartCoroutine(CharaStudio.StatusPanelUpdateCoroutine());
+						}
+						if (GUILayout.Button(new GUIContent("O", "Switch to outdoors"), (_shoesType == 1 ? _buttonActive : GUI.skin.button), _priorityElem))
+						{
+							_chaCtrl.fileStatus.shoesType = 1;
 							StartCoroutine(CharaStudio.StatusPanelUpdateCoroutine());
 						}
 					}
-
-					GUILayout.FlexibleSpace();
-
-					int _shoesType = _chaCtrl.fileStatus.shoesType;
-
-					if (GUILayout.Button(new GUIContent("I", "Switch to indoors"), (_shoesType == 0 ? _buttonActive : GUI.skin.button), _priorityElem))
-					{
-						_chaCtrl.fileStatus.shoesType = 0;
-						StartCoroutine(CharaStudio.StatusPanelUpdateCoroutine());
-					}
-					if (GUILayout.Button(new GUIContent("O", "Switch to outdoors"), (_shoesType == 1 ? _buttonActive : GUI.skin.button), _priorityElem))
-					{
-						_chaCtrl.fileStatus.shoesType = 1;
-						StartCoroutine(CharaStudio.StatusPanelUpdateCoroutine());
-					}
+					GUILayout.EndHorizontal();
 				}
-				GUILayout.EndHorizontal();
+				else
+				{
+					GUILayout.BeginHorizontal();
+					{
+						GUILayout.BeginVertical(GUI.skin.box);
+						{
+							_cordScrollPos = GUILayout.BeginScrollView(_cordScrollPos, GUILayout.ExpandHeight(false));
+							{
+								GUILayout.BeginHorizontal();
+								{
+									for (int i = 0; i < _chaCtrl.chaFile.coordinate.Length; i++)
+									{
+										if (GUILayout.Button(new GUIContent($"{i + 1:00}", $"Switch to {GetCordName(_chaCtrl, i)}"), (i == _currentCoordinateIndex ? _buttonActive : GUI.skin.button), GUILayout.Width(30)))
+										{
+											if (i == _currentCoordinateIndex)
+												_chaCtrl.ChangeCoordinateTypeAndReload(false);
+											else
+												_chaCtrl.ChangeCoordinateTypeAndReload((ChaFileDefine.CoordinateType)i);
+											StartCoroutine(CharaStudio.StatusPanelUpdateCoroutine());
+										}
+									}
+								}
+								GUILayout.EndHorizontal();
+							}
+							GUILayout.EndScrollView();
+						}
+						GUILayout.EndVertical();
+
+						GUILayout.BeginVertical(GUI.skin.box);
+						{
+							int _shoesType = _chaCtrl.fileStatus.shoesType;
+
+							if (GUILayout.Button(new GUIContent("I", "Switch to indoors"), (_shoesType == 0 ? _buttonActive : GUI.skin.button), _priorityElem))
+							{
+								_chaCtrl.fileStatus.shoesType = 0;
+								StartCoroutine(CharaStudio.StatusPanelUpdateCoroutine());
+							}
+							if (GUILayout.Button(new GUIContent("O", "Switch to outdoors"), (_shoesType == 1 ? _buttonActive : GUI.skin.button), _priorityElem))
+							{
+								_chaCtrl.fileStatus.shoesType = 1;
+								StartCoroutine(CharaStudio.StatusPanelUpdateCoroutine());
+							}
+						}
+						GUILayout.EndVertical();
+					}
+					GUILayout.EndHorizontal();
+				}
 
 				_previewScrollPos = GUILayout.BeginScrollView(_previewScrollPos);
 				{

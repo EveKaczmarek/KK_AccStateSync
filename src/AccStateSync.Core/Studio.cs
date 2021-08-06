@@ -75,9 +75,9 @@ namespace AccStateSync
 					if (Studio.Studio.Instance.dicInfo.TryGetValue(_selectNodes[i], out ObjectCtrlInfo _info))
 					{
 						OCIChar _selected = _info as OCIChar;
-						if (_selected?.GetType() != null)
+						if (_selected != null && _selected.GetType() != null)
 						{
-							if (_selected?.charInfo == _chaCtrl)
+							if (_selected.charInfo == _chaCtrl)
 								return true;
 						}
 					}

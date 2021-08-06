@@ -37,24 +37,6 @@ namespace AccStateSync
 					}
 				}
 			}
-
-			[HarmonyPrefix, HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeCoordinateType), new[] { typeof(ChaFileDefine.CoordinateType), typeof(bool) })]
-			private static void ChaControl_ChangeCoordinateType_Prefix(ChaControl __instance)
-			{
-				if (!JetPack.CharaMaker.Inside) return;
-
-				AccStateSyncController _pluginCtrl = GetController(__instance);
-				if (_pluginCtrl != null)
-					_pluginCtrl._duringLoadChange = true;
-			}
-
-			[HarmonyPostfix, HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeCoordinateType), new[] { typeof(ChaFileDefine.CoordinateType), typeof(bool) })]
-			private static void ChaControl_ChangeCoordinateType_Postfix(ChaControl __instance)
-			{
-				AccStateSyncController _pluginCtrl = GetController(__instance);
-				if (_pluginCtrl != null)
-					_pluginCtrl.InitCurOutfitTriggerInfo("ChaControl_ChangeCoordinateType_Postfix");
-			}
 		}
 
 		internal class HooksCharaStudio

@@ -201,7 +201,7 @@ namespace AccStateSync
 
 			internal void MissingPropertyCheck(int _coordinate)
 			{
-				string _name = _cordNames[_coordinate];
+				string _name = GetCordName(ChaControl, _coordinate);
 				HashSet<int> _kinds = new HashSet<int>(TriggerPropertyList.Where(x => x.Coordinate == _coordinate).OrderBy(x => x.RefKind).Select(x => x.RefKind));
 				foreach (int _kind in _kinds)
 				{
@@ -236,7 +236,7 @@ namespace AccStateSync
 
 			internal void MissingGroupCheck(int _coordinate)
 			{
-				string _name = _cordNames[_coordinate];
+				string _name = GetCordName(ChaControl, _coordinate);
 				HashSet<int> _kinds = new HashSet<int>(TriggerPropertyList.Where(x => x.Coordinate == _coordinate && x.RefKind >= 9).OrderBy(x => x.RefKind).Select(x => x.RefKind));
 				foreach (int _kind in _kinds)
 				{

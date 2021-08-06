@@ -141,8 +141,15 @@ namespace AccStateSync
 			_cordNames = Enum.GetNames(typeof(ChaFileDefine.CoordinateType)).ToList();
 
 			foreach (object _key in Enum.GetValues(typeof(ChaAccessoryDefine.AccessoryParentKey)))
-				_accessoryParentNames[_key.ToString()] = ChaAccessoryDefine.dictAccessoryParent[(int)_key];
+				_accessoryParentNames[_key.ToString()] = ChaAccessoryDefine.dictAccessoryParent[(int) _key];
 		}
 
+		internal static string GetCordName(ChaControl _chaCtrl, int _coordinateIndex)
+		{
+			if (_coordinateIndex < _cordNames.Count)
+				return _cordNames[_coordinateIndex];
+
+			return JetPack.MoreOutfits.GetCoodinateName(_chaCtrl, _coordinateIndex);
+		}
 	}
 }
