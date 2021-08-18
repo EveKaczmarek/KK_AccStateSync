@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Controller\Controller.Common.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controller\Controller.Group.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controller\Controller.Maker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controller\Controller.GenuineDetector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\UI.Maker.Edit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\UI.Maker.Main.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\UI.Maker.Preview.cs" />

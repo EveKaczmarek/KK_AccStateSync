@@ -113,7 +113,8 @@ namespace AccStateSync
 					}
 					else
 					{
-						_chaCtrl.StartCoroutine(_pluginCtrl.AccSlotChangedHandlerCoroutine());
+						if (_args.TopIndex == 3)
+							_chaCtrl.StartCoroutine(_pluginCtrl.AccSlotChangedHandlerCoroutine());
 						_charaConfigWindow._onAccTab = false;
 					}
 				};

@@ -85,6 +85,15 @@ namespace AccStateSync
 					PluginData _pluginData = GetCoordinateExtendedData(coordinate);
 					if (_pluginData != null)
 					{
+						GenuineDetector _detector = GetGenuineDetector(ChaControl);
+						if (_detector == null)
+							_logger.Log(LogLevel.Error, $"[OnCoordinateBeingLoaded][{CharaFullName}] GenuineDetector has been disabled");
+						else
+						{
+							if (!_detector.IsGenuine)
+								_logger.LogMessage($"[AccStateSync][{CharaFullName}] PluginData has been modified by other plugin cannot guarantee data integrity");
+						}
+
 						if (_pluginData.version > _pluginDataVersion)
 						{
 							_logger.LogMessage($"[AccStateSync][{CharaFullName}] a newer version of the plugin is required to load the card data");
@@ -147,6 +156,15 @@ namespace AccStateSync
 					PluginData _pluginData = GetExtendedData();
 					if (_pluginData != null)
 					{
+						GenuineDetector _detector = GetGenuineDetector(ChaControl);
+						if (_detector == null)
+							_logger.Log(LogLevel.Error, $"[OnReload][{CharaFullName}] GenuineDetector has been disabled");
+						else
+						{
+							if (!_detector.IsGenuine)
+								_logger.LogMessage($"[AccStateSync][{CharaFullName}] PluginData has been modified by other plugin cannot guarantee data integrity");
+						}
+
 						if (_pluginData.version > _pluginDataVersion)
 						{
 							_logger.LogMessage($"[AccStateSync][{CharaFullName}] a newer version of the plugin is required to load the card data");

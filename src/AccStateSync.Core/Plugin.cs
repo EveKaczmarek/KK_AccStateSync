@@ -15,7 +15,6 @@ namespace AccStateSync
 	[BepInDependency("marco.kkapi", "1.20")]
 #elif KK
 	[BepInDependency("marco.kkapi", "1.17")]
-	[BepInDependency("com.deathweasel.bepinex.materialeditor", "3.0.4")]
 	[BepInDependency("com.joan6694.illusionplugins.moreaccessories", "1.1.0")]
 #endif
 	[BepInDependency("madevil.JetPack", JetPack.Core.Version)]
@@ -23,7 +22,7 @@ namespace AccStateSync
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync";
-		public const string Version = "4.3.0.0";
+		public const string Version = "4.3.1.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
@@ -37,7 +36,7 @@ namespace AccStateSync
 			InitConstants();
 
 			MoreAccessories.Init();
-
+			GenuineDetectorInit();
 			CharacterApi.RegisterExtraBehaviour<AccStateSyncController>(GUID);
 
 			Harmony.CreateAndPatchAll(typeof(Hooks));

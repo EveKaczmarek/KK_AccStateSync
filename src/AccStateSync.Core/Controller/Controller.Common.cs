@@ -221,7 +221,7 @@ namespace AccStateSync
 			public void CloneSlotTriggerProperty(int _srcSlotIndex, int _dstSlotIndex, int _srcCoordinateIndex, int _dstCoordinateIndex)
 			{
 				RemoveSlotTriggerProperty(_dstCoordinateIndex, _dstSlotIndex);
-				List<TriggerProperty> _triggers =  TriggerPropertyList.Where(x => x.Coordinate == _srcCoordinateIndex && x.Slot == _srcSlotIndex).ToList();
+				List<TriggerProperty> _triggers = TriggerPropertyList.Where(x => x.Coordinate == _srcCoordinateIndex && x.Slot == _srcSlotIndex).ToList();
 				if (_triggers?.Count > 0)
 				{
 					foreach (TriggerProperty _trigger in _triggers)
