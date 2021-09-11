@@ -26,7 +26,7 @@ namespace AccStateSync
 			[HarmonyPostfix, HarmonyPatch(typeof(ChaFileStatus), nameof(ChaFileStatus.shoesType), MethodType.Setter)]
 			internal static void ChaFileStatus_ShoesType_Postfix(ChaFileStatus __instance)
 			{
-				ChaControl _chaCtrl = FindObjectsOfType<ChaControl>().Where(x => x?.chaFile?.status == __instance).FirstOrDefault();
+				ChaControl _chaCtrl = FindObjectsOfType<ChaControl>().FirstOrDefault(x => x?.chaFile?.status == __instance);
 				if (_chaCtrl != null)
 				{
 					AccStateSyncController _pluginCtrl = GetController(_chaCtrl);

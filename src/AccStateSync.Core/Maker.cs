@@ -29,7 +29,7 @@ namespace AccStateSync
 			internal static AccStateSyncController _pluginCtrl => GetController(CustomBase.Instance?.chaCtrl);
 			internal static Toggle _imgTglCol01, _imgTglCol02;
 			internal static Transform _accMenuTree;
-			internal static int _currentSlotIndex => GetCurrentAccSlot();
+			internal static int _currentSlotIndex => JetPack.CharaMaker.CurrentAccssoryIndex;
 			internal static string _savePath = Paths.ConfigPath;
 
 			internal static void RegisterControls()
@@ -80,7 +80,8 @@ namespace AccStateSync
 						_accMenuTree = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/04_AccessoryTop").transform;
 					MoreAccessories.HarmonyPatch();
 				};
-				MakerAPI.MakerExiting += (_sender, _args) =>
+
+				JetPack.CharaMaker.OnMakerExiting += (_sender, _args) =>
 				{
 					Destroy(_charaConfigWindow);
 
@@ -93,7 +94,6 @@ namespace AccStateSync
 					_imgTglCol01 = null;
 					_imgTglCol02 = null;
 				};
-
 				JetPack.CharaMaker.OnCvsNavMenuClick += (_sender, _args) =>
 				{
 					if (_args.TopIndex == 4)
@@ -148,29 +148,6 @@ namespace AccStateSync
 					else
 						_pluginCtrl.SetAccessoryStateCategory(1, _value);
 				});
-			}
-
-			internal static int GetCurrentAccSlot()
-			{
-				int _slotIndex = -1;
-				foreach (Transform _child in _accMenuTree)
-				{
-					if (!_child.gameObject.activeSelf)
-						break;
-
-					Toggle _toggle = _child.GetComponent<Toggle>();
-					if (_toggle == null)
-						break;
-
-					if (_toggle.isOn)
-					{
-						CvsAccessory _cmp = _toggle.GetComponentInChildren<CvsAccessory>(true);
-						if (_cmp != null)
-							_slotIndex = (int)_cmp.slotNo;
-						break;
-					}
-				}
-				return _slotIndex;
 			}
 		}
 	}

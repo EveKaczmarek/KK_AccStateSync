@@ -127,7 +127,7 @@ namespace AccStateSync
 												{
 													if (_keys.ContainsKey((byte) j))
 													{
-														TriggerProperty _triggerState = _triggersRefSlot.Where(x => x.RefState == j).FirstOrDefault();
+														TriggerProperty _triggerState = _triggersRefSlot.FirstOrDefault(x => x.RefState == j);
 														GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
 														GUILayout.Label(_statesNames[j], GUILayout.ExpandWidth(false));
 														GUILayout.FlexibleSpace();
@@ -222,7 +222,7 @@ namespace AccStateSync
 										{
 											foreach (KeyValuePair<int, string> _state in _states)
 											{
-												TriggerProperty _trigger = _triggersRefSlot.Where(x => x.RefState == _state.Key).FirstOrDefault();
+												TriggerProperty _trigger = _triggersRefSlot.FirstOrDefault(x => x.RefState == _state.Key);
 												if (_trigger == null) continue;
 
 												GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));

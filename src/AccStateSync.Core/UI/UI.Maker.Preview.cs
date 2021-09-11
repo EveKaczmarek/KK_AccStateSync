@@ -36,53 +36,32 @@ namespace AccStateSync
 								GUILayout.Label($"({_count}) {_clothesNames[i]}", _label, _previewLabel, GUILayout.ExpandWidth(false));
 								GUILayout.FlexibleSpace();
 
-								if (_states.Count > 3)
+								if (GUILayout.Button(new GUIContent("<", "Switch to previous state"), _priorityElem))
 								{
+									int _index = _states.IndexOf(_state) - 1;
 									if (_state == 0)
-										GUI.enabled = false;
-									if (GUILayout.Button(new GUIContent("<", "Switch to previous state"), _priorityElem))
+										_index = _states.Count - 1;
+									if (i == 7 || i == 8)
 									{
-										int _index = _states.IndexOf(_state) - 1;
-										if (i == 7 || i == 8)
-										{
-											_chaCtrl.SetClothesState(7, (byte) _states[_index]);
-											_chaCtrl.SetClothesState(8, (byte) _states[_index]);
-										}
-										else
-											_chaCtrl.SetClothesState(i, (byte) _states[_index]);
+										_chaCtrl.SetClothesState(7, (byte) _states[_index]);
+										_chaCtrl.SetClothesState(8, (byte) _states[_index]);
 									}
-									GUI.enabled = true;
-									GUILayout.Label(_state.ToString(), _labelAlignCenter, _priorityElem);
-									if (_state == _states[_states.Count - 1])
-										GUI.enabled = false;
-									if (GUILayout.Button(new GUIContent(">", "Switch to next state"), _priorityElem))
-									{
-										int _index = _states.IndexOf(_state) + 1;
-										if (i == 7 || i == 8)
-										{
-											_chaCtrl.SetClothesState(7, (byte) _states[_index]);
-											_chaCtrl.SetClothesState(8, (byte) _states[_index]);
-										}
-										else
-											_chaCtrl.SetClothesState(i, (byte) _states[_index]);
-									}
-									GUI.enabled = true;
+									else
+										_chaCtrl.SetClothesState(i, (byte) _states[_index]);
 								}
-								else
+								GUILayout.Label(_state.ToString(), _labelAlignCenter, _priorityElem);
+								if (GUILayout.Button(new GUIContent(">", "Switch to next state"), _priorityElem))
 								{
-									foreach (int j in _states)
+									int _index = _states.IndexOf(_state) + 1;
+									if (_state == _states[_states.Count - 1])
+										_index = 0;
+									if (i == 7 || i == 8)
 									{
-										if (GUILayout.Button(new GUIContent(j.ToString(), $"Switch {_clothesNames[i]} to {_statesNames[j]} state"), (_state == j ? _buttonActive : GUI.skin.button), _priorityElem))
-										{
-											if (i == 7 || i == 8)
-											{
-												_chaCtrl.SetClothesState(7, (byte) j);
-												_chaCtrl.SetClothesState(8, (byte) j);
-											}
-											else
-												_chaCtrl.SetClothesState(i, (byte) j);
-										}
+										_chaCtrl.SetClothesState(7, (byte) _states[_index]);
+										_chaCtrl.SetClothesState(8, (byte) _states[_index]);
 									}
+									else
+										_chaCtrl.SetClothesState(i, (byte) _states[_index]);
 								}
 							}
 							GUILayout.EndHorizontal();
@@ -101,34 +80,21 @@ namespace AccStateSync
 
 							List<int> _states = _group.States.OrderBy(x => x.Key).Select(x => x.Key).ToList();
 
-							if (_states.Count > 3)
+							int _state = _group.State;
+							if (GUILayout.Button(new GUIContent("<", "Switch to previous state"), _priorityElem))
 							{
-								int _state = _group.State;
+								int _index = _states.IndexOf(_state) - 1;
 								if (_state == _states[0])
-									GUI.enabled = false;
-								if (GUILayout.Button(new GUIContent("<", "Switch to previous state"), _priorityElem))
-								{
-									int _index = _states.IndexOf(_state) - 1;
-									_pluginCtrl.SetGroupState(_group.Kind, _states[_index]);
-								}
-								GUI.enabled = true;
-								GUILayout.Label(_state.ToString(), _labelAlignCenter, _priorityElem);
-								if (_state == _states[_states.Count - 1])
-									GUI.enabled = false;
-								if (GUILayout.Button(new GUIContent(">", "Switch to next state"), _priorityElem))
-								{
-									int _index = _states.IndexOf(_state) + 1;
-									_pluginCtrl.SetGroupState(_group.Kind, _states[_index]);
-								}
-								GUI.enabled = true;
+									_index = _states.Count - 1;
+								_pluginCtrl.SetGroupState(_group.Kind, _states[_index]);
 							}
-							else
+							GUILayout.Label(_state.ToString(), _labelAlignCenter, _priorityElem);
+							if (GUILayout.Button(new GUIContent(">", "Switch to next state"), _priorityElem))
 							{
-								foreach (int _state in _states)
-								{
-									if (GUILayout.Button(new GUIContent(_state.ToString(), $"Switch {_group.Label} to {_group.States[_state]} state"), (_state == _group.State ? _buttonActive : GUI.skin.button), _priorityElem))
-										_pluginCtrl.SetGroupState(_group.Kind, _state);
-								}
+								int _index = _states.IndexOf(_state) + 1;
+								if (_state == _states[_states.Count - 1])
+									_index = 0;
+								_pluginCtrl.SetGroupState(_group.Kind, _states[_index]);
 							}
 						}
 						GUILayout.EndHorizontal();

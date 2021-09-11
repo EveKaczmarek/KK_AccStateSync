@@ -115,7 +115,7 @@ namespace AccStateSync
 						}
 						else if (x.RefKind >= 9)
 						{
-							TriggerGroup _group = _cachedCoordinateGroupList.Where(y => y.Kind == x.RefKind).FirstOrDefault();
+							TriggerGroup _group = _cachedCoordinateGroupList.FirstOrDefault(y => y.Kind == x.RefKind);
 							if (_group != null && _group.State == x.RefState)
 							{
 								_effectingPropert = x;
@@ -164,7 +164,7 @@ namespace AccStateSync
 						}
 						else if (x.RefKind >= 9)
 						{
-							TriggerGroup _group = _cachedCoordinateGroupList.Where(y => y.Kind == x.RefKind).FirstOrDefault();
+							TriggerGroup _group = _cachedCoordinateGroupList.FirstOrDefault(y => y.Kind == x.RefKind);
 							if (_group != null && _group.State == x.RefState)
 							{
 								_effectingPropert = x;
@@ -192,7 +192,7 @@ namespace AccStateSync
 
 			internal TriggerProperty GetTriggerProperty(int _coordinate, int _slot, int _refKind, int _refState)
 			{
-				return TriggerPropertyList.Where(x => x.Coordinate == _coordinate && x.Slot == _slot && x.RefKind == _refKind && x.RefState == _refState).FirstOrDefault();
+				return TriggerPropertyList.FirstOrDefault(x => x.Coordinate == _coordinate && x.Slot == _slot && x.RefKind == _refKind && x.RefState == _refState);
 			}
 
 			internal TriggerProperty NewOrGetTriggerProperty(int _coordinate, int _slot, int _refKind, int _refState)
@@ -232,14 +232,14 @@ namespace AccStateSync
 
 						if (_srcCoordinateIndex != _dstCoordinateIndex && _copy.RefKind >= 9)
 						{
-							string _guid = TriggerGroupList.Where(x => x.Coordinate == _srcCoordinateIndex && x.Kind == _copy.RefKind).FirstOrDefault()?.GUID;
+							string _guid = TriggerGroupList.FirstOrDefault(x => x.Coordinate == _srcCoordinateIndex && x.Kind == _copy.RefKind)?.GUID;
 							if (_guid.IsNullOrEmpty())
 							{
 								_logger.LogMessage($"Something seriously fucked up, don't save your card");
 								continue;
 							}
 
-							TriggerGroup _dstGroup = TriggerGroupList.Where(x => x.Coordinate == _dstCoordinateIndex && x.GUID == _guid).FirstOrDefault();
+							TriggerGroup _dstGroup = TriggerGroupList.FirstOrDefault(x => x.Coordinate == _dstCoordinateIndex && x.GUID == _guid);
 							if (_dstGroup == null)
 							{
 								TriggerGroup _clone = GetTriggerGroup(_srcCoordinateIndex, _trigger.RefKind).JsonClone() as TriggerGroup;

@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using TMPro;
-using ParadoxNotion.Serialization;
 
 using BepInEx.Logging;
 
@@ -81,19 +80,19 @@ namespace AccStateSync
 				{
 					if (JetPack.CharaHscene.Heroine.Count > 1)
 					{
-						ClearButton(_sprite.lstMultipleFemaleDressButton[0].accessoryAll.gameObject);
-						ClearButton(_sprite.lstMultipleFemaleDressButton[1].accessoryAll.gameObject);
+						ClearButton(_sprite.lstMultipleFemaleDressButton[0].accessoryAll.transform);
+						ClearButton(_sprite.lstMultipleFemaleDressButton[1].accessoryAll.transform);
 					}
 					else
-						ClearButton(_sprite.categoryAccessoryAll.gameObject);
+						ClearButton(_sprite.categoryAccessoryAll.transform);
 				}
 			}
 
 			internal static readonly List<string> _whitelist = new List<string>() { "Clothing", "Undressing", "Category1Clothing", "Category1Undressing", "Category2Clothing", "Category2Undressing" };
 
-			internal static void ClearButton(GameObject _parent)
+			internal static void ClearButton(Transform _parent)
 			{
-				foreach (Transform _child in _parent.transform)
+				foreach (Transform _child in _parent)
 				{
 					if (_whitelist.IndexOf(_child.name) < 0)
 						Destroy(_child.gameObject);

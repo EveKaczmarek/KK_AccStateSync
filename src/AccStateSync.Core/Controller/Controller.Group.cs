@@ -15,12 +15,12 @@ namespace AccStateSync
 			internal TriggerGroup GetTriggerGroup(int _kind) => GetTriggerGroup(_currentCoordinateIndex, _kind);
 			internal TriggerGroup GetTriggerGroup(int _coordinate, int _kind)
 			{
-				return TriggerGroupList.Where(x => x.Coordinate == _coordinate && x.Kind == _kind).FirstOrDefault();
+				return TriggerGroupList.FirstOrDefault(x => x.Coordinate == _coordinate && x.Kind == _kind);
 			}
 
 			internal TriggerGroup GetTriggerGroupByGUID(int _coordinate, string _guid)
 			{
-				return TriggerGroupList.Where(x => x.Coordinate == _coordinate && x.GUID == _guid).FirstOrDefault();
+				return TriggerGroupList.FirstOrDefault(x => x.Coordinate == _coordinate && x.GUID == _guid);
 			}
 
 			internal TriggerGroup NewOrGetTriggerGroup(int _coordinate, int _kind)

@@ -1,28 +1,34 @@
+#if KK
+using UnityEngine;
+#endif
+using ParadoxNotion.Serialization;
+
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 
-using UnityEngine;
-using ParadoxNotion.Serialization;
+using ExtensibleSaveFormat;
 
+using KKAPI;
 using KKAPI.Chara;
+#if KK
 using KKAPI.Studio;
+#endif
 
 namespace AccStateSync
 {
 	[BepInPlugin(GUID, Name, Version)]
-#if KKS
-	[BepInDependency("marco.kkapi", "1.20")]
-#elif KK
-	[BepInDependency("marco.kkapi", "1.17")]
+	[BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
+	[BepInDependency(ExtendedSave.GUID, ExtendedSave.Version)]
+	[BepInDependency("madevil.JetPack", JetPack.Core.Version)]
+#if KK
 	[BepInDependency("com.joan6694.illusionplugins.moreaccessories", "1.1.0")]
 #endif
-	[BepInDependency("madevil.JetPack", JetPack.Core.Version)]
 	public partial class AccStateSync : BaseUnityPlugin
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync";
-		public const string Version = "4.3.1.0";
+		public const string Version = "4.3.2.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
@@ -60,6 +66,7 @@ namespace AccStateSync
 			}
 #elif KKS
 			CharaMaker.RegisterControls();
+			Migration.InitCardImport();
 #endif
 			JetPack.Chara.OnChangeCoordinateType += (_sender, _args) =>
 			{

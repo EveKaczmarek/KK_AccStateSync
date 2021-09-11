@@ -7,6 +7,8 @@ using MessagePack;
 using BepInEx.Logging;
 using ExtensibleSaveFormat;
 
+using JetPack;
+
 namespace AccStateSync
 {
 	public partial class AccStateSync
@@ -284,7 +286,12 @@ namespace AccStateSync
 				CopyDestination.State = CopySource.State.ToList();
 			}
 #if KKS
-			internal static void CardBeingImported(Dictionary<string, PluginData> _importedExtData)
+			internal static void InitCardImport()
+			{
+				ExtendedSave.CardBeingImported += CardBeingImported;
+			}
+
+			internal static void CardBeingImported(Dictionary<string, PluginData> _importedExtData, Dictionary<int, int?> _coordinateMapping)
 			{
 				if (_importedExtData.TryGetValue("madevil.kk.ass", out PluginData _pluginData))
 				{
@@ -316,7 +323,7 @@ namespace AccStateSync
 										foreach (TriggerGroup _group in _tempTriggerGroup)
 										{
 											if (_group.GUID.IsNullOrEmpty())
-												_group.GUID = JetPack.Toolbox.GUID("D");
+												_group.GUID = Toolbox.GUID("D");
 										}
 										TriggerGroupList.AddRange(_tempTriggerGroup);
 									}
@@ -324,9 +331,36 @@ namespace AccStateSync
 							}
 						}
 
-						TriggerPropertyList.RemoveAll(x => x.Coordinate > 0);
-						TriggerGroupList.RemoveAll(x => x.Coordinate > 0);
-						TriggerGroupList.ForEach(x => x.State = x.Startup);
+						if (TriggerPropertyList.Count > 0)
+						{
+							TriggerGroupList.ForEach(x => x.State = x.Startup);
+
+							List<TriggerProperty> _tempTriggerProperty = new List<TriggerProperty>();
+							List<TriggerGroup> _tempTriggerGroup = new List<TriggerGroup>();
+
+							for (int i = 0; i < _coordinateMapping.Count; i++)
+							{
+								if (_coordinateMapping[i] == null) continue;
+
+								List<TriggerProperty> _copy = TriggerPropertyList.Where(x => x.Coordinate == i).ToList().JsonClone<List<TriggerProperty>>();
+								if (_copy.Count == 0) continue;
+
+								_copy.ForEach(x => x.Coordinate = (int) _coordinateMapping[i]);
+								_tempTriggerProperty.AddRange(_copy);
+							}
+
+							for (int i = 0; i < _coordinateMapping.Count; i++)
+							{
+								if (_coordinateMapping[i] == null) continue;
+								if (!_tempTriggerProperty.Any(x => x.Coordinate == (int) _coordinateMapping[i])) continue;
+
+								List<TriggerGroup> _copy = TriggerGroupList.Where(x => x.Coordinate == i).ToList().JsonClone<List<TriggerGroup>>();
+								if (_copy.Count == 0) continue;
+
+								_copy.ForEach(x => x.Coordinate = (int) _coordinateMapping[i]);
+								_tempTriggerGroup.AddRange(_copy);
+							}
+						}
 
 						_importedExtData.Remove("madevil.kk.ass");
 
