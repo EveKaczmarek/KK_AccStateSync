@@ -190,6 +190,13 @@ namespace AccStateSync
 				SyncAllAccToggle(_caller);
 			}
 
+			internal void RefreshHscenePreview(string _caller)
+			{
+				if (_cfgResetOnCoordinateChange.Value)
+					SetAccessoryStateAll(true);
+				SyncAllAccToggle(_caller);
+			}
+
 			internal TriggerProperty GetTriggerProperty(int _coordinate, int _slot, int _refKind, int _refState)
 			{
 				return TriggerPropertyList.FirstOrDefault(x => x.Coordinate == _coordinate && x.Slot == _slot && x.RefKind == _refKind && x.RefState == _refState);

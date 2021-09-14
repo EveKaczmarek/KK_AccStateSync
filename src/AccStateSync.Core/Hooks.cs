@@ -13,6 +13,8 @@ namespace AccStateSync
 
 		internal class Hooks
 		{
+			internal static bool Return_False() => false;
+
 			[HarmonyPriority(Priority.Last)]
 			[HarmonyPostfix, HarmonyPatch(typeof(ChaControl), nameof(ChaControl.SetClothesState), new[] { typeof(int), typeof(byte), typeof(bool) })]
 			internal static void ChaControl_SetClothesState_Postfix(ChaControl __instance, int clothesKind)

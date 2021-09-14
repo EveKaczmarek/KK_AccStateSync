@@ -28,7 +28,7 @@ namespace AccStateSync
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync";
-		public const string Version = "4.3.2.0";
+		public const string Version = "4.3.3.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
@@ -45,7 +45,7 @@ namespace AccStateSync
 			GenuineDetectorInit();
 			CharacterApi.RegisterExtraBehaviour<AccStateSyncController>(GUID);
 
-			Harmony.CreateAndPatchAll(typeof(Hooks));
+			_hooksInstance["General"] = Harmony.CreateAndPatchAll(typeof(Hooks));
 #if KK
 			if (Application.dataPath.EndsWith("CharaStudio_Data"))
 				StudioAPI.StudioLoadedChanged += (_sender, _args) => CharaStudio.RegisterControls();
@@ -68,6 +68,9 @@ namespace AccStateSync
 			CharaMaker.RegisterControls();
 			Migration.InitCardImport();
 #endif
+			_hooksInstance["General"].Patch(JetPack.MaterialEditor.Type["MaterialEditorCharaController"].GetMethod("ClothesStateChangeEvent", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.Return_False)));
+
+
 			JetPack.Chara.OnChangeCoordinateType += (_sender, _args) =>
 			{
 				AccStateSyncController _pluginCtrl = GetController(_args.ChaControl);

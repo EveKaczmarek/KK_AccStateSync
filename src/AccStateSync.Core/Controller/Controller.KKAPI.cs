@@ -253,7 +253,7 @@ namespace AccStateSync
 				}
 				else if (JetPack.CharaHscene.Loaded)
 				{
-					RefreshPreview(_caller);
+					RefreshHscenePreview(_caller);
 					CharaHscene.ClearUI();
 					CharaHscene.UpdateUI();
 				}

@@ -24,6 +24,8 @@ namespace AccStateSync
 		internal static ConfigEntry<bool> _cfgStudioWinResScale;
 		internal static ConfigEntry<bool> _cfgStudioAutoEnable;
 
+		internal static ConfigEntry<bool> _cfgResetOnCoordinateChange;
+
 		internal void InitConfig()
 		{
 			_cfgMakerWinEnable = Config.Bind("Maker", "Config Window Startup Enable", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 20 }));
@@ -100,6 +102,8 @@ namespace AccStateSync
 			};
 
 			_cfgStudioAutoEnable = Config.Bind("Studio", "Auto Enable After Load", false, new ConfigDescription("Automatically enable after scene or character load", null, new ConfigurationManagerAttributes { Order = 1 }));
+
+			_cfgResetOnCoordinateChange = Config.Bind("Hscene", "Reset On Coordinate Change", false, new ConfigDescription("A full reset when changing coordinate", null, new ConfigurationManagerAttributes { Order = 1 }));
 		}
 	}
 }
