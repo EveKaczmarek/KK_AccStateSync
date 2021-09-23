@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -22,12 +21,14 @@ namespace AccStateSync
 
 			internal static void Init()
 			{
+#if MoreAcc
 				_instance = JetPack.MoreAccessories.Instance;
 				if (_instance == null) return;
 
 				_installed = true;
 				_type = _instance.GetType();
 				_newVer = JetPack.MoreAccessories.NewVer;
+#endif
 			}
 
 			internal static void HarmonyPatch()

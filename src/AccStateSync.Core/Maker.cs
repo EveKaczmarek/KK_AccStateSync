@@ -70,6 +70,7 @@ namespace AccStateSync
 					});
 					_accWinCtrlEnable = MakerAPI.AddAccessoryWindowControl(new MakerButton("AccStateSync", null, _instance));
 					_accWinCtrlEnable.OnClick.AddListener(() => _charaConfigWindow.enabled = true);
+					_accWinCtrlEnable.Visible.OnNext(false);
 				};
 				MakerAPI.MakerFinishedLoading += (_sender, _args) =>
 				{
@@ -100,14 +101,13 @@ namespace AccStateSync
 					{
 						if (_args.SideToggle?.GetComponentInChildren<CvsAccessory>(true) == null)
 						{
-							_chaCtrl.StartCoroutine(_pluginCtrl.AccSlotChangedHandlerCoroutine());
 							_charaConfigWindow._onAccTab = false;
 							_pluginCtrl._curPartsInfo = null;
 							_pluginCtrl._cachedSlotPropertyList.Clear();
+							_chaCtrl.StartCoroutine(_pluginCtrl.AccSlotChangedHandlerCoroutine());
 							return;
 						}
 
-						int _slotIndex = (int) _args.SideToggle.GetComponentInChildren<CvsAccessory>(true)?.slotNo;
 						_chaCtrl.StartCoroutine(_pluginCtrl.AccSlotChangedHandlerCoroutine());
 						_charaConfigWindow._onAccTab = true;
 					}
@@ -126,7 +126,7 @@ namespace AccStateSync
 
 			internal static void PatchMakerToggles()
 			{
-				Toggle[] _toggle = Traverse.Create(CustomBase.Instance.customCtrl.cmpDrawCtrl).Field("tglShowAccessory").GetValue<Toggle[]>();
+				Toggle[] _toggle = CustomBase.Instance.customCtrl.cmpDrawCtrl.tglShowAccessory;
 
 				_imgTglCol01 = _toggle[0];
 				_imgTglCol02 = _toggle[1];

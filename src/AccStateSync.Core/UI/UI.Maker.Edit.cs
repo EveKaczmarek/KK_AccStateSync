@@ -191,74 +191,76 @@ namespace AccStateSync
 					}
 				}
 				GUILayout.EndHorizontal();
-#if DEBUG
-				GUILayout.BeginHorizontal(GUI.skin.box);
-				{
-					GUILayout.Label("Debug", _label);
-					GUILayout.FlexibleSpace();
-					if (GUILayout.Button("Trigger", GUILayout.Width(65)))
-					{
-						List<TriggerProperty> _data = _pluginCtrl.TriggerPropertyList;
-						string _json = JSONSerializer.Serialize(_data.GetType(), _data, true);
-						_logger.LogInfo("[TriggerPropertyList]\n" + _json);
-					}
-					if (GUILayout.Button("Group", GUILayout.Width(65)))
-					{
-						List<TriggerGroup> _data = _pluginCtrl.TriggerGroupList;
-						string _json = JSONSerializer.Serialize(_data.GetType(), _data, true);
-						_logger.LogInfo("[TriggerGroupList]\n" + _json);
-					}
-				}
-				GUILayout.EndHorizontal();
 
-				GUILayout.BeginHorizontal(GUI.skin.box);
+				if (_cfgDebugMode.Value)
 				{
-					GUILayout.Label("Export", _label);
-					GUILayout.FlexibleSpace();
-					if (GUILayout.Button("Trigger", GUILayout.Width(65)))
+					GUILayout.BeginHorizontal(GUI.skin.box);
 					{
-						List<TriggerProperty> _data = _pluginCtrl.TriggerPropertyList.Where(x => x.Coordinate == _currentCoordinateIndex).ToList().JsonClone() as List<TriggerProperty>;
-						_data.ForEach(x => x.Coordinate = -1);
-						string _json = JSONSerializer.Serialize(_data.GetType(), _data, true);
-						string _filePath = Path.Combine(_cfgExportPath.Value, $"ASS_Trigger_{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.json");
-						if (!Directory.Exists(_cfgExportPath.Value))
-							Directory.CreateDirectory(_cfgExportPath.Value);
-						File.WriteAllText(_filePath, _json);
-						_logger.LogMessage($"Trigger settings exported to {_filePath}");
+						GUILayout.Label("Debug", _label);
+						GUILayout.FlexibleSpace();
+						if (GUILayout.Button("Trigger", GUILayout.Width(65)))
+						{
+							List<TriggerProperty> _data = _pluginCtrl.TriggerPropertyList;
+							string _json = JSONSerializer.Serialize(_data.GetType(), _data, true);
+							_logger.LogInfo("[TriggerPropertyList]\n" + _json);
+						}
+						if (GUILayout.Button("Group", GUILayout.Width(65)))
+						{
+							List<TriggerGroup> _data = _pluginCtrl.TriggerGroupList;
+							string _json = JSONSerializer.Serialize(_data.GetType(), _data, true);
+							_logger.LogInfo("[TriggerGroupList]\n" + _json);
+						}
 					}
-					if (GUILayout.Button("Group", GUILayout.Width(65)))
-					{
-						List<TriggerGroup> _data = _pluginCtrl.TriggerGroupList.Where(x => x.Coordinate == _currentCoordinateIndex).ToList().JsonClone() as List<TriggerGroup>;
-						_data.ForEach(x => x.Coordinate = -1);
-						string _json = JSONSerializer.Serialize(_data.GetType(), _data, true);
-						string _filePath = Path.Combine(_cfgExportPath.Value, $"ASS_Group_{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.json");
-						if (!Directory.Exists(_cfgExportPath.Value))
-							Directory.CreateDirectory(_cfgExportPath.Value);
-						File.WriteAllText(_filePath, _json);
-						_logger.LogMessage($"Group settings exported to {_filePath}");
-					}
-				}
-				GUILayout.EndHorizontal();
+					GUILayout.EndHorizontal();
 
-				GUILayout.BeginHorizontal(GUI.skin.box);
-				{
-					GUILayout.Label("Import", _label);
-					GUILayout.FlexibleSpace();
-					if (GUILayout.Button("Trigger", GUILayout.Width(65)))
+					GUILayout.BeginHorizontal(GUI.skin.box);
 					{
-						const string _fileExt = ".json";
-						const string _fileFilter = "Exported Setting (*.json)|*.json|All files|*.*";
-						OpenFileDialog.Show(_string => OnFileAccept(_string, "Trigger"), "Open Exported Setting", CharaMaker._savePath, _fileFilter, _fileExt);
+						GUILayout.Label("Export", _label);
+						GUILayout.FlexibleSpace();
+						if (GUILayout.Button("Trigger", GUILayout.Width(65)))
+						{
+							List<TriggerProperty> _data = _pluginCtrl.TriggerPropertyList.Where(x => x.Coordinate == _currentCoordinateIndex).ToList().JsonClone() as List<TriggerProperty>;
+							_data.ForEach(x => x.Coordinate = -1);
+							string _json = JSONSerializer.Serialize(_data.GetType(), _data, true);
+							string _filePath = Path.Combine(_cfgExportPath.Value, $"ASS_Trigger_{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.json");
+							if (!Directory.Exists(_cfgExportPath.Value))
+								Directory.CreateDirectory(_cfgExportPath.Value);
+							File.WriteAllText(_filePath, _json);
+							_logger.LogMessage($"Trigger settings exported to {_filePath}");
+						}
+						if (GUILayout.Button("Group", GUILayout.Width(65)))
+						{
+							List<TriggerGroup> _data = _pluginCtrl.TriggerGroupList.Where(x => x.Coordinate == _currentCoordinateIndex).ToList().JsonClone() as List<TriggerGroup>;
+							_data.ForEach(x => x.Coordinate = -1);
+							string _json = JSONSerializer.Serialize(_data.GetType(), _data, true);
+							string _filePath = Path.Combine(_cfgExportPath.Value, $"ASS_Group_{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.json");
+							if (!Directory.Exists(_cfgExportPath.Value))
+								Directory.CreateDirectory(_cfgExportPath.Value);
+							File.WriteAllText(_filePath, _json);
+							_logger.LogMessage($"Group settings exported to {_filePath}");
+						}
 					}
-					if (GUILayout.Button("Group", GUILayout.Width(65)))
+					GUILayout.EndHorizontal();
+
+					GUILayout.BeginHorizontal(GUI.skin.box);
 					{
-						const string _fileExt = ".json";
-						const string _fileFilter = "Exported Setting (*.json)|*.json|All files|*.*";
-						OpenFileDialog.Show(_string => OnFileAccept(_string, "Group"), "Open Exported Setting", CharaMaker._savePath, _fileFilter, _fileExt);
+						GUILayout.Label("Import", _label);
+						GUILayout.FlexibleSpace();
+						if (GUILayout.Button("Trigger", GUILayout.Width(65)))
+						{
+							const string _fileExt = ".json";
+							const string _fileFilter = "Exported Setting (*.json)|*.json|All files|*.*";
+							OpenFileDialog.Show(_string => OnFileAccept(_string, "Trigger"), "Open Exported Setting", CharaMaker._savePath, _fileFilter, _fileExt);
+						}
+						if (GUILayout.Button("Group", GUILayout.Width(65)))
+						{
+							const string _fileExt = ".json";
+							const string _fileFilter = "Exported Setting (*.json)|*.json|All files|*.*";
+							OpenFileDialog.Show(_string => OnFileAccept(_string, "Group"), "Open Exported Setting", CharaMaker._savePath, _fileFilter, _fileExt);
+						}
 					}
+					GUILayout.EndHorizontal();
 				}
-				GUILayout.EndHorizontal();
-#endif
 			}
 
 			private void OnFileAccept(string[] _string, string _mode)

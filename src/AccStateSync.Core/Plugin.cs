@@ -1,6 +1,4 @@
-#if KK
 using UnityEngine;
-#endif
 using ParadoxNotion.Serialization;
 
 using BepInEx;
@@ -11,9 +9,7 @@ using ExtensibleSaveFormat;
 
 using KKAPI;
 using KKAPI.Chara;
-#if KK
 using KKAPI.Studio;
-#endif
 
 namespace AccStateSync
 {
@@ -21,14 +17,14 @@ namespace AccStateSync
 	[BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
 	[BepInDependency(ExtendedSave.GUID, ExtendedSave.Version)]
 	[BepInDependency("madevil.JetPack", JetPack.Core.Version)]
-#if KK
+#if MoreAcc
 	[BepInDependency("com.joan6694.illusionplugins.moreaccessories", "1.1.0")]
 #endif
 	public partial class AccStateSync : BaseUnityPlugin
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync";
-		public const string Version = "4.3.3.0";
+		public const string Version = "4.3.4.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
@@ -65,8 +61,14 @@ namespace AccStateSync
 				CharaMaker.RegisterControls();
 			}
 #elif KKS
-			CharaMaker.RegisterControls();
-			Migration.InitCardImport();
+			if (Application.dataPath.EndsWith("CharaStudio_Data"))
+				StudioAPI.StudioLoadedChanged += (_sender, _args) => CharaStudio.RegisterControls();
+			else
+			{
+				Migration.InitCardImport();
+				CharaHscene.RegisterEvents();
+				CharaMaker.RegisterControls();
+			}
 #endif
 			_hooksInstance["General"].Patch(JetPack.MaterialEditor.Type["MaterialEditorCharaController"].GetMethod("ClothesStateChangeEvent", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.Return_False)));
 

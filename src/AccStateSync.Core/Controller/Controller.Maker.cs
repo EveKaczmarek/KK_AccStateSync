@@ -28,6 +28,7 @@ namespace AccStateSync
 			{
 				if (!JetPack.CharaMaker.Loaded) return;
 				int _slotIndex = CharaMaker._currentSlotIndex;
+				_curPartsInfo = null;
 				_cachedSlotPropertyList.Clear();
 
 				DebugMsg(LogLevel.Info, $"[AccSlotChangedHandler][{CharaFullName}] Fired!!");

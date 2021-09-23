@@ -28,10 +28,10 @@ namespace AccStateSync
 
 		internal void InitConfig()
 		{
-			_cfgMakerWinEnable = Config.Bind("Maker", "Config Window Startup Enable", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 20 }));
+			_cfgMakerWinEnable = Config.Bind("Maker", "Config Window Startup Enable", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 20, Browsable = !JetPack.CharaStudio.Running }));
 			_cfgDragPass = Config.Bind("Maker", "Drag Pass Mode", false, new ConfigDescription("Setting window will not block mouse dragging", null, new ConfigurationManagerAttributes { Order = 15 }));
 
-			_cfgMakerWinX = Config.Bind("Maker", "Config Window Startup X", 525f, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 19 }));
+			_cfgMakerWinX = Config.Bind("Maker", "Config Window Startup X", 525f, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 19, Browsable = !JetPack.CharaStudio.Running }));
 			_cfgMakerWinX.SettingChanged += (_sender, _args) =>
 			{
 				if (_charaConfigWindow == null) return;
@@ -40,7 +40,7 @@ namespace AccStateSync
 					_charaConfigWindow._windowPos.x = _cfgMakerWinX.Value;
 				}
 			};
-			_cfgMakerWinY = Config.Bind("Maker", "Config Window Startup Y", 460f, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 18 }));
+			_cfgMakerWinY = Config.Bind("Maker", "Config Window Startup Y", 460f, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 18, Browsable = !JetPack.CharaStudio.Running }));
 			_cfgMakerWinY.SettingChanged += (_sender, _args) =>
 			{
 				if (_charaConfigWindow == null) return;
@@ -49,13 +49,13 @@ namespace AccStateSync
 					_charaConfigWindow._windowPos.y = _cfgMakerWinY.Value;
 				}
 			};
-			_cfgMakerWinResScale = Config.Bind("Maker", "Config Window Resolution Adjust", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 17 }));
+			_cfgMakerWinResScale = Config.Bind("Maker", "Config Window Resolution Adjust", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 17, Browsable = !JetPack.CharaStudio.Running }));
 			_cfgMakerWinResScale.SettingChanged += (_sender, _args) =>
 			{
 				if (_charaConfigWindow == null) return;
 				_charaConfigWindow.ChangeRes();
 			};
-			_cfgMakerWinScale = Config.Bind("Maker", "Config Window Scale", 1f, new ConfigDescription("", new AcceptableValueList<float>(0.5f, 0.75f, 1f, 1.25f, 1.75f, 2f), new ConfigurationManagerAttributes { Order = 16 }));
+			_cfgMakerWinScale = Config.Bind("Maker", "Config Window Scale", 1f, new ConfigDescription("", new AcceptableValueList<float>(0.5f, 0.75f, 1f, 1.25f, 1.75f, 2f), new ConfigurationManagerAttributes { Order = 16, Browsable = !JetPack.CharaStudio.Running }));
 			_cfgMakerWinScale.SettingChanged += (_sender, _args) =>
 			{
 				if (_charaConfigWindow == null) return;
@@ -63,13 +63,13 @@ namespace AccStateSync
 				_charaConfigWindow.ChangeRes();
 			};
 
-			_cfgCharaMakerPreview = Config.Bind("Maker", "CharaMaker Force Preview", true, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 10 }));
+			_cfgCharaMakerPreview = Config.Bind("Maker", "CharaMaker Force Preview", true, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 10, Browsable = !JetPack.CharaStudio.Running }));
 
 			_cfgExportPath = Config.Bind("Debug", "Export Path", Paths.ConfigPath, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 9 }));
 
 			_cfgDebugMode = Config.Bind("Debug", "Debug Mode", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { IsAdvanced = true, Order = 20 }));
 
-			_cfgStudioWinX = Config.Bind("Studio", "Config Window Startup X", 525f, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 19 }));
+			_cfgStudioWinX = Config.Bind("Studio", "Config Window Startup X", 525f, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 19, Browsable = JetPack.CharaStudio.Running }));
 			_cfgStudioWinX.SettingChanged += (_sender, _args) =>
 			{
 				if (_charaConfigWindow == null) return;
@@ -78,7 +78,7 @@ namespace AccStateSync
 					_charaConfigWindow._windowPos.x = _cfgStudioWinX.Value;
 				}
 			};
-			_cfgStudioWinY = Config.Bind("Studio", "Config Window Startup Y", 460f, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 18 }));
+			_cfgStudioWinY = Config.Bind("Studio", "Config Window Startup Y", 460f, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 18, Browsable = JetPack.CharaStudio.Running }));
 			_cfgStudioWinY.SettingChanged += (_sender, _args) =>
 			{
 				if (_charaConfigWindow == null) return;
@@ -87,13 +87,13 @@ namespace AccStateSync
 					_charaConfigWindow._windowPos.y = _cfgStudioWinY.Value;
 				}
 			};
-			_cfgStudioWinResScale = Config.Bind("Studio", "Config Window Resolution Adjust", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 17 }));
+			_cfgStudioWinResScale = Config.Bind("Studio", "Config Window Resolution Adjust", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 17, Browsable = JetPack.CharaStudio.Running }));
 			_cfgStudioWinResScale.SettingChanged += (_sender, _args) =>
 			{
 				if (_charaConfigWindow == null) return;
 				_charaConfigWindow.ChangeRes();
 			};
-			_cfgStudioWinScale = Config.Bind("Studio", "Config Window Scale", 1f, new ConfigDescription("", new AcceptableValueList<float>(0.5f, 0.75f, 1f, 1.25f, 1.75f, 2f), new ConfigurationManagerAttributes { Order = 16 }));
+			_cfgStudioWinScale = Config.Bind("Studio", "Config Window Scale", 1f, new ConfigDescription("", new AcceptableValueList<float>(0.5f, 0.75f, 1f, 1.25f, 1.75f, 2f), new ConfigurationManagerAttributes { Order = 16, Browsable = JetPack.CharaStudio.Running }));
 			_cfgStudioWinScale.SettingChanged += (_sender, _args) =>
 			{
 				if (_charaConfigWindow == null) return;
@@ -101,7 +101,7 @@ namespace AccStateSync
 				_charaConfigWindow.ChangeRes();
 			};
 
-			_cfgStudioAutoEnable = Config.Bind("Studio", "Auto Enable After Load", false, new ConfigDescription("Automatically enable after scene or character load", null, new ConfigurationManagerAttributes { Order = 1 }));
+			_cfgStudioAutoEnable = Config.Bind("Studio", "Auto Enable After Load", false, new ConfigDescription("Automatically enable after scene or character load", null, new ConfigurationManagerAttributes { Order = 1, Browsable = JetPack.CharaStudio.Running }));
 
 			_cfgResetOnCoordinateChange = Config.Bind("Hscene", "Reset On Coordinate Change", false, new ConfigDescription("A full reset when changing coordinate", null, new ConfigurationManagerAttributes { Order = 1 }));
 		}

@@ -348,6 +348,8 @@ namespace AccStateSync
 								_copy.ForEach(x => x.Coordinate = (int) _coordinateMapping[i]);
 								_tempTriggerProperty.AddRange(_copy);
 							}
+							TriggerPropertyList.Clear();
+							TriggerPropertyList.AddRange(_tempTriggerProperty);
 
 							for (int i = 0; i < _coordinateMapping.Count; i++)
 							{
@@ -360,6 +362,8 @@ namespace AccStateSync
 								_copy.ForEach(x => x.Coordinate = (int) _coordinateMapping[i]);
 								_tempTriggerGroup.AddRange(_copy);
 							}
+							TriggerGroupList.Clear();
+							TriggerGroupList.AddRange(_tempTriggerGroup);
 						}
 
 						_importedExtData.Remove("madevil.kk.ass");
