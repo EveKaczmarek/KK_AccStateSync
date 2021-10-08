@@ -67,7 +67,7 @@ namespace AccStateSync
 
 				if (_dstCoordinateIndex == _currentCoordinateIndex)
 				{
-					_duringLoadChange = false;
+					_duringCordChange = false;
 					RefreshCache();
 					RefreshPreview("AccessoriesCopiedHandler");
 				}
@@ -82,7 +82,7 @@ namespace AccStateSync
 
 				if (_coordinateIndex == _currentCoordinateIndex)
 				{
-					_duringLoadChange = false;
+					_duringCordChange = false;
 					RefreshCache();
 					RefreshPreview("AccessoryTransferredHandler");
 				}
@@ -90,7 +90,7 @@ namespace AccStateSync
 
 			internal void AccessoryTypeChanged(JetPack.CharaMaker.AccessoryTypeChangedEventArgs _args)
 			{
-				if (_duringLoadChange)
+				if (_duringCordChange)
 				{
 #if DEBUG
 					//_logger.LogError($"[AccessoryTypeChanged] during load");

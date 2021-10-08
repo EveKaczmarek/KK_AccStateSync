@@ -19,6 +19,7 @@ namespace AccStateSync
 			internal static OCIChar _curOCIChar = null;
 			internal static int _curTreeNodeObjID = -1;
 			internal static ToolbarToggle _ttConfigWindow;
+			internal static bool _duringSceneLoad = false;
 
 			internal static AccStateSyncController GetController(OCIChar _chara) => _chara?.charInfo?.gameObject?.GetComponent<AccStateSyncController>();
 
@@ -30,23 +31,40 @@ namespace AccStateSync
 
 				Texture2D _iconTex = TextureUtils.LoadTexture(ResourceUtils.GetEmbeddedResource("toolbar_icon.png"));
 				_ttConfigWindow = CustomToolbarButtons.AddLeftToolbarToggle(_iconTex, false, _value => _charaConfigWindow.enabled = _value);
-#if MoreAcc
-				List<Button> _buttons = GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State/Viewport/Content/Clothing Details").GetComponentsInChildren<Button>().ToList();
-				_buttons.Add(GameObject.Find($"StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State/Viewport/Content/Cos/Button Shoes 1").GetComponent<Button>());
-				_buttons.Add(GameObject.Find($"StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State/Viewport/Content/Cos/Button Shoes 2").GetComponent<Button>());
-				foreach (Button _button in _buttons)
+
+				if (MoreAccessories._installed)
 				{
-					_button.onClick.AddListener(delegate ()
+					List<Button> _buttons = GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State/Viewport/Content/Clothing Details").GetComponentsInChildren<Button>().ToList();
+					_buttons.Add(GameObject.Find($"StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State/Viewport/Content/Cos/Button Shoes 1").GetComponent<Button>());
+					_buttons.Add(GameObject.Find($"StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State/Viewport/Content/Cos/Button Shoes 2").GetComponent<Button>());
+					foreach (Button _button in _buttons)
 					{
-						_instance.StartCoroutine(StatusPanelUpdateCoroutine());
-					});
+						_button.onClick.AddListener(delegate ()
+						{
+							_instance.StartCoroutine(StatusPanelUpdateCoroutine());
+						});
+					}
 				}
-#endif
+
 				JetPack.CharaStudio.OnSelectNodeChange += (_sender, _args) =>
 				{
 					_curTreeNodeObjID = JetPack.CharaStudio.CurTreeNodeObjID;
 					_curOCIChar = JetPack.CharaStudio.CurOCIChar;
 					UpdateUI();
+				};
+
+				JetPack.CharaStudio.OnSceneLoad += (_sender, _args) =>
+				{
+					if (_args.Mode == JetPack.CharaStudio.SceneLoadMode.Save) return;
+
+					if (_args.State == JetPack.CharaStudio.SceneLoadState.Pre)
+						_duringSceneLoad = true;
+
+					if (_args.Mode == JetPack.CharaStudio.SceneLoadMode.Load && _args.State == JetPack.CharaStudio.SceneLoadState.Post)
+						_duringSceneLoad = false;
+
+					if (_args.Mode == JetPack.CharaStudio.SceneLoadMode.Import && _args.State == JetPack.CharaStudio.SceneLoadState.Coroutine)
+						_duringSceneLoad = false;
 				};
 
 				HarmonyLib.Harmony.CreateAndPatchAll(typeof(HooksCharaStudio));
@@ -56,14 +74,16 @@ namespace AccStateSync
 			{
 				yield return JetPack.Toolbox.WaitForEndOfFrame;
 				yield return JetPack.Toolbox.WaitForEndOfFrame;
-#if MoreAcc
-				AccStateSyncController _pluginCtrl = GetController(_curOCIChar);
-				if (_pluginCtrl != null && _pluginCtrl.TriggerEnabled)
+
+				if (MoreAccessories._installed)
 				{
-					if (JetPack.CharaStudio.RefreshCharaStatePanel())
-						MoreAccessories.UpdateUI();
+					AccStateSyncController _pluginCtrl = GetController(_curOCIChar);
+					if (_pluginCtrl != null && _pluginCtrl.TriggerEnabled)
+					{
+						if (JetPack.CharaStudio.RefreshCharaStatePanel())
+							MoreAccessories.UpdateUI();
+					}
 				}
-#endif
 			}
 
 			internal static bool IsCharaSelected(ChaControl _chaCtrl)

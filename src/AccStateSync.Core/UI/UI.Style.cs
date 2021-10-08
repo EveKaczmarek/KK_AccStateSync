@@ -13,6 +13,7 @@ namespace AccStateSync
 			private GUIStyle _label;
 			private GUIStyle _labelDisabled;
 			private GUIStyle _labelActive;
+			private GUIStyle _labelBoldOrange;
 
 			private GUIStyle _labelAlignCenter;
 			private GUIStyle _labelAlignCenterDisabled;
@@ -57,6 +58,10 @@ namespace AccStateSync
 				_buttonActive.normal.textColor = Color.cyan;
 				_buttonActive.hover.textColor = Color.cyan;
 				_buttonActive.fontStyle = FontStyle.Bold;
+
+				_labelBoldOrange = new GUIStyle(_label);
+				_labelBoldOrange.normal.textColor = new Color(1, 0.7f, 0, 1);
+				_labelBoldOrange.fontStyle = FontStyle.Bold;
 
 				_initStyle = false;
 			}

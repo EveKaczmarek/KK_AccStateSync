@@ -276,7 +276,7 @@ namespace AccStateSync
 						}
 						GUILayout.EndVertical();
 
-						GUILayout.BeginVertical(GUI.skin.box, GUILayout.Width(225));
+						GUILayout.BeginVertical(GUI.skin.box, GUILayout.Width(250));
 						{
 							GUILayout.BeginHorizontal(GUI.skin.box);
 							{
@@ -301,6 +301,13 @@ namespace AccStateSync
 					GUILayout.BeginHorizontal(GUI.skin.box);
 					GUILayout.Label(GUI.tooltip);
 					GUILayout.EndHorizontal();
+
+					if (JetPack.MoreAccessories.BuggyBootleg)
+                    {
+						GUILayout.BeginHorizontal(GUI.skin.box);
+						GUILayout.Label("MoreAccessories experimental build detected, which is not meant for productive use", _labelBoldOrange);
+						GUILayout.EndHorizontal();
+					}
 				}
 				GUILayout.EndVertical();
 				GUI.DragWindow();

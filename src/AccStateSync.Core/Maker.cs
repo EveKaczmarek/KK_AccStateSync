@@ -28,7 +28,6 @@ namespace AccStateSync
 			internal static ChaControl _chaCtrl => CustomBase.Instance?.chaCtrl;
 			internal static AccStateSyncController _pluginCtrl => GetController(CustomBase.Instance?.chaCtrl);
 			internal static Toggle _imgTglCol01, _imgTglCol02;
-			internal static Transform _accMenuTree;
 			internal static int _currentSlotIndex => JetPack.CharaMaker.CurrentAccssoryIndex;
 			internal static string _savePath = Paths.ConfigPath;
 
@@ -44,13 +43,6 @@ namespace AccStateSync
 						{
 							_pluginCtrl.RefreshPreview("ToggleForcePreview");
 						}
-						/*
-						else
-						{
-							_pluginCtrl.SetAccessoryStateCategory(0, _imgTglCol01.isOn);
-							_pluginCtrl.SetAccessoryStateCategory(1, _imgTglCol02.isOn);
-						}
-						*/
 					}
 				};
 
@@ -70,15 +62,12 @@ namespace AccStateSync
 					});
 					_accWinCtrlEnable = MakerAPI.AddAccessoryWindowControl(new MakerButton("AccStateSync", null, _instance));
 					_accWinCtrlEnable.OnClick.AddListener(() => _charaConfigWindow.enabled = true);
+					_accWinCtrlEnable.GroupingID = "Madevil";
 					_accWinCtrlEnable.Visible.OnNext(false);
 				};
 				MakerAPI.MakerFinishedLoading += (_sender, _args) =>
 				{
 					PatchMakerToggles();
-					if (MoreAccessories._installed)
-						_accMenuTree = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/04_AccessoryTop/Slots/Viewport/Content").transform;
-					else
-						_accMenuTree = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/04_AccessoryTop").transform;
 					MoreAccessories.HarmonyPatch();
 				};
 

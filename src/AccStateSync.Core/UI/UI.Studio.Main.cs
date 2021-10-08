@@ -82,6 +82,13 @@ namespace AccStateSync
 					GUILayout.BeginHorizontal(GUI.skin.box);
 					GUILayout.Label(GUI.tooltip);
 					GUILayout.EndHorizontal();
+
+					if (JetPack.MoreAccessories.BuggyBootleg)
+					{
+						GUILayout.BeginHorizontal(GUI.skin.box);
+						GUILayout.TextArea("MoreAccessories experimental build detected\nThis version is not meant for productive use", _labelBoldOrange);
+						GUILayout.EndHorizontal();
+					}
 				}
 				GUILayout.EndVertical();
 				GUI.DragWindow();

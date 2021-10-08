@@ -30,7 +30,7 @@ namespace AccStateSync
 			private Rect _windowRect, _dragWindowRect;
 
 			private Vector2 _kindScrollPos = Vector2.zero;
-			private Vector2 _windowSize = new Vector2(550, 425);
+			private Vector2 _windowSize = new Vector2(575, 425);
 			internal Vector2 _windowPos = new Vector2(525, 460);
 			private Texture2D _windowBGtex = null;
 			private bool _hasFocus = false;
@@ -67,7 +67,7 @@ namespace AccStateSync
 
 				if (JetPack.CharaStudio.Running)
 				{
-					_windowSize = new Vector2(275, 425);
+					_windowSize = new Vector2(325, 425);
 					_windowBGtex = JetPack.UI.MakePlainTex((int) _windowSize.x, (int) _windowSize.y + 10, _windowBG);
 					_windowPos.x = _cfgStudioWinX.Value;
 					_windowPos.y = _cfgStudioWinY.Value;
@@ -82,6 +82,13 @@ namespace AccStateSync
 					_windowBGtex = JetPack.UI.MakePlainTex((int) _windowSize.x, (int) _windowSize.y, _windowBG);
 					_scaleFactorList = (_cfgMakerWinScale.Description.AcceptableValues as BepInEx.Configuration.AcceptableValueList<float>).AcceptableValues.ToList();
 				}
+#if KK && !DEBUG
+				if (JetPack.MoreAccessories.BuggyBootleg)
+				{
+					_windowSize = new Vector2(350, 225);
+					_windowBGtex = JetPack.UI.MakePlainTex((int) _windowSize.x, (int) _windowSize.y, _windowBG);
+				}
+#endif
 				_passThrough = _cfgDragPass.Value;
 				_windowRect = new Rect(_windowPos.x, _windowPos.y, _windowSize.x, _windowSize.y);
 				ChangeRes();
@@ -116,10 +123,18 @@ namespace AccStateSync
 					InitStyle();
 				}
 				GUI.matrix = _resScaleMatrix;
-				if (JetPack.CharaStudio.Running)
-					_dragWindowRect = GUILayout.Window(_windowRectID, _windowRect, DrawStudioWindow, "", _windowSolid);
+#if KK && !DEBUG
+				if (JetPack.MoreAccessories.BuggyBootleg)
+					_dragWindowRect = GUILayout.Window(_windowRectID, _windowRect, DrawWarningWindow, "", _windowSolid);
 				else
-					_dragWindowRect = GUILayout.Window(_windowRectID, _windowRect, DrawMakerWindow, "", _windowSolid);
+#endif
+				{
+					if (JetPack.CharaStudio.Running)
+						_dragWindowRect = GUILayout.Window(_windowRectID, _windowRect, DrawStudioWindow, "", _windowSolid);
+					else
+						_dragWindowRect = GUILayout.Window(_windowRectID, _windowRect, DrawMakerWindow, "", _windowSolid);
+				}
+
 				_windowRect.x = _dragWindowRect.x;
 				_windowRect.y = _dragWindowRect.y;
 
@@ -132,7 +147,25 @@ namespace AccStateSync
 					Input.ResetInputAxes();
 			}
 
-			private void OnEnable()
+			private void DrawWarningWindow(int _windowID)
+			{
+				GUI.Box(new Rect(0, 0, _windowSize.x, _windowSize.y), _windowBGtex);
+				if (GUI.Button(new Rect(_windowSize.x - 27, 4, 23, 23), new GUIContent("X", "Close this window")))
+				{
+					CloseWindow();
+				}
+				GUILayout.BeginVertical();
+				{
+					GUILayout.Space(10);
+					GUILayout.BeginHorizontal(GUI.skin.box);
+					GUILayout.TextArea("AccStateSync plugin support disabled\n\n" + "MoreAccessories experimental build detected\n" + "This version is not meant for productive use\n\n" + "Please rollback to current stable build\n\n" + "Which could be found at " + "https://www.patreon.com/posts/kk-ec-1-1-0-39203275", GUILayout.ExpandHeight(true));
+					GUILayout.EndHorizontal();
+				}
+				GUILayout.EndVertical();
+				GUI.DragWindow();
+			}
+
+		private void OnEnable()
 			{
 				_hasFocus = true;
 			}

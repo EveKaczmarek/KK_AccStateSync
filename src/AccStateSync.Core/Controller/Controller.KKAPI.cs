@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 using MessagePack;
 
@@ -26,8 +27,10 @@ namespace AccStateSync
 			public List<TriggerProperty> TriggerPropertyList = new List<TriggerProperty>();
 			public List<TriggerGroup> TriggerGroupList = new List<TriggerGroup>();
 			public bool TriggerEnabled = true;
-			internal bool _duringLoadChange = false;
+			internal bool _duringCordChange = false;
 			internal bool _studioAutoEnable = false;
+			internal bool _duringCharaLoad = false;
+			internal bool _wasTriggerEnabled = false;
 			internal int _treeNodeObjID = -1000;
 
 			protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
@@ -77,6 +80,16 @@ namespace AccStateSync
 
 			protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
 			{
+#if KK && !DEBUG
+				if (!JetPack.MoreAccessories.BuggyBootleg)
+				{
+					if (coordinate.accessory.parts.Length > 20)
+					{
+						_logger.LogMessage($"[AccStateSync] Skipped loading PluginData because the card was saved by experimental build MoreAccessories");
+						return;
+					}
+				}
+#endif
 				if (!JetPack.CharaMaker.Inside || (JetPack.CharaMaker.Inside && _loadCoordinateExtdata))
 				{
 					TriggerPropertyList.RemoveAll(x => x.Coordinate == _currentCoordinateIndex);
@@ -145,8 +158,30 @@ namespace AccStateSync
 
 			protected override void OnReload(GameMode currentGameMode)
 			{
-				if (JetPack.CharaStudio.Running && _cfgStudioAutoEnable.Value)
-					TriggerEnabled = false;
+#if KK && !DEBUG
+				if (!JetPack.MoreAccessories.BuggyBootleg)
+				{
+					if (ChaControl.chaFile.coordinate.Any(x => x.accessory.parts.Length > 20))
+					{
+						_logger.LogMessage($"[AccStateSync] Skipped loading PluginData because the card was saved by experimental build MoreAccessories");
+						return;
+					}
+				}
+#endif
+				bool _duringSceneLoad = false;
+				if (JetPack.CharaStudio.Running)
+				{
+					_duringSceneLoad = CharaStudio._duringSceneLoad;
+					_duringCharaLoad = true;
+					_logger.LogWarning($"[OnReload][TriggerEnabled: {TriggerEnabled}]");
+					_wasTriggerEnabled = TriggerEnabled;
+					_logger.LogWarning($"[OnReload][1][_wasTriggerEnabled: {_wasTriggerEnabled}]");
+
+					if (_duringSceneLoad)
+					{
+						TriggerEnabled = false;
+					}
+				}
 
 				if (!JetPack.CharaMaker.Inside || (JetPack.CharaMaker.Inside && _loadCharaExtdata))
 				{
@@ -203,19 +238,20 @@ namespace AccStateSync
 						}
 					}
 
-					if (JetPack.CharaStudio.Running && _cfgStudioAutoEnable.Value)
-						_studioAutoEnable = true;
+					if (JetPack.CharaStudio.Running)
+					{
+						_duringCharaLoad = false;
+
+						if (_duringSceneLoad)
+						{
+							if (_cfgStudioAutoEnable.Value)
+								_studioAutoEnable = true;
+						}
+						else
+							TriggerEnabled = _wasTriggerEnabled;
+					}
 				}
 				base.OnReload(currentGameMode);
-			}
-
-			internal IEnumerator StudioAutoEnableCoroutine()
-			{
-				yield return JetPack.Toolbox.WaitForEndOfFrame;
-				yield return JetPack.Toolbox.WaitForEndOfFrame;
-
-				TriggerEnabled = true;
-				DebugMsg(LogLevel.Info, $"[StudioAutoEnableCoroutine][{CharaFullName}][CoordinatePropertyList.Count: {_cachedCoordinatePropertyList?.Count}]");
 			}
 
 			internal IEnumerator InitCurOutfitTriggerInfoCoroutine(string _caller)
@@ -230,8 +266,24 @@ namespace AccStateSync
 			{
 				RefreshCache();
 
-				if (JetPack.CharaStudio.Loaded && !TriggerEnabled)
-					return;
+				if (JetPack.CharaStudio.Running)
+				{
+					if (_duringCharaLoad)
+						return;
+
+					if (!CharaStudio._duringSceneLoad)
+					{
+						if (_studioAutoEnable)
+						{
+							TriggerEnabled = true;
+							_studioAutoEnable = false;
+							return;
+						}
+					}
+
+					if (!TriggerEnabled)
+						return;
+				}
 
 				int _count = _cachedCoordinatePropertyList.Count;
 				DebugMsg(LogLevel.Info, $"[InitCurOutfitTriggerInfo][{CharaFullName}][{_caller}][CoordinatePropertyList.Count: {_count}]");

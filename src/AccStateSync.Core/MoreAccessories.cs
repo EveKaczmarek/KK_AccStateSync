@@ -17,18 +17,14 @@ namespace AccStateSync
 			internal static bool _installed = false;
 
 			internal static Type _type = null;
-			internal static bool _newVer = false;
 
 			internal static void Init()
 			{
-#if MoreAcc
-				_instance = JetPack.MoreAccessories.Instance;
-				if (_instance == null) return;
+				if (!JetPack.MoreAccessories.Installed || JetPack.MoreAccessories.BuggyBootleg) return;
 
+				_instance = JetPack.MoreAccessories.Instance;
 				_installed = true;
 				_type = _instance.GetType();
-				_newVer = JetPack.MoreAccessories.NewVer;
-#endif
 			}
 
 			internal static void HarmonyPatch()
@@ -37,6 +33,7 @@ namespace AccStateSync
 
 				if (_installed)
 				{
+					_logger.LogWarning($"MoreAccessories HarmonyPatch");
 					_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateAll_Patches").GetMethod("Postfix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
 					_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateCategory_Patches").GetMethod("Postfix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(int), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
 				}

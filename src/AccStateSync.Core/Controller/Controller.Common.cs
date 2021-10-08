@@ -77,7 +77,7 @@ namespace AccStateSync
 
 			internal void ToggleByRefKind(int _refKind)
 			{
-				if (_duringLoadChange) return;
+				if (_duringCordChange) return;
 				if (JetPack.CharaMaker.Loaded && !_cfgCharaMakerPreview.Value) return;
 				if (JetPack.CharaStudio.Loaded && !TriggerEnabled) return;
 
@@ -134,7 +134,7 @@ namespace AccStateSync
 
 			internal void SyncAllAccToggle(string _caller)
 			{
-				if (_duringLoadChange) return;
+				if (_duringCordChange) return;
 				if (JetPack.CharaMaker.Loaded && !_cfgCharaMakerPreview.Value) return;
 				if (JetPack.CharaStudio.Loaded && !TriggerEnabled) return;
 

@@ -1,5 +1,4 @@
 using UnityEngine;
-using ParadoxNotion.Serialization;
 
 using BepInEx;
 using BepInEx.Logging;
@@ -17,14 +16,19 @@ namespace AccStateSync
 	[BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
 	[BepInDependency(ExtendedSave.GUID, ExtendedSave.Version)]
 	[BepInDependency("madevil.JetPack", JetPack.Core.Version)]
-#if MoreAcc
+#if KK
 	[BepInDependency("com.joan6694.illusionplugins.moreaccessories", "1.1.0")]
+#endif
+	[BepInIncompatibility("KK_ClothesLoadOption")]
+#if !DEBUG
+	[BepInIncompatibility("com.jim60105.kk.studiocoordinateloadoption")]
+	[BepInIncompatibility("com.jim60105.kk.coordinateloadoption")]
 #endif
 	public partial class AccStateSync : BaseUnityPlugin
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync";
-		public const string Version = "4.3.4.0";
+		public const string Version = "4.4.0.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
@@ -72,16 +76,15 @@ namespace AccStateSync
 #endif
 			_hooksInstance["General"].Patch(JetPack.MaterialEditor.Type["MaterialEditorCharaController"].GetMethod("ClothesStateChangeEvent", AccessTools.all), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.Return_False)));
 
-
 			JetPack.Chara.OnChangeCoordinateType += (_sender, _args) =>
 			{
 				AccStateSyncController _pluginCtrl = GetController(_args.ChaControl);
 				if (_pluginCtrl == null) return;
 
 				if (_args.State == "Coroutine")
-					_pluginCtrl._duringLoadChange = false;
+					_pluginCtrl._duringCordChange = false;
 				else
-					_pluginCtrl._duringLoadChange = true;
+					_pluginCtrl._duringCordChange = true;
 			};
 
 			JetPack.MaterialEditor.OnDataApply += (_sender, _args) =>
@@ -92,11 +95,6 @@ namespace AccStateSync
 				if (_pluginCtrl == null) return;
 
 				_pluginCtrl.InitCurOutfitTriggerInfo("OnDataApply");
-				if (_pluginCtrl._studioAutoEnable)
-				{
-					_pluginCtrl._studioAutoEnable = false;
-					_pluginCtrl.TriggerEnabled = true;
-				}
 			};
 		}
 
@@ -106,11 +104,6 @@ namespace AccStateSync
 				_logger.Log(_level, _meg);
 			else
 				_logger.Log(LogLevel.Debug, _meg);
-		}
-
-		internal static string JsonEncode(object _obj, bool _format = false)
-		{
-			return JSONSerializer.Serialize(_obj.GetType(), _obj, _format);
 		}
 	}
 }
