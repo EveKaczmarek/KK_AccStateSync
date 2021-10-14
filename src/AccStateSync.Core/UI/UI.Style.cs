@@ -22,6 +22,7 @@ namespace AccStateSync
 			private GUIStyle _labelAlignCenterBoldActive;
 
 			private GUIStyle _buttonActive;
+			private GUIStyle _textArea;
 
 			private void InitStyle()
 			{
@@ -62,6 +63,9 @@ namespace AccStateSync
 				_labelBoldOrange = new GUIStyle(_label);
 				_labelBoldOrange.normal.textColor = new Color(1, 0.7f, 0, 1);
 				_labelBoldOrange.fontStyle = FontStyle.Bold;
+
+				_textArea = new GUIStyle(GUI.skin.textArea);
+				_textArea.richText = true;
 
 				_initStyle = false;
 			}

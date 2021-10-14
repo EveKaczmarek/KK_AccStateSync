@@ -28,7 +28,7 @@ namespace AccStateSync
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync";
-		public const string Version = "4.4.0.0";
+		public const string Version = "4.4.1.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
@@ -82,13 +82,18 @@ namespace AccStateSync
 				if (_pluginCtrl == null) return;
 
 				if (_args.State == "Coroutine")
+				{
 					_pluginCtrl._duringCordChange = false;
+					if (JetPack.CharaHscene.Loaded)
+						_pluginCtrl.InitCurOutfitTriggerInfo("OnChangeCoordinateType");
+				}
 				else
 					_pluginCtrl._duringCordChange = true;
 			};
 
 			JetPack.MaterialEditor.OnDataApply += (_sender, _args) =>
 			{
+				if (JetPack.CharaHscene.Loaded) return;
 				if (_args.State != "Postfix") return;
 
 				AccStateSyncController _pluginCtrl = GetController((_args.Controller as CharaCustomFunctionController).ChaControl);

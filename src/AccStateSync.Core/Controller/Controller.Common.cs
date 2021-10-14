@@ -42,7 +42,7 @@ namespace AccStateSync
 				_cachedGroupKind = new HashSet<int>(_cachedCoordinateGroupList.Select(x => x.Kind));
 			}
 
-			internal Dictionary<int, int> _ListClothesStates()
+			internal Dictionary<int, int> ListClothesStates()
 			{
 				Dictionary<int, int> _clothesStates = new Dictionary<int, int>();
 				for (int i = 0; i < _clothesNames.Count; i++)
@@ -83,7 +83,7 @@ namespace AccStateSync
 
 				Dictionary<int, TriggerProperty> _effectingPropertList = new Dictionary<int, TriggerProperty>();
 
-				Dictionary<int, int> _clothesStates = _ListClothesStates();
+				Dictionary<int, int> _clothesStates = ListClothesStates();
 
 				HashSet<int> _filtered = new HashSet<int>(_cachedCoordinatePropertyList.Where(x => x.RefKind == _refKind).Select(x => x.Slot));
 				if (ChaControl.notBot && (_refKind == 0 || _refKind == 1))
@@ -140,7 +140,7 @@ namespace AccStateSync
 
 				Dictionary<int, TriggerProperty> _effectingPropertList = new Dictionary<int, TriggerProperty>();
 
-				Dictionary<int, int> _clothesStates = _ListClothesStates();
+				Dictionary<int, int> _clothesStates = ListClothesStates();
 
 				foreach (int _slot in _cachedSlotIndex)
 				{

@@ -158,7 +158,7 @@ namespace AccStateSync
 				{
 					GUILayout.Space(10);
 					GUILayout.BeginHorizontal(GUI.skin.box);
-					GUILayout.TextArea("AccStateSync plugin support disabled\n\n" + "MoreAccessories experimental build detected\n" + "This version is not meant for productive use\n\n" + "Please rollback to current stable build\n\n" + "Which could be found at " + "https://www.patreon.com/posts/kk-ec-1-1-0-39203275", GUILayout.ExpandHeight(true));
+					GUILayout.TextArea("<b><color=#ff9900ff>AccStateSync plugin support disabled</color></b>\n\n" + "MoreAccessories experimental build detected\n" + "This version is not meant for productive use\n\n" + "Please rollback to current stable build\n\n" + "Which could be found at " + "https://www.patreon.com/posts/kk-ec-1-1-0-39203275", _textArea, GUILayout.ExpandHeight(true));
 					GUILayout.EndHorizontal();
 				}
 				GUILayout.EndVertical();

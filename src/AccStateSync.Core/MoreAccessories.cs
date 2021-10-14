@@ -33,7 +33,6 @@ namespace AccStateSync
 
 				if (_installed)
 				{
-					_logger.LogWarning($"MoreAccessories HarmonyPatch");
 					_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateAll_Patches").GetMethod("Postfix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
 					_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateCategory_Patches").GetMethod("Postfix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(int), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
 				}
