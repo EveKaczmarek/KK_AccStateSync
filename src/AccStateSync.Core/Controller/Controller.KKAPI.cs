@@ -154,6 +154,9 @@ namespace AccStateSync
 
 						MissingGroupCheck(_currentCoordinateIndex);
 						MissingPropertyCheck(_currentCoordinateIndex);
+
+						if (!JetPack.CharaMaker.Inside && !JetPack.CharaStudio.Running)
+							InitCurOutfitTriggerInfo("OnCoordinateBeingLoaded");
 					}
 				}
 				base.OnCoordinateBeingLoaded(coordinate);

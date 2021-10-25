@@ -28,7 +28,7 @@ namespace AccStateSync
 	{
 		public const string GUID = "madevil.kk.ass";
 		public const string Name = "AccStateSync";
-		public const string Version = "4.4.2.0";
+		public const string Version = "4.4.3.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
@@ -84,7 +84,7 @@ namespace AccStateSync
 				if (_args.State == "Coroutine")
 				{
 					_pluginCtrl._duringCordChange = false;
-					if (JetPack.CharaHscene.Loaded)
+					if (!JetPack.CharaMaker.Inside && !JetPack.CharaStudio.Running)
 						_pluginCtrl.InitCurOutfitTriggerInfo("OnChangeCoordinateType");
 				}
 				else
