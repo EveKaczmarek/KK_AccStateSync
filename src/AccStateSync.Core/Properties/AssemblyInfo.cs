@@ -7,4 +7,4 @@ using static AccStateSync.AccStateSync;
 [assembly: AssemblyProduct(Name)]
 [assembly: AssemblyVersion(Version)]
 [assembly: AssemblyFileVersion(Version)]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
+[assembly: AssemblyCopyright("Copyright © 2020")]

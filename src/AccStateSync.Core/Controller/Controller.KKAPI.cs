@@ -81,14 +81,17 @@ namespace AccStateSync
 			protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
 			{
 #if KK && !DEBUG
+				/*
 				if (!JetPack.MoreAccessories.BuggyBootleg)
 				{
 					if (coordinate.accessory.parts.Length > 20)
 					{
 						_logger.LogMessage($"[AccStateSync] Skipped loading PluginData because the card was saved by experimental build MoreAccessories");
+						base.OnCoordinateBeingLoaded(coordinate);
 						return;
 					}
 				}
+				*/
 #endif
 				if (!JetPack.CharaMaker.Inside || (JetPack.CharaMaker.Inside && _loadCoordinateExtdata))
 				{
@@ -159,14 +162,17 @@ namespace AccStateSync
 			protected override void OnReload(GameMode currentGameMode)
 			{
 #if KK && !DEBUG
+				/*
 				if (!JetPack.MoreAccessories.BuggyBootleg)
 				{
 					if (ChaControl.chaFile.coordinate.Any(x => x.accessory.parts.Length > 20))
 					{
 						_logger.LogMessage($"[AccStateSync] Skipped loading PluginData because the card was saved by experimental build MoreAccessories");
+						base.OnReload(currentGameMode);
 						return;
 					}
 				}
+				*/
 #endif
 				bool _duringSceneLoad = false;
 				if (JetPack.CharaStudio.Running)

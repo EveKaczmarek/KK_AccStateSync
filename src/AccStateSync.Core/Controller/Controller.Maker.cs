@@ -31,14 +31,9 @@ namespace AccStateSync
 				_curPartsInfo = null;
 				_cachedSlotPropertyList.Clear();
 
-				DebugMsg(LogLevel.Info, $"[AccSlotChangedHandler][{CharaFullName}] Fired!!");
-
 				DebugMsg(LogLevel.Info, $"[AccSlotChangedHandler][{CharaFullName}][SlotIndex]: {_slotIndex}");
 				if (_slotIndex < 0)
 				{
-#if DEBUG
-					_logger.LogError($"[AccSlotChangedHandler][{CharaFullName}] calling when SlotIndex = -1");
-#endif
 					RefreshPreview("AccSlotChangedHandler");
 					return;
 				}
@@ -91,12 +86,7 @@ namespace AccStateSync
 			internal void AccessoryTypeChanged(JetPack.CharaMaker.AccessoryTypeChangedEventArgs _args)
 			{
 				if (_duringCordChange)
-				{
-#if DEBUG
-					//_logger.LogError($"[AccessoryTypeChanged] during load");
-#endif
 					return;
-				}
 
 				if (CharaMaker._currentSlotIndex != _args.SlotIndex)
 					return;

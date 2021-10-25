@@ -101,7 +101,7 @@ namespace AccStateSync
 				_charaConfigWindow.ChangeRes();
 			};
 
-			_cfgStudioAutoEnable = Config.Bind("Studio", "Auto Enable After Scene Load", false, new ConfigDescription("Automatically enable after scene load", null, new ConfigurationManagerAttributes { Order = 1, Browsable = JetPack.CharaStudio.Running }));
+			_cfgStudioAutoEnable = Config.Bind("Studio", "Auto Enable After Scene Load", true, new ConfigDescription("Automatically enable after scene load", null, new ConfigurationManagerAttributes { Order = 1, Browsable = JetPack.CharaStudio.Running }));
 
 			_cfgResetOnCoordinateChange = Config.Bind("Hscene", "Reset On Coordinate Change", false, new ConfigDescription("A full reset when changing coordinate", null, new ConfigurationManagerAttributes { Order = 1 }));
 		}
