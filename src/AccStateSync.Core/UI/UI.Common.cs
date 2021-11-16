@@ -34,7 +34,7 @@ namespace AccStateSync
 			internal Vector2 _windowPos = new Vector2(525, 460);
 			private Texture2D _windowBGtex = null;
 			private bool _hasFocus = false;
-			private bool _passThrough = false;
+			internal bool _passThrough = false;
 			internal bool _onAccTab = false;
 			internal int _slotIndex = -1;
 
@@ -82,13 +82,7 @@ namespace AccStateSync
 					_windowBGtex = JetPack.UI.MakePlainTex((int) _windowSize.x, (int) _windowSize.y, _windowBG);
 					_scaleFactorList = (_cfgMakerWinScale.Description.AcceptableValues as BepInEx.Configuration.AcceptableValueList<float>).AcceptableValues.ToList();
 				}
-#if KK && !DEBUG
-				if (JetPack.MoreAccessories.BuggyBootleg)
-				{
-					_windowSize = new Vector2(350, 225);
-					_windowBGtex = JetPack.UI.MakePlainTex((int) _windowSize.x, (int) _windowSize.y, _windowBG);
-				}
-#endif
+
 				_passThrough = _cfgDragPass.Value;
 				_windowRect = new Rect(_windowPos.x, _windowPos.y, _windowSize.x, _windowSize.y);
 				ChangeRes();
@@ -104,9 +98,8 @@ namespace AccStateSync
 				{
 					if (CustomBase.Instance?.chaCtrl == null) return;
 					if (CustomBase.Instance.customCtrl.hideFrontUI) return;
-#if KK
-					if (!Manager.Scene.Instance.AddSceneName.IsNullOrEmpty() && Manager.Scene.Instance.AddSceneName != "CustomScene") return;
-#endif
+					if (JetPack.Toolbox.SceneIsOverlap()) return;
+					if (!JetPack.Toolbox.SceneAddSceneName().IsNullOrEmpty() && JetPack.Toolbox.SceneAddSceneName() != "CustomScene") return;
 					if (JetPack.CharaMaker.CvsMainMenu != 4) return;
 					if (_pluginCtrl == null || _pluginCtrl._curPartsInfo == null || _pluginCtrl._curPartsInfo.type == 120) return;
 
@@ -123,17 +116,11 @@ namespace AccStateSync
 					InitStyle();
 				}
 				GUI.matrix = _resScaleMatrix;
-#if KK && !DEBUG
-				if (JetPack.MoreAccessories.BuggyBootleg)
-					_dragWindowRect = GUILayout.Window(_windowRectID, _windowRect, DrawWarningWindow, "", _windowSolid);
+
+				if (JetPack.CharaStudio.Running)
+					_dragWindowRect = GUILayout.Window(_windowRectID, _windowRect, DrawStudioWindow, "", _windowSolid);
 				else
-#endif
-				{
-					if (JetPack.CharaStudio.Running)
-						_dragWindowRect = GUILayout.Window(_windowRectID, _windowRect, DrawStudioWindow, "", _windowSolid);
-					else
-						_dragWindowRect = GUILayout.Window(_windowRectID, _windowRect, DrawMakerWindow, "", _windowSolid);
-				}
+					_dragWindowRect = GUILayout.Window(_windowRectID, _windowRect, DrawMakerWindow, "", _windowSolid);
 
 				_windowRect.x = _dragWindowRect.x;
 				_windowRect.y = _dragWindowRect.y;
@@ -142,32 +129,12 @@ namespace AccStateSync
 				if (EventType.MouseDown == _windowEvent.type || EventType.MouseUp == _windowEvent.type || EventType.MouseDrag == _windowEvent.type || EventType.MouseMove == _windowEvent.type)
 					_hasFocus = false;
 
-				//if (_hasFocus && GetResizedRect(_windowRect).Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
 				if ((!_passThrough || _hasFocus) && JetPack.UI.GetResizedRect(_windowRect).Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
 					Input.ResetInputAxes();
 			}
 
-			private void DrawWarningWindow(int _windowID)
+			private void OnEnable()
 			{
-				GUI.Box(new Rect(0, 0, _windowSize.x, _windowSize.y), _windowBGtex);
-				if (GUI.Button(new Rect(_windowSize.x - 27, 4, 23, 23), new GUIContent("X", "Close this window")))
-				{
-					CloseWindow();
-				}
-				GUILayout.BeginVertical();
-				{
-					GUILayout.Space(10);
-					GUILayout.BeginHorizontal(GUI.skin.box);
-					GUILayout.TextArea("<b><color=#ff9900ff>AccStateSync plugin support disabled</color></b>\n\n" + "MoreAccessories experimental build detected\n" + "This version is not meant for productive use\n\n" + "Please rollback to current stable build\n\n" + "Which could be found at " + "https://www.patreon.com/posts/kk-ec-1-1-0-39203275", _textArea, GUILayout.ExpandHeight(true));
-					GUILayout.EndHorizontal();
-				}
-				GUILayout.EndVertical();
-				GUI.DragWindow();
-			}
-
-		private void OnEnable()
-			{
-				_hasFocus = true;
 			}
 
 			private void OnDisable()

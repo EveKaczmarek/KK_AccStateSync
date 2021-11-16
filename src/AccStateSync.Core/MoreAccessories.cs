@@ -20,7 +20,7 @@ namespace AccStateSync
 
 			internal static void Init()
 			{
-				if (!JetPack.MoreAccessories.Installed || JetPack.MoreAccessories.BuggyBootleg) return;
+				if (!JetPack.MoreAccessories.Installed) return;
 
 				_instance = JetPack.MoreAccessories.Instance;
 				_installed = true;
@@ -33,8 +33,16 @@ namespace AccStateSync
 
 				if (_installed)
 				{
-					_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateAll_Patches").GetMethod("Postfix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
-					_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateCategory_Patches").GetMethod("Postfix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(int), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
+					if (JetPack.MoreAccessories.BuggyBootleg)
+					{
+						_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.Patches.MainGame.ChaControl_Patches+SetAccessoryStateAll_Patch").GetMethod("Prefix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
+						_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.Patches.MainGame.ChaControl_Patches+SetAccessoryStateCategoryPatch").GetMethod("Prefix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(int), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
+					}
+					else
+					{
+						_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateAll_Patches").GetMethod("Postfix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
+						_hooksInstance["MoreAccessories"].Patch(_type.Assembly.GetType("MoreAccessoriesKOI.ChaControl_SetAccessoryStateCategory_Patches").GetMethod("Postfix", AccessTools.all, null, new[] { typeof(ChaControl), typeof(int), typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.CharaMakerForcePreview)));
+					}
 				}
 
 				_hooksInstance["MoreAccessories"].Patch(typeof(ChaControl).GetMethod("SetAccessoryStateAll", AccessTools.all, null, new[] { typeof(bool) }, null), prefix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.ChaControl_SetAccessoryStateAll_Prefix)));

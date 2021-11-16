@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using ChaCustom;
 using UniRx;
 
 using BepInEx.Logging;
@@ -99,6 +100,41 @@ namespace AccStateSync
 					RemoveSlotTriggerProperty(_currentCoordinateIndex, _args.SlotIndex);
 					RefreshCache();
 				}
+			}
+
+			internal IEnumerator CheckSecondaryCoroutine()
+			{
+				yield return JetPack.Toolbox.WaitForEndOfFrame;
+				yield return JetPack.Toolbox.WaitForEndOfFrame;
+
+				CheckSecondary();
+			}
+
+			internal void CheckSecondary()
+			{
+				bool _refresh = false;
+				List<ChaFileAccessory.PartsInfo> _parts = JetPack.Accessory.ListPartsInfo(ChaControl, _currentCoordinateIndex);
+				ChaFileAccessory.PartsInfo[] _nowAccessories = ChaControl.nowCoordinate.accessory.parts;
+				for (int i = 0; i < _parts.Count; i++)
+				{
+					if (_parts.ElementAtOrDefault(i)?.hideCategory > 0)
+					{
+						if (_cfgCheckSecondaryOnCoordinateChange.Value == Option.Message)
+							_logger.LogMessage($"Reminder: Slot{i + 1:00} is set as secondary");
+						else if (_cfgCheckSecondaryOnCoordinateChange.Value == Option.Auto)
+						{
+							_parts[i].hideCategory = 0;
+							_refresh = true;
+							JetPack.Accessory.SetPartsInfo(ChaControl, _currentCoordinateIndex, i, _parts[i]);
+							if (i < _nowAccessories.Length)
+								_nowAccessories[i].hideCategory = 0;
+							_logger.LogMessage($"Slot{i + 1:00} is set to primary");
+						}
+					}
+				}
+
+				if (_refresh)
+					CustomBase.Instance.updateCustomUI = true;
 			}
 		}
 	}

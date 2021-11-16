@@ -27,16 +27,39 @@ namespace AccStateSync
 	public partial class AccStateSync : BaseUnityPlugin
 	{
 		public const string GUID = "madevil.kk.ass";
+#if DEBUG
+		public const string Name = "AccStateSync (Debug Build)";
+#else
 		public const string Name = "AccStateSync";
-		public const string Version = "4.4.3.0";
+#endif
+		public const string Version = "4.5.0.0";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
 
-		private void Start()
+		private void Awake()
 		{
 			_logger = base.Logger;
 			_instance = this;
+		}
+
+		private void Start()
+		{
+#if KK && !DEBUG
+			if (JetPack.MoreAccessories.BuggyBootleg)
+			{
+				_logger.LogError($"Could not load {Name} {Version} because it is incompatible with MoreAccessories experimental build");
+				return;
+			}
+#endif
+			if (!JetPack.MoreAccessories.Installed)
+			{
+#if KK
+				if (JetPack.MoreAccessories.BuggyBootleg)
+					_logger.LogError($"Backward compatibility in BuggyBootleg MoreAccessories is disabled");
+				return;
+#endif
+			}
 
 			InitConfig();
 			InitConstants();
@@ -84,6 +107,13 @@ namespace AccStateSync
 				if (_args.State == "Coroutine")
 				{
 					_pluginCtrl._duringCordChange = false;
+
+					if (JetPack.CharaMaker.Inside)
+					{
+						if (_cfgCheckSecondaryOnCoordinateChange.Value > 0)
+							_pluginCtrl.CheckSecondary();
+					}
+
 					if (!JetPack.CharaMaker.Inside && !JetPack.CharaStudio.Running)
 						_pluginCtrl.InitCurOutfitTriggerInfo("OnChangeCoordinateType");
 				}

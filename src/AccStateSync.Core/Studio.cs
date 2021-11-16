@@ -32,7 +32,7 @@ namespace AccStateSync
 				Texture2D _iconTex = TextureUtils.LoadTexture(ResourceUtils.GetEmbeddedResource("toolbar_icon.png"));
 				_ttConfigWindow = CustomToolbarButtons.AddLeftToolbarToggle(_iconTex, false, _value => _charaConfigWindow.enabled = _value);
 
-				if (MoreAccessories._installed)
+				if (MoreAccessories._installed && !JetPack.MoreAccessories.BuggyBootleg)
 				{
 					List<Button> _buttons = GameObject.Find("StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State/Viewport/Content/Clothing Details").GetComponentsInChildren<Button>().ToList();
 					_buttons.Add(GameObject.Find($"StudioScene/Canvas Main Menu/02_Manipulate/00_Chara/01_State/Viewport/Content/Cos/Button Shoes 1").GetComponent<Button>());
@@ -75,7 +75,7 @@ namespace AccStateSync
 				yield return JetPack.Toolbox.WaitForEndOfFrame;
 				yield return JetPack.Toolbox.WaitForEndOfFrame;
 
-				if (MoreAccessories._installed)
+				if (MoreAccessories._installed && !JetPack.MoreAccessories.BuggyBootleg)
 				{
 					AccStateSyncController _pluginCtrl = GetController(_curOCIChar);
 					if (_pluginCtrl != null && _pluginCtrl.TriggerEnabled)

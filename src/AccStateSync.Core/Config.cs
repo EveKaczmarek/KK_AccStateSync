@@ -25,11 +25,20 @@ namespace AccStateSync
 		internal static ConfigEntry<bool> _cfgStudioAutoEnable;
 
 		internal static ConfigEntry<bool> _cfgResetOnCoordinateChange;
+		internal static ConfigEntry<Option> _cfgCheckSecondaryOnCoordinateChange;
 
 		internal void InitConfig()
 		{
 			_cfgMakerWinEnable = Config.Bind("Maker", "Config Window Startup Enable", false, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 20, Browsable = !JetPack.CharaStudio.Running }));
 			_cfgDragPass = Config.Bind("Maker", "Drag Pass Mode", false, new ConfigDescription("Setting window will not block mouse dragging", null, new ConfigurationManagerAttributes { Order = 15 }));
+			_cfgDragPass.SettingChanged += (_sender, _args) =>
+			{
+				if (_charaConfigWindow == null) return;
+				if (_charaConfigWindow._passThrough != _cfgDragPass.Value)
+				{
+					_charaConfigWindow._passThrough = _cfgDragPass.Value;
+				}
+			};
 
 			_cfgMakerWinX = Config.Bind("Maker", "Config Window Startup X", 525f, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 19, Browsable = !JetPack.CharaStudio.Running }));
 			_cfgMakerWinX.SettingChanged += (_sender, _args) =>
@@ -62,6 +71,8 @@ namespace AccStateSync
 				_charaConfigWindow._cfgScaleFactor = _cfgMakerWinScale.Value;
 				_charaConfigWindow.ChangeRes();
 			};
+
+			_cfgCheckSecondaryOnCoordinateChange = Config.Bind("Maker", "Check Secondary On Coordinate Change", Option.Message, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 0, Browsable = !JetPack.CharaStudio.Running }));
 
 			_cfgCharaMakerPreview = Config.Bind("Maker", "CharaMaker Force Preview", true, new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 10, Browsable = !JetPack.CharaStudio.Running }));
 
@@ -104,6 +115,13 @@ namespace AccStateSync
 			_cfgStudioAutoEnable = Config.Bind("Studio", "Auto Enable After Scene Load", true, new ConfigDescription("Automatically enable after scene load", null, new ConfigurationManagerAttributes { Order = 1, Browsable = JetPack.CharaStudio.Running }));
 
 			_cfgResetOnCoordinateChange = Config.Bind("Hscene", "Reset On Coordinate Change", false, new ConfigDescription("A full reset when changing coordinate", null, new ConfigurationManagerAttributes { Order = 1 }));
+		}
+
+		public enum Option
+		{
+			None,
+			Message,
+			Auto,
 		}
 	}
 }

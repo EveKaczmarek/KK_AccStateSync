@@ -80,19 +80,6 @@ namespace AccStateSync
 
 			protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
 			{
-#if KK && !DEBUG
-				/*
-				if (!JetPack.MoreAccessories.BuggyBootleg)
-				{
-					if (coordinate.accessory.parts.Length > 20)
-					{
-						_logger.LogMessage($"[AccStateSync] Skipped loading PluginData because the card was saved by experimental build MoreAccessories");
-						base.OnCoordinateBeingLoaded(coordinate);
-						return;
-					}
-				}
-				*/
-#endif
 				if (!JetPack.CharaMaker.Inside || (JetPack.CharaMaker.Inside && _loadCoordinateExtdata))
 				{
 					TriggerPropertyList.RemoveAll(x => x.Coordinate == _currentCoordinateIndex);
@@ -155,6 +142,12 @@ namespace AccStateSync
 						MissingGroupCheck(_currentCoordinateIndex);
 						MissingPropertyCheck(_currentCoordinateIndex);
 
+						if (JetPack.CharaMaker.Inside)
+						{
+							if (_cfgCheckSecondaryOnCoordinateChange.Value > 0)
+								StartCoroutine(CheckSecondaryCoroutine());
+						}
+
 						if (!JetPack.CharaMaker.Inside && !JetPack.CharaStudio.Running)
 							InitCurOutfitTriggerInfo("OnCoordinateBeingLoaded");
 					}
@@ -164,27 +157,12 @@ namespace AccStateSync
 
 			protected override void OnReload(GameMode currentGameMode)
 			{
-#if KK && !DEBUG
-				/*
-				if (!JetPack.MoreAccessories.BuggyBootleg)
-				{
-					if (ChaControl.chaFile.coordinate.Any(x => x.accessory.parts.Length > 20))
-					{
-						_logger.LogMessage($"[AccStateSync] Skipped loading PluginData because the card was saved by experimental build MoreAccessories");
-						base.OnReload(currentGameMode);
-						return;
-					}
-				}
-				*/
-#endif
 				bool _duringSceneLoad = false;
 				if (JetPack.CharaStudio.Running)
 				{
 					_duringSceneLoad = CharaStudio._duringSceneLoad;
 					_duringCharaLoad = true;
-					_logger.LogWarning($"[OnReload][TriggerEnabled: {TriggerEnabled}]");
 					_wasTriggerEnabled = TriggerEnabled;
-					_logger.LogWarning($"[OnReload][1][_wasTriggerEnabled: {_wasTriggerEnabled}]");
 
 					if (_duringSceneLoad)
 					{
