@@ -119,16 +119,22 @@ namespace AccStateSync
 				{
 					if (_parts.ElementAtOrDefault(i)?.hideCategory > 0)
 					{
-						if (_cfgCheckSecondaryOnCoordinateChange.Value == Option.Message)
-							_logger.LogMessage($"Reminder: Slot{i + 1:00} is set as secondary");
-						else if (_cfgCheckSecondaryOnCoordinateChange.Value == Option.Auto)
+						if (_cfgCheckSecondaryOnCoordinateChange.Value == Option.Auto)
 						{
 							_parts[i].hideCategory = 0;
 							_refresh = true;
 							JetPack.Accessory.SetPartsInfo(ChaControl, _currentCoordinateIndex, i, _parts[i]);
 							if (i < _nowAccessories.Length)
 								_nowAccessories[i].hideCategory = 0;
-							_logger.LogMessage($"Slot{i + 1:00} is set to primary");
+							if (_parts[i].type != 120)
+								_logger.LogMessage($"Slot{i + 1:00} is set to primary");
+							else
+								DebugMsg(LogLevel.Info, $"Slot{i + 1:00} is empty and set to primary");
+						}
+						else if (_cfgCheckSecondaryOnCoordinateChange.Value == Option.Message)
+						{
+							if (_parts[i].type != 120)
+								_logger.LogMessage($"Reminder: Slot{i + 1:00} is set as secondary");
 						}
 					}
 				}

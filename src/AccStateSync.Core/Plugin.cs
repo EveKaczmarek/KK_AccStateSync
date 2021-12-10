@@ -32,7 +32,7 @@ namespace AccStateSync
 #else
 		public const string Name = "AccStateSync";
 #endif
-		public const string Version = "4.5.0.0";
+		public const string Version = "4.5.1.1";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
