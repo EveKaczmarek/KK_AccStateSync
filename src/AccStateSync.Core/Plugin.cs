@@ -20,10 +20,6 @@ namespace AccStateSync
 	[BepInDependency("com.joan6694.illusionplugins.moreaccessories", "1.1.0")]
 #endif
 	[BepInIncompatibility("KK_ClothesLoadOption")]
-#if !DEBUG
-	[BepInIncompatibility("com.jim60105.kk.studiocoordinateloadoption")]
-	[BepInIncompatibility("com.jim60105.kk.coordinateloadoption")]
-#endif
 	public partial class AccStateSync : BaseUnityPlugin
 	{
 		public const string GUID = "madevil.kk.ass";
@@ -32,7 +28,7 @@ namespace AccStateSync
 #else
 		public const string Name = "AccStateSync";
 #endif
-		public const string Version = "4.5.1.1";
+		public const string Version = "4.5.1.2";
 
 		internal static ManualLogSource _logger;
 		internal static AccStateSync _instance;
@@ -60,7 +56,13 @@ namespace AccStateSync
 				return;
 #endif
 			}
-
+#if KK
+			if (!JetPack.CoordinateLoadOption.Safe)
+			{
+				_logger.LogError($"Could not load {Name} {Version} because it is incompatible with outdated CoordinateLoadOption");
+				return;
+			}
+#endif
 			InitConfig();
 			InitConstants();
 

@@ -86,7 +86,7 @@ namespace AccStateSync
 					if (JetPack.MoreAccessories.BuggyBootleg)
 					{
 						GUILayout.BeginHorizontal(GUI.skin.box);
-						GUILayout.TextArea("MoreAccessories experimental build detected\nThis version is not meant for productive use", _labelBoldOrange);
+						GUILayout.TextArea("MoreAccessories experimental build detected\nThis version is not meant for production use", _labelBoldOrange);
 						GUILayout.EndHorizontal();
 					}
 				}
